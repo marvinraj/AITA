@@ -7,7 +7,8 @@ module.exports = {
     extend: {
       colors: {
         bg: '#0d0d0d',
-        primaryFont: '#FBFAF8',
+        primaryFont: '#FFFFFF',
+        secondaryFont: '#828282',
         accentFont: '#5010FF',
       }
     },
