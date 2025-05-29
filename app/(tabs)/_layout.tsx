@@ -23,8 +23,9 @@ const _layout = () => {
                 paddingTop: 10
             },
             tabBarStyle: {
-                backgroundColor: '#0d0d0d',
+                backgroundColor: '#0E0E0E',
                 height: 88,
+                borderColor: '#0E0E0E'
             }
         }}
     >
