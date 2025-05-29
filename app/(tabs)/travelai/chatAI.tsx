@@ -1,12 +1,12 @@
 import { View, Text } from 'react-native'
 import React from 'react'
 
-const travelai = () => {
+const aiChat = () => {
   return (
     <View>
-      <Text>travelai</Text>
+      <Text>Welcome to AITA AI!</Text>
     </View>
   )
 }
 
-export default travelai
+export default aiChat
