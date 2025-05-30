@@ -9,7 +9,7 @@ export default function Index() {
         showsVerticalScrollIndicator={false} 
         contentContainerStyle={{ minHeight: '100%', paddingBottom: 10 }}
       >
-        <View className="flex-row items-center mt-20 mb-5">
+        <View className="flex-row items-center mb-5">
           <Image source={icons.logo} className="w-10 h-10"/>
           <Text className="text-primaryFont text-lg ml-2 font-bold">AITA.</Text>
         </View>
