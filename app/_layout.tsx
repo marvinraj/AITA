@@ -7,7 +7,15 @@ export default function RootLayout() {
     <Stack>
       {/* hides 'tab' group route on top */}
       <Stack.Screen
-        name="(tabs)"
+        name="index"
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="(root)"
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="(auth)"
         options={{ headerShown: false }}
       />
     </Stack>

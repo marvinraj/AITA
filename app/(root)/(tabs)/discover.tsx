@@ -3,8 +3,8 @@ import React from 'react'
 
 const discover = () => {
   return (
-    <View>
-      <Text>discover</Text>
+    <View className='flex-1 bg-primaryBG'>
+      <Text className='text-primaryFont'>discover</Text>
     </View>
   )
 }

@@ -3,9 +3,8 @@ import { icons } from '@/constants/icons'
 
 export default function Index() {
   return (
-    <View className="flex-1 bg-primaryBG">
       <ScrollView 
-        className="flex-1 px-5"
+        className="flex-1 px-5 bg-primaryBG"
         showsVerticalScrollIndicator={false} 
         contentContainerStyle={{ minHeight: '100%', paddingBottom: 10 }}
       >
@@ -14,6 +13,5 @@ export default function Index() {
           <Text className="text-primaryFont text-lg ml-2 font-bold">AITA.</Text>
         </View>
       </ScrollView>
-    </View>
   );
 }
