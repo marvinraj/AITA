@@ -11,7 +11,7 @@ const SignIn = () => {
         contentContainerStyle={{ minHeight: '100%', paddingBottom: 10 }}
         >
             <Text className='text-fuchsia-50'>log in screen</Text>
-            <Link href={'/(tabs)'} asChild>
+            <Link href={'/(root)/(tabs)'} asChild>
                 <TouchableOpacity className="px-8 py-3 rounded-lg border-2 border-indigo-50">
                     <Text className="text-primaryFont font-semibold text-base">Log in</Text>
                 </TouchableOpacity>
