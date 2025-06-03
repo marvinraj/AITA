@@ -21,7 +21,7 @@ const Onboarding = () => {
       </View>
       <View className="w-full items-center mb-14">
         <Link href="/(auth)/sign-up" asChild>
-          <TouchableOpacity className="bg-primaryFont w-full px-6 py-5 rounded-full shadow-lg active:opacity-80" style={{maxWidth: 500}}>
+          <TouchableOpacity className="bg-buttonPrimary w-full px-6 py-5 rounded-full shadow-lg active:opacity-80" style={{maxWidth: 500}}>
             <Text className="font-semibold text-base text-center">Get Started</Text>
           </TouchableOpacity>
         </Link>

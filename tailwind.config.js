@@ -10,6 +10,9 @@ module.exports = {
         primaryFont: '#FFFFFF',
         secondaryFont: '#828282',
         accentFont: '#5010FF',
+        buttonPrimary: '#FFFFFF',
+        buttonSecondary: '#FFFFFF',
+        inputBG: '#1B1C1D'
       }
     },
   },

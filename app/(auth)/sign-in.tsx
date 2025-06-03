@@ -22,7 +22,7 @@ const SignIn = () => {
             placeholderTextColor="#666"
             keyboardType="email-address"
             autoCapitalize="none"
-            className="bg-[#1b1c1d] focus:border-primaryFont rounded-full px-6 py-5 mb-5 text-primaryFont text-base"
+            className="bg-inputBG focus:border-primaryFont rounded-full px-6 py-5 mb-5 text-primaryFont text-base"
             style={{fontSize: 16}}
           />
           <Text className="text-primaryFont text-sm mb-2">Password</Text>
@@ -30,12 +30,12 @@ const SignIn = () => {
             placeholder="enter password"
             placeholderTextColor="#666"
             secureTextEntry
-            className="bg-[#1b1c1d] focus:border-primaryFont rounded-full px-6 py-5 mb-2 text-primaryFont text-base"
+            className="bg-inputBG focus:border-primaryFont rounded-full px-6 py-5 mb-2 text-primaryFont text-base"
             style={{fontSize: 16}}
           />
         </View>
         <Link href="/(root)/(tabs)" asChild>
-          <TouchableOpacity className="bg-primaryFont w-full px-6 py-5 rounded-full shadow-lg active:opacity-80 mb-4 mt-4" style={{maxWidth: 400}}>
+          <TouchableOpacity className="bg-buttonPrimary w-full px-6 py-5 rounded-full shadow-lg active:opacity-80 mb-4 mt-4" style={{maxWidth: 400}}>
             <Text className="font-semibold text-base text-center">Log In</Text>
           </TouchableOpacity>
         </Link>
