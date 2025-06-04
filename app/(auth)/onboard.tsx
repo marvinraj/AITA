@@ -6,7 +6,7 @@ const Onboarding = () => {
   return (
     <View className="flex-1 bg-primaryBG px-6">
       <View className="items-center mt-6 mb-8">
-        <Text className="text-3xl font-bold text-primaryFont text-center">AITA</Text>
+        <Text className="text-3xl font-bold text-primaryFont text-center font-BellezaRegular">AITA</Text>
       </View>
       <View className="flex-1 items-center justify-center">
         <Image
@@ -22,14 +22,14 @@ const Onboarding = () => {
       <View className="w-full items-center mb-14">
         <Link href="/(auth)/sign-up" asChild>
           <TouchableOpacity className="bg-buttonPrimary w-full px-6 py-5 rounded-full shadow-lg active:opacity-80" style={{maxWidth: 500}}>
-            <Text className="font-semibold text-base text-center">Get Started</Text>
+            <Text className="font-BellezaRegular text-base text-center">Get Started</Text>
           </TouchableOpacity>
         </Link>
         <View className="mt-4 items-center w-full">
-          <Text className="text-secondaryFont text-xs text-center">
+          <Text className="text-secondaryFont text-xs text-center font-InterRegular">
             By tapping on <Text className="font-semibold">"Get Started"</Text>, you agree to our
           </Text>
-          <Text className="text-secondaryFont text-xs text-center mt-1">
+          <Text className="text-secondaryFont text-xs text-center mt-1 font-InterRegular">
             <Text className="underline">Terms</Text> and <Text className="underline">Privacy Policy</Text>
           </Text>
         </View>

@@ -5,6 +5,11 @@ module.exports = {
   presets: [require("nativewind/preset")],
   theme: {
     extend: {
+      fontFamily: {
+        NewsreaderRegular: ["Newsreader-Regular"],
+        BellezaRegular: ["Belleza-Regular"],
+        InterRegular: ["Inter-Regular"],
+      },
       colors: {
         primaryBG: '#0d0d0d',
         primaryFont: '#FFFFFF',
