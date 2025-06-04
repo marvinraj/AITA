@@ -45,9 +45,9 @@ const SignUp = () => {
         </Link>
         <Link href="/(auth)/sign-in" asChild>
           <TouchableOpacity className="bg-transparent w-full px-6 py-4 rounded-full mb-2 flex-row justify-center items-center" style={{maxWidth: 400}}>
-            <Text className="text-primaryFont font-InterRegular text-base text-center">
+            <Text className="text-secondaryFont font-InterRegular text-base text-center">
               Already have an account?{' '}
-              <Text className="underline font-BellezaRegular text-lg">Log in</Text>
+              <Text className="underline text-primaryFont font-BellezaRegular text-lg">Log in</Text>
             </Text>
           </TouchableOpacity>
         </Link>
