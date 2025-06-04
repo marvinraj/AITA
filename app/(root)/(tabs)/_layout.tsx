@@ -10,7 +10,7 @@ const fullConfig = resolveConfig(tailwindConfig)
 const colors = fullConfig.theme?.colors as any
 
 
-const _layout = () => {
+const TabsLayout = () => {
   return (
     <Tabs
         screenOptions={{
@@ -123,4 +123,4 @@ const _layout = () => {
   )
 }
 
-export default _layout
+export default TabsLayout

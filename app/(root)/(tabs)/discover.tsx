@@ -1,7 +1,7 @@
 import { View, Text } from 'react-native'
 import React from 'react'
 
-const discover = () => {
+const DiscoverScreen = () => {
   return (
     <View className='flex-1 bg-primaryBG'>
       <Text className='text-primaryFont'>discover</Text>
@@ -9,4 +9,4 @@ const discover = () => {
   )
 }
 
-export default discover
+export default DiscoverScreen

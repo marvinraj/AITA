@@ -1,7 +1,7 @@
 import { ScrollView, Text, View, Image } from "react-native";
 import { icons } from '@/constants/icons'
 
-export default function Index() {
+export default function HomeScreen() {
   return (
       <ScrollView 
         className="flex-1 px-5 bg-primaryBG"

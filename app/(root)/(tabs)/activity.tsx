@@ -1,7 +1,7 @@
 import { View, Text } from 'react-native'
 import React from 'react'
 
-const activity = () => {
+const ActivityScreen = () => {
   return (
     <View>
       <Text>activity</Text>
@@ -9,4 +9,4 @@ const activity = () => {
   )
 }
 
-export default activity
+export default ActivityScreen
