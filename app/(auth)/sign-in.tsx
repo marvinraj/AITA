@@ -1,10 +1,38 @@
-import { View, Text, ScrollView, TouchableOpacity, TextInput, Image } from 'react-native'
-import React from 'react'
-import { Link } from 'expo-router'
+import { Link, useRouter } from 'expo-router';
+import React, { useState } from 'react';
+import { Image, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { supabase } from '../../lib/supabase';
 
 const SignIn = () => {
+  // useRouter hook from expo-router to navigate between screens
+  const router = useRouter();
+
+  // useState hooks to manage local state for email, password, and loading status
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  // function to handle user sign in
+  // uses Supabase's auth.signInWithPassword method to authenticate the user
+  async function handleSignIn() {
+    setLoading(true);
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    // error handling
+    if (error) {
+      alert(error.message);
+    } else {
+      router.replace('/(root)/(tabs)');
+    }
+    setLoading(false);
+  }
+
   return (
     <ScrollView className="flex-1 bg-primaryBG px-6" contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }} showsVerticalScrollIndicator={false}>
+      {/* logo & app name */}
       <View className="items-center mt-10 mb-8">
         <Image
           source={require('../../assets/images/logo.png')}
@@ -14,6 +42,7 @@ const SignIn = () => {
         />
         <Text className="text-2xl font-BellezaRegular text-primaryFont text-center">Welcome Back!</Text>
       </View>
+      {/* form inputs for email and password */}
       <View className="flex-1 items-center justify-center w-full">
         <View className="w-full mb-6" style={{maxWidth: 400}}>
           <Text className="text-primaryFont text-sm mb-2 font-InterRegular">Email</Text>
@@ -23,6 +52,8 @@ const SignIn = () => {
             keyboardType="email-address"
             autoCapitalize="none"
             className="bg-inputBG focus:border-primaryFont rounded-full px-6 py-5 mb-5 text-primaryFont text-base font-InterRegular"
+            value={email}
+            onChangeText={setEmail}
           />
           <Text className="text-primaryFont text-sm mb-2 font-InterRegular">Password</Text>
           <TextInput
@@ -30,13 +61,22 @@ const SignIn = () => {
             placeholderTextColor="#666"
             secureTextEntry
             className="bg-inputBG focus:border-primaryFont rounded-full px-6 py-5 mb-2 text-primaryFont text-base font-InterRegular"
+            value={password}
+            onChangeText={setPassword}
           />
         </View>
-        <Link href="/(root)/(tabs)" asChild>
-          <TouchableOpacity className="bg-buttonPrimary w-full px-6 py-5 rounded-full shadow-lg active:opacity-80 mb-4 mt-4" style={{maxWidth: 400}}>
-            <Text className="font-BellezaRegular text-lg text-center">Log In</Text>
-          </TouchableOpacity>
-        </Link>
+        {/* sign in button and link to sign up */}
+        <TouchableOpacity
+          className="bg-buttonPrimary w-full px-6 py-5 rounded-full shadow-lg active:opacity-80 mb-4 mt-4"
+          style={{maxWidth: 400}}
+          onPress={handleSignIn}
+          disabled={loading}
+        >
+          <Text className="font-BellezaRegular text-lg text-center">
+            {loading ? 'Logging In...' : 'Log In'}
+          </Text>
+        </TouchableOpacity>
+        {/* link to sign up page */}
         <Link href="/(auth)/sign-up" asChild>
           <TouchableOpacity className="bg-transparent w-full px-6 py-4 rounded-full mb-2 flex-row justify-center items-center" style={{maxWidth: 400}}>
             <Text className="text-secondaryFont font-InterRegular text-base text-center">
