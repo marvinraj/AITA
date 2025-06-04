@@ -6,7 +6,7 @@ const Onboarding = () => {
   return (
     <View className="flex-1 bg-primaryBG px-6">
       <View className="items-center mt-6 mb-8">
-        <Text className="text-6xl text-primaryFont text-center font-BellezaRegular">AITA</Text>
+        <Text className="text-5xl text-primaryFont text-center font-BellezaRegular">AITA</Text>
       </View>
       <View className="flex-1 items-center justify-center">
         <Image
