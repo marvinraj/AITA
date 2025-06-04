@@ -6,7 +6,7 @@ const Onboarding = () => {
   return (
     <View className="flex-1 bg-primaryBG px-6">
       <View className="items-center mt-6 mb-8">
-        <Text className="text-3xl font-bold text-primaryFont text-center font-BellezaRegular">AITA</Text>
+        <Text className="text-6xl text-primaryFont text-center font-BellezaRegular">AITA</Text>
       </View>
       <View className="flex-1 items-center justify-center">
         <Image
@@ -22,7 +22,7 @@ const Onboarding = () => {
       <View className="w-full items-center mb-14">
         <Link href="/(auth)/sign-up" asChild>
           <TouchableOpacity className="bg-buttonPrimary w-full px-6 py-5 rounded-full shadow-lg active:opacity-80" style={{maxWidth: 500}}>
-            <Text className="font-BellezaRegular text-base text-center">Get Started</Text>
+            <Text className="font-BellezaRegular text-lg text-center">Get Started</Text>
           </TouchableOpacity>
         </Link>
         <View className="mt-4 items-center w-full">

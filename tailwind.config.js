@@ -9,6 +9,7 @@ module.exports = {
         NewsreaderRegular: ["Newsreader-Regular"],
         BellezaRegular: ["Belleza-Regular"],
         InterRegular: ["Inter-Regular"],
+        InterBold: ["Inter-Bold"],
       },
       colors: {
         primaryBG: '#0d0d0d',

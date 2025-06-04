@@ -12,45 +12,42 @@ const SignUp = () => {
           resizeMode="contain"
           accessibilityLabel="AITA Logo"
         />
-        <Text className="text-2xl font-semibold text-primaryFont text-center">Welcome to AITA.</Text>
+        <Text className="text-2xl text-primaryFont text-center font-BellezaRegular">Welcome to AITA.</Text>
       </View>
       <View className="flex-1 items-center justify-center w-full">
         <View className="w-full mb-6" style={{maxWidth: 400}}>
-          <Text className="text-primaryFont text-sm mb-2">Name</Text>
+          <Text className="text-primaryFont text-sm mb-2 font-InterRegular">Name</Text>
           <TextInput
-            placeholder="enter name"
+            placeholder="Enter name"
             placeholderTextColor="#666"
-            className="bg-inputBG focus:border-primaryFont rounded-full px-6 py-5 mb-5 text-primaryFont text-base"
-            style={{fontSize: 16}}
+            className="bg-inputBG focus:border-primaryFont rounded-full px-6 py-5 mb-5 text-primaryFont text-base font-InterRegular"
           />
-          <Text className="text-primaryFont text-sm mb-2">Email</Text>
+          <Text className="text-primaryFont text-sm mb-2 font-InterRegular">Email</Text>
           <TextInput
-            placeholder="enter email"
+            placeholder="Enter email"
             placeholderTextColor="#666"
             keyboardType="email-address"
             autoCapitalize="none"
-            className="bg-inputBG focus:border-primaryFont rounded-full px-6 py-5 mb-5 text-primaryFont text-base"
-            style={{fontSize: 16}}
+            className="bg-inputBG focus:border-primaryFont rounded-full px-6 py-5 mb-5 text-primaryFont text-base font-InterRegular"
           />
-          <Text className="text-primaryFont text-sm mb-2">Password</Text>
+          <Text className="text-primaryFont text-sm mb-2 font-InterRegular">Password</Text>
           <TextInput
-            placeholder="enter password"
+            placeholder="Enter password"
             placeholderTextColor="#666"
             secureTextEntry
-            className="bg-inputBG focus:border-primaryFont rounded-full px-6 py-5 mb-2 text-primaryFont text-base"
-            style={{fontSize: 16}}
+            className="bg-inputBG focus:border-primaryFont rounded-full px-6 py-5 mb-2 text-primaryFont text-base font-InterRegular"
           />
         </View>
         <Link href="/(auth)/sign-up" asChild>
           <TouchableOpacity className="bg-buttonPrimary w-full px-6 py-5 rounded-full shadow-lg active:opacity-80 mb-4 mt-4" style={{maxWidth: 400}}>
-            <Text className="font-semibold text-base text-center">Sign Up</Text>
+            <Text className="font-BellezaRegular text-lg text-center">Sign Up</Text>
           </TouchableOpacity>
         </Link>
         <Link href="/(auth)/sign-in" asChild>
           <TouchableOpacity className="bg-transparent w-full px-6 py-4 rounded-full mb-2 flex-row justify-center items-center" style={{maxWidth: 400}}>
-            <Text className="text-primaryFont font-semibold text-base text-center">
+            <Text className="text-primaryFont font-InterRegular text-base text-center">
               Already have an account?{' '}
-              <Text className="underline">Log in</Text>
+              <Text className="underline font-BellezaRegular text-lg">Log in</Text>
             </Text>
           </TouchableOpacity>
         </Link>
