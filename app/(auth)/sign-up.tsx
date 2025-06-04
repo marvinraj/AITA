@@ -1,10 +1,43 @@
-import { Link } from 'expo-router'
-import React from 'react'
-import { Image, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { Link, useRouter } from 'expo-router';
+import React, { useState } from 'react';
+import { Image, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { supabase } from '../../lib/supabase';
 
 const SignUp = () => {
+  // useRouter hook from expo-router to navigate between screens
+  const router = useRouter();
+
+  // useState hooks to manage local state for email, password, and loading status
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  // function to handle user sign up
+  // uses Supabase's auth.signUp method to create a new user
+  async function handleSignUp() {
+    setLoading(true);
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { name } },
+    });
+
+    // error handling
+    if (error) {
+      alert(error.message);
+    } else if (!data.session) {
+      alert('Please check your inbox for email verification!');
+      router.replace('/(auth)/sign-in');
+    } else {
+      router.replace('/(root)/(tabs)');
+    }
+    setLoading(false);
+  }
+
   return (
     <ScrollView className="flex-1 bg-primaryBG px-6" contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }} showsVerticalScrollIndicator={false}>
+      {/* logo & app name */}
       <View className="items-center mt-10 mb-8">
         <Image
           source={require('../../assets/images/logo.png')}
@@ -14,35 +47,53 @@ const SignUp = () => {
         />
         <Text className="text-2xl text-primaryFont text-center font-BellezaRegular">Welcome to AITA.</Text>
       </View>
+      
       <View className="flex-1 items-center justify-center w-full">
+        {/* form inputs for name, email, and password */}
         <View className="w-full mb-6" style={{maxWidth: 400}}>
           <Text className="text-primaryFont text-sm mb-2 font-InterRegular">Name</Text>
           <TextInput
-            placeholder="Enter name"
+            placeholder="enter name"
             placeholderTextColor="#666"
-            className="bg-inputBG focus:border-primaryFont rounded-full px-6 py-5 mb-5 text-primaryFont text-base font-InterRegular"
+            className="bg-inputBG focus:border-primaryFont rounded-full px-6 py-5 mb-5 text-primaryFont text-base"
+            style={{fontSize: 16}}
+            value={name}
+            onChangeText={setName}
           />
           <Text className="text-primaryFont text-sm mb-2 font-InterRegular">Email</Text>
           <TextInput
-            placeholder="Enter email"
+            placeholder="enter email"
             placeholderTextColor="#666"
             keyboardType="email-address"
             autoCapitalize="none"
-            className="bg-inputBG focus:border-primaryFont rounded-full px-6 py-5 mb-5 text-primaryFont text-base font-InterRegular"
+            className="bg-inputBG focus:border-primaryFont rounded-full px-6 py-5 mb-5 text-primaryFont text-base"
+            style={{fontSize: 16}}
+            value={email}
+            onChangeText={setEmail}
           />
           <Text className="text-primaryFont text-sm mb-2 font-InterRegular">Password</Text>
           <TextInput
-            placeholder="Enter password"
+            placeholder="enter password"
             placeholderTextColor="#666"
             secureTextEntry
-            className="bg-inputBG focus:border-primaryFont rounded-full px-6 py-5 mb-2 text-primaryFont text-base font-InterRegular"
+            className="bg-inputBG focus:border-primaryFont rounded-full px-6 py-5 mb-2 text-primaryFont text-base"
+            style={{fontSize: 16}}
+            value={password}
+            onChangeText={setPassword}
           />
         </View>
-        <Link href="/(auth)/sign-up" asChild>
-          <TouchableOpacity className="bg-buttonPrimary w-full px-6 py-5 rounded-full shadow-lg active:opacity-80 mb-4 mt-4" style={{maxWidth: 400}}>
-            <Text className="font-BellezaRegular text-lg text-center">Sign Up</Text>
-          </TouchableOpacity>
-        </Link>
+        {/* sign up button and navigation to sign in */}
+        <TouchableOpacity
+          className="bg-buttonPrimary w-full px-6 py-5 rounded-full shadow-lg active:opacity-80 mb-4 mt-4"
+          style={{maxWidth: 400}}
+          onPress={handleSignUp}
+          disabled={loading}
+        >
+          <Text className="font-BellezaRegular text-base text-center">
+            {loading ? 'Signing Up...' : 'Sign Up'}
+          </Text>
+        </TouchableOpacity>
+        {/* link to sign in page */}
         <Link href="/(auth)/sign-in" asChild>
           <TouchableOpacity className="bg-transparent w-full px-6 py-4 rounded-full mb-2 flex-row justify-center items-center" style={{maxWidth: 400}}>
             <Text className="text-secondaryFont font-InterRegular text-base text-center">
