@@ -13,6 +13,7 @@ module.exports = {
       },
       colors: {
         primaryBG: '#0d0d0d',
+        secondaryBG: '#1F1E1E',
         primaryFont: '#FFFFFF',
         secondaryFont: '#828282',
         accentFont: '#5010FF',
