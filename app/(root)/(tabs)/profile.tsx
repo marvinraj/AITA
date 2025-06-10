@@ -68,7 +68,7 @@ const ProfileScreen = () => {
             className="mr-6 pb-1 relative"
             onPress={() => setActiveTab(tab)}
           >
-            <Text className={activeTab === tab ? "text-accentFont font-InterRegular text-base" : "text-secondaryFont font-InterRegular text-base"}>{tab}</Text>
+            <Text className={activeTab === tab ? "text-accentFont font-InterBold text-base" : "text-secondaryFont font-InterRegular text-base"}>{tab}</Text>
             {activeTab === tab && (
               <View className="absolute left-0 right-0 -bottom-1 h-[2px] bg-accentFont rounded" />
             )}
