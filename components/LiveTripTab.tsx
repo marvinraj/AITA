@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Text, View } from 'react-native';
 import BudgetTab from './BudgetTab';
 import ItineraryTab from './ItineraryTab';
+import SavesTab from './SavesTab';
 import LiveTripHeader from './LiveTripHeader';
 import TravelHubTab from './TravelHubTab';
 
@@ -9,7 +10,8 @@ import TravelHubTab from './TravelHubTab';
 const TABS = [
   { key: 'Travel Hub', component: TravelHubTab },
   { key: 'Itinerary', component: ItineraryTab },
-  { key: 'Budget', component: BudgetTab },
+  { key: 'Saves', component: SavesTab },
+  // { key: 'Budget', component: BudgetTab },
 ];
 
 export default function LiveTripTab() {
