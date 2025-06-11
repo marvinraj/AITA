@@ -1,10 +1,13 @@
 import { Text, View } from 'react-native';
+import MemoryDropdown from './MemoryDropdown';
+import NotesDropdown from './NotesDropdown';
+import TravelChecklistDropdown from './TravelChecklistDropdown';
 
 export default function TravelHubTab() {
   return (
     <View className="flex-1 w-full pt-4">
       {/* Essentials Section */}
-      <View className="mb-8">
+      <View className="mb-6">
         {/* section title */}
         <Text className="text-primaryFont text-lg font-bold mb-3">Essentials</Text>
         {/* icons grid */}
@@ -57,6 +60,15 @@ export default function TravelHubTab() {
           </View>
         </View>
       </View>
+      
+      {/* divider */}
+      <View className="h-[1px] bg-[#222] w-full mb-6" />
+
+      {/* Dropdown Sections */}
+      <NotesDropdown />
+      <TravelChecklistDropdown />
+      <MemoryDropdown />
+
       {/* Placeholder for rest of Travel Hub content */}
       <View className="flex-1 items-center justify-center">
         <Text className="text-primaryFont text-lg">Travel Hub Content</Text>
