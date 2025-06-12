@@ -146,7 +146,7 @@ const SmartForm = () => {
             {/* title */}
             <Text className="text-3xl font-BellezaRegular text-primaryFont mb-10 mt-2 tracking-wide">Trip Details</Text>
             {/* destination */}
-            <Text className="text-primaryFont font-InterRegular mb-2 w-full text-base">Where do you want to go?</Text>
+            <Text className="text-primaryFont font-InterBold mb-2 w-full">Where do you want to go?</Text>
             <TextInput
                 className="bg-[#232325] text-primaryFont rounded-xl px-5 py-4 mb-7 w-full border border-[#39393b] text-base focus:border-accentFont"
                 placeholder="Enter destination"
@@ -155,7 +155,7 @@ const SmartForm = () => {
                 onChangeText={setDestination}
             />
             {/* dates */}
-            <Text className="text-primaryFont font-InterRegular mb-2 w-full text-base">When do you want to go?</Text>
+            <Text className="text-primaryFont font-InterBold mb-2 w-full">When do you want to go?</Text>
             <TouchableOpacity
                 className="flex-row items-center w-full bg-[#232325] border border-[#39393b] rounded-xl px-5 py-4 mb-7"
                 onPress={handleDateRangePress}
@@ -205,7 +205,7 @@ const SmartForm = () => {
                 </View>
             )}
             {/* companions */}
-            <Text className="text-primaryFont font-InterRegular mb-2 w-full text-base">Who's coming with you?</Text>
+            <Text className="text-primaryFont font-InterBold mb-2 w-full">Who's coming with you?</Text>
             <View className="flex-row flex-wrap gap-2 mb-7 w-full">
                 {companionOptions.map((option) => (
                 <TouchableOpacity
@@ -214,12 +214,12 @@ const SmartForm = () => {
                     onPress={() => setCompanions(option.value)}
                     activeOpacity={0.85}
                 >
-                    <Text className={`text-base font-medium ${companions === option.value ? 'text-primaryBG' : 'text-primaryFont'}`}>{option.label}</Text>
+                    <Text className={` font-InterRegular ${companions === option.value ? 'text-primaryBG' : 'text-primaryFont'}`}>{option.label}</Text>
                 </TouchableOpacity>
                 ))}
             </View>
             {/* activities */}
-            <Text className="text-primaryFont font-InterRegular mb-2 w-full text-base">How do you want to spend your time?</Text>
+            <Text className="text-primaryFont font-InterBold mb-2 w-full">How do you want to spend your time?</Text>
             <View className="flex-row flex-wrap gap-2 mb-10 w-full">
                 {activityOptions.map((activity) => (
                 <TouchableOpacity
@@ -228,7 +228,7 @@ const SmartForm = () => {
                     onPress={() => toggleActivity(activity)}
                     activeOpacity={0.85}
                 >
-                    <Text className={`text-base font-medium ${activities.includes(activity) ? 'text-primaryBG' : 'text-primaryFont'}`}>{activity}</Text>
+                    <Text className={` font-InterRegular ${activities.includes(activity) ? 'text-primaryBG' : 'text-primaryFont'}`}>{activity}</Text>
                 </TouchableOpacity>
                 ))}
             </View>
