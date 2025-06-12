@@ -6,10 +6,10 @@ const TravelAILayout = () => {
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="index"/>
-      <Stack.Screen 
+      {/* <Stack.Screen 
         name="chatAI" 
         options={{ presentation: 'modal' }}
-      />
+      /> */}
     </Stack>
   )
 }

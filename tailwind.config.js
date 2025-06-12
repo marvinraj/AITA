@@ -22,6 +22,7 @@ module.exports = {
         accentFont: '#7C3AED',
         buttonPrimary: '#FFFFFF',
         buttonSecondary: '#FFFFFF',
+        buttonPrimaryBG: '#232325',
         inputBG: '#1B1C1D'
       }
     },
