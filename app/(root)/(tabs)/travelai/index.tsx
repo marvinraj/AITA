@@ -11,7 +11,7 @@ const TravelAI = () => {
       <Text className="text-base font-InterRegular text-secondaryFont mb-8 text-center">Choose how you want to plan your trip. You can plan everything yourself or let AITA help you!</Text>
       {/* 2 buttons */}
       <View className="w-full gap-4">
-        {/* manual button */}
+        {/* manual button -> need to alter the href soon*/}
         <Link href={'/travelai/manual'} asChild>
           <TouchableOpacity className="flex-row items-center bg-buttonPrimaryBG rounded-2xl px-5 py-6 mb-2 w-full shadow-md">
             <View className="bg-[#2D2D30] rounded-full p-3 mr-4">
@@ -25,7 +25,7 @@ const TravelAI = () => {
           </TouchableOpacity>
         </Link>
         {/* ai button */}
-        <Link href={'/travelai/chatAI'} asChild>
+        <Link href={'/travelai/smartForm'} asChild>
           <TouchableOpacity className="flex-row items-center bg-buttonPrimaryBG rounded-2xl px-5 py-6 w-full shadow-md">
             <View className="bg-[#2D2D30] rounded-full p-3 mr-4">
               <Text className="text-xl">🤖</Text>

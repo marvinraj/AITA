@@ -10,6 +10,11 @@ const TravelAILayout = () => {
         name="chatAI" 
         options={{ presentation: 'modal' }}
       /> */}
+      <Stack.Screen 
+        name="smartForm"
+        options={{ presentation: 'modal' }} 
+      />
+      {/* add gestureEnabled: false to the above to prevent users from sliding down to close the smartform modal */}
     </Stack>
   )
 }
