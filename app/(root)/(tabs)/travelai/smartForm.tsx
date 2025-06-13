@@ -146,27 +146,33 @@ const SmartForm = () => {
             {/* title */}
             <Text className="text-3xl font-BellezaRegular text-primaryFont mb-10 mt-2 tracking-wide">Trip Details</Text>
             {/* destination */}
-            <Text className="text-primaryFont font-InterBold mb-2 w-full">Where do you want to go?</Text>
-            <TextInput
-                className="bg-[#232325] text-primaryFont rounded-xl px-5 py-4 mb-7 w-full border border-[#39393b] text-base focus:border-accentFont"
-                placeholder="Enter destination"
-                placeholderTextColor="#888"
-                value={destination}
-                onChangeText={setDestination}
-            />
+            <View className="w-full mb-7">
+                <Text className="text-primaryFont font-InterBold mb-2 w-full">Where do you want to go?</Text>
+                <TextInput
+                    className="bg-[#232325] text-primaryFont rounded-xl px-5 py-4 mb-1 w-full border border-[#39393b] text-base focus:border-accentFont"
+                    placeholder="Enter destination"
+                    placeholderTextColor="#888"
+                    value={destination}
+                    onChangeText={setDestination}
+                />
+            </View>
+            {/* divider */}
+            <View className="w-full h-[1px] bg-[#39393b] opacity-60 mb-7 rounded-full" />
             {/* dates */}
-            <Text className="text-primaryFont font-InterBold mb-2 w-full">When do you want to go?</Text>
-            <TouchableOpacity
-                className="flex-row items-center w-full bg-[#232325] border border-[#39393b] rounded-xl px-5 py-4 mb-7"
-                onPress={handleDateRangePress}
-                activeOpacity={0.8}
-            >
-                <Text className="text-2xl mr-3">📅</Text>
-                <Text className={`text-primaryFont font-semibold text-lg ${range.start && range.end ? '' : 'opacity-60'}`}
+            <View className="w-full mb-7">
+                <Text className="text-primaryFont font-InterBold mb-2 w-full">When do you want to go?</Text>
+                <TouchableOpacity
+                    className="flex-row items-center w-full bg-[#232325] border border-[#39393b] rounded-xl px-5 py-4 mb-1"
+                    onPress={handleDateRangePress}
+                    activeOpacity={0.8}
                 >
-                    {getDateRangeDisplay(range.start, range.end)}
-                </Text>
-            </TouchableOpacity>
+                    <Text className="text-2xl mr-3">📅</Text>
+                    <Text className={`text-primaryFont font-semibold text-lg ${range.start && range.end ? '' : 'opacity-60'}`}
+                    >
+                        {getDateRangeDisplay(range.start, range.end)}
+                    </Text>
+                </TouchableOpacity>
+            </View>
             {/* Calendar picker */}
             {showCalendar && (
                 <View className="w-full mb-7 rounded-2xl overflow-hidden bg-[#232325] border border-[#39393b] shadow-lg">
@@ -204,39 +210,46 @@ const SmartForm = () => {
                     </View>
                 </View>
             )}
+            {/* divider */}
+            <View className="w-full h-[1px] bg-[#39393b] opacity-60 mb-7 rounded-full" />
             {/* companions */}
-            <Text className="text-primaryFont font-InterBold mb-2 w-full">Who's coming with you?</Text>
-            <View className="flex-row flex-wrap gap-2 mb-7 w-full">
-                {companionOptions.map((option) => (
-                <TouchableOpacity
-                    key={option.value}
-                    className={`px-5 py-2 rounded-full border ${companions === option.value ? 'bg-accentFont border-accentFont' : 'bg-[#232325] border-[#39393b]'} shadow-sm`}
-                    onPress={() => setCompanions(option.value)}
-                    activeOpacity={0.85}
-                >
-                    <Text className={` font-InterRegular ${companions === option.value ? 'text-primaryBG' : 'text-primaryFont'}`}>{option.label}</Text>
-                </TouchableOpacity>
-                ))}
+            <View className="w-full mb-7">
+                <Text className="text-primaryFont font-InterBold mb-2 w-full">Who's coming with you?</Text>
+                <View className="flex-row flex-wrap gap-2">
+                    {companionOptions.map((option) => (
+                    <TouchableOpacity
+                        key={option.value}
+                        className={`px-5 py-2 rounded-full border ${companions === option.value ? 'bg-accentFont border-accentFont shadow-md' : 'bg-[#232325] border-[#39393b]'} `}
+                        onPress={() => setCompanions(option.value)}
+                        activeOpacity={0.85}
+                    >
+                        <Text className={`font-InterRegular ${companions === option.value ? 'text-primaryBG font-InterBold' : 'text-primaryFont'}`}>{option.label}</Text>
+                    </TouchableOpacity>
+                    ))}
+                </View>
             </View>
+            {/* divider */}
+            <View className="w-full h-[1px] bg-[#39393b] opacity-60 mb-7 rounded-full" />
             {/* activities */}
-            <Text className="text-primaryFont font-InterBold mb-2 w-full">How do you want to spend your time?</Text>
-            <View className="flex-row flex-wrap gap-2 mb-10 w-full">
-                {activityOptions.map((activity) => (
-                <TouchableOpacity
-                    key={activity}
-                    className={`px-5 py-2 rounded-full border ${activities.includes(activity) ? 'bg-accentFont border-accentFont' : 'bg-[#232325] border-[#39393b]'} shadow-sm`}
-                    onPress={() => toggleActivity(activity)}
-                    activeOpacity={0.85}
-                >
-                    <Text className={` font-InterRegular ${activities.includes(activity) ? 'text-primaryBG' : 'text-primaryFont'}`}>{activity}</Text>
-                </TouchableOpacity>
-                ))}
+            <View className="w-full mb-10">
+                <Text className="text-primaryFont font-InterBold mb-2 w-full">How do you want to spend your time?</Text>
+                <View className="flex-row flex-wrap gap-2">
+                    {activityOptions.map((activity) => (
+                    <TouchableOpacity
+                        key={activity}
+                        className={`px-5 py-2 rounded-full border ${activities.includes(activity) ? 'bg-accentFont border-accentFont shadow-md' : 'bg-[#232325] border-[#39393b]'} `}
+                        onPress={() => toggleActivity(activity)}
+                        activeOpacity={0.85}
+                    >
+                        <Text className={`font-InterRegular ${activities.includes(activity) ? 'text-primaryBG font-InterBold' : 'text-primaryFont'}`}>{activity}</Text>
+                    </TouchableOpacity>
+                    ))}
+                </View>
             </View>
             {/* submit button */}
             <TouchableOpacity
                 className={`px-8 py-4 rounded-xl w-full items-center shadow-md ${(!destination || !range.start || !range.end || activities.length === 0) ? 'bg-[#a78bfa] opacity-60' : 'bg-accentFont'}`}
                 onPress={handleSubmit}
-                // disabled={!destination || !range.start || !range.end || activities.length === 0}
                 activeOpacity={0.85}
             >
                 <Text className="text-primaryFont font-InterBold text-lg">Continue</Text>
