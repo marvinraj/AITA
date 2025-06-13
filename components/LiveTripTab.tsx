@@ -26,7 +26,7 @@ export default function LiveTripTab() {
     <View className="flex-1 bg-primaryBG">
       {/* main header component */}
       <LiveTripHeader
-        tripName="Summer Europe Trip"
+        tripName="Europe Trip"
         date="June 10 - June 20, 2025"
         weather="Sunny, 25°C"
         location="Paris, France"

@@ -31,9 +31,9 @@ export default function LiveTripHeader({ tripName, date, weather, location }: Li
           shadowOffset: { width: 0, height: 6 },
           elevation: 8,
         }}>
-        <View>
+        <View className="flex-1 justify-between">
             {/* trip name */}
-            <Text className="text-2xl font-InterBold mb-4 text-primaryFont">{tripName}</Text>
+            <Text className="text-5xl font-BellezaRegular mb-4 text-primaryFont">{tripName}</Text>
             {/* weather, location */}
             <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', marginRight: 16, backgroundColor: '#35345a', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 4 }}>
@@ -53,7 +53,7 @@ export default function LiveTripHeader({ tripName, date, weather, location }: Li
         </View>
         {/* not sure yet -> maybe ai button? */}
         <View style={{ marginLeft: 24, flexDirection: 'row', alignItems: 'center' }}>
-            <View style={{ width: 70, height: 80, borderRadius: 24, backgroundColor: '#35345a', shadowColor: '#23223a', shadowOpacity: 0.18, shadowRadius: 8, shadowOffset: { width: 0, height: 2 } }}>
+            <View style={{ width: 60, height: 60, borderRadius: 24, backgroundColor: '#35345a', shadowColor: '#23223a', shadowOpacity: 0.18, shadowRadius: 8, shadowOffset: { width: 0, height: 2 } }}>
             </View>
         </View>
       </LinearGradient>

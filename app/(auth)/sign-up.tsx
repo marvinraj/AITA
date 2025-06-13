@@ -55,8 +55,7 @@ const SignUp = () => {
           <TextInput
             placeholder="enter name"
             placeholderTextColor="#666"
-            className="bg-inputBG focus:border-primaryFont rounded-full px-6 py-5 mb-5 text-primaryFont text-base"
-            style={{fontSize: 16}}
+            className="bg-inputBG focus:border-primaryFont rounded-full px-6 py-5 mb-5 text-primaryFont text-base font-InterRegular"
             value={name}
             onChangeText={setName}
           />
@@ -66,8 +65,7 @@ const SignUp = () => {
             placeholderTextColor="#666"
             keyboardType="email-address"
             autoCapitalize="none"
-            className="bg-inputBG focus:border-primaryFont rounded-full px-6 py-5 mb-5 text-primaryFont text-base"
-            style={{fontSize: 16}}
+            className="bg-inputBG focus:border-primaryFont rounded-full px-6 py-5 mb-5 text-primaryFont text-base font-InterRegular"
             value={email}
             onChangeText={setEmail}
           />
@@ -76,8 +74,7 @@ const SignUp = () => {
             placeholder="enter password"
             placeholderTextColor="#666"
             secureTextEntry
-            className="bg-inputBG focus:border-primaryFont rounded-full px-6 py-5 mb-2 text-primaryFont text-base"
-            style={{fontSize: 16}}
+            className="bg-inputBG focus:border-primaryFont rounded-full px-6 py-5 mb-2 text-primaryFont text-base font-InterRegular"
             value={password}
             onChangeText={setPassword}
           />
