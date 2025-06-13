@@ -236,7 +236,7 @@ const SmartForm = () => {
             <TouchableOpacity
                 className={`px-8 py-4 rounded-xl w-full items-center shadow-md ${(!destination || !range.start || !range.end || activities.length === 0) ? 'bg-[#a78bfa] opacity-60' : 'bg-accentFont'}`}
                 onPress={handleSubmit}
-                disabled={!destination || !range.start || !range.end || activities.length === 0}
+                // disabled={!destination || !range.start || !range.end || activities.length === 0}
                 activeOpacity={0.85}
             >
                 <Text className="text-primaryFont font-InterBold text-lg">Continue</Text>
