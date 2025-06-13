@@ -1,11 +1,11 @@
 import { useRouter } from 'expo-router';
 import React, { useRef, useState } from 'react';
-import { Dimensions, KeyboardAvoidingView, Platform, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Dimensions, Image, KeyboardAvoidingView, Platform, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { GestureHandlerRootView, PanGestureHandler, State } from 'react-native-gesture-handler';
 
 //  constants
 const HEADER_HEIGHT = 45;
-const DIVIDER_HEIGHT = 10;
+const DIVIDER_HEIGHT = 4;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 
 const chatAI = () => {
@@ -55,22 +55,28 @@ const chatAI = () => {
     <GestureHandlerRootView className="flex-1 bg-primaryBG">
       <View className="flex-1 bg-primaryBG">
         {/* header */}
-        <View className="flex-row items-center border-b border-[#222] px-4 bg-primaryBG" style={{ height: HEADER_HEIGHT }}>
-          <TouchableOpacity className="mr-3 p-2" onPress={() => router.back()}>
-            <Text className="text-accentFont text-2xl">{'<'} </Text>
+        <View className="flex-row justify-between px-4 bg-primaryBG" style={{ height: HEADER_HEIGHT }}>
+          <TouchableOpacity onPress={() => router.back()}>
+            <Image source={require('../../../../assets/icons/back-arrow.png')} style={{ width: 24, height: 24 }} />
           </TouchableOpacity>
-          <Text className="font-InterBold text-primaryFont">Branding Exploration Chat</Text>
+          <Text className="font-InterBold text-xl text-primaryFont">Europe Trip</Text>
+          <TouchableOpacity>
+            <Image source={require('../../../../assets/icons/3-dots.png')} style={{ width: 20, height: 20 }} />
+          </TouchableOpacity>
         </View>
         
         {/* panels */}
-        <View className="bg-primaryBG overflow-hidden b" style={{ height: topHeight }}> 
+        <View
+          className="bg-slate-100 overflow-hidden mt-2 mb-3 rounded-2xl"
+          style={{ height: topHeight }}
+        >
           {/* dynamic Itinerary (empty for now) */}
         </View>
         
         {/* divider */}
         <PanGestureHandler onGestureEvent={onGestureEvent} onHandlerStateChange={onHandlerStateChange}>
-          <View className="h-6 bg-[#251f99] items-center justify-center">
-            <View className="w-15 h-3 rounded-lg bg-[#35345a]" />
+          <View className="h-4 bg-transparent items-center justify-center">
+            <View className="w-16 h-2.5 rounded-full" style={{ backgroundColor: 'rgba(124, 58, 237, 0.18)', borderWidth: 1, borderColor: '#7C3AED', shadowColor: '#7C3AED', shadowOpacity: 0.25, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 4 }} />
           </View>
         </PanGestureHandler>
 
@@ -80,7 +86,7 @@ const chatAI = () => {
           keyboardVerticalOffset={HEADER_HEIGHT}
           className="flex-1 w-full"
         >
-          <View className="flex-1 bg-primaryBG overflow-hidden justify-end"> 
+          <View className="flex-1 bg-slate-100 overflow-hidden justify-end mt-3 rounded-2xl"> 
             {/* chat messages area */}
             <View className="flex-1 px-2 pb-2 w-full justify-end">
               {messages.map((msg, idx) => (
