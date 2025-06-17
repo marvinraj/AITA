@@ -10,7 +10,7 @@ interface LiveTripHeaderProps {
 export default function LiveTripHeader({ tripName, date, weather, location }: LiveTripHeaderProps) {
   return (
     <View className="my-3">
-      <View className="rounded-2xl px-6 py-6 mb-4 flex-row items-center justify-between bg-[#060b15] shadow-lg shadow-white/15">
+      <View className="rounded-2xl px-6 py-6 mb-4 flex-row items-center justify-between bg-primaryBG shadow-lg shadow-white/15">
         <View className="flex-1 justify-between">
             {/* trip name */}
             <Text className="text-5xl font-BellezaRegular mb-4 text-primaryFont">{tripName}</Text>
@@ -33,7 +33,7 @@ export default function LiveTripHeader({ tripName, date, weather, location }: Li
         </View>
         {/* not sure yet -> maybe ai button? */}
         <View className="ml-6 flex-row items-center">
-            <View className="w-24 h-16 rounded-2xl bg-primaryBG shadow-md shadow-[#23223a]/20" />
+            <View className="w-24 h-16 rounded-2xl bg-primaryBG shadow-lg shadow-accentFont/20" />
         </View>
       </View>
     </View>
