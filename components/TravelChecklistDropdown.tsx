@@ -112,9 +112,9 @@ export default function TravelChecklistCard() {
         <Text className="text-primaryFont text-3xl font-BellezaRegular">Travel Checklist</Text>
         <Pressable
           onPress={() => openModal('addChecklist')}
-          className="bg-secondaryFont rounded-full px-3 py-2"
+          className="bg-transparent px-3 py-2"
         >
-          <Image source={require('../assets/icons/add.png')} style={{ width: 18, height: 18, tintColor: 'black' }} />
+          <Image source={require('../assets/icons/add.png')} style={{ width: 18, height: 18, tintColor: 'white' }} />
         </Pressable>
       </View>
       {/* Each checklist as a card */}
