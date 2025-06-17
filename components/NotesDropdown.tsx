@@ -1,9 +1,7 @@
 import { useState } from 'react';
-import { Pressable, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Image, Modal, Pressable, Text, TextInput, View } from 'react-native';
 
-export default function NotesDropdown() {
-  // state management for notes
-  const [open, setOpen] = useState(false);
+export default function NotesCard() {
   // state for the current note input
   const [note, setNote] = useState('');
   // state for the list of notes
@@ -12,12 +10,17 @@ export default function NotesDropdown() {
   const [editingIdx, setEditingIdx] = useState<number | null>(null);
   // state for the text input when editing a note
   const [editText, setEditText] = useState('');
+  // modal state
+  const [modalVisible, setModalVisible] = useState(false);
+  // state for which note's menu is open
+  const [menuIdx, setMenuIdx] = useState<number | null>(null);
 
   // function to add a new note
   const addNote = () => {
     if (note.trim()) {
       setNotes([note, ...notes]);
       setNote('');
+      setModalVisible(false);
     }
   };
 
@@ -30,89 +33,120 @@ export default function NotesDropdown() {
     }
   };
 
-  // function to start editing a note
-  const startEdit = (idx: number) => {
-    setEditingIdx(idx);
-    setEditText(notes[idx]);
+  // function to open modal for add or edit
+  const openModal = (editIdx: number | null = null) => {
+    if (editIdx !== null) {
+      setEditingIdx(editIdx);
+      setEditText(notes[editIdx]);
+    } else {
+      setEditingIdx(null);
+      setNote('');
+    }
+    setModalVisible(true);
   };
 
-  // function to save the edited note
-  const saveEdit = (idx: number) => {
-    if (editText.trim()) {
-      setNotes(notes.map((n, i) => (i === idx ? editText : n)));
-      setEditingIdx(null);
-      setEditText('');
+  // function to handle add or edit note from modal
+  const handleModalAction = () => {
+    if (editingIdx !== null) {
+      // Edit mode
+      if (editText.trim()) {
+        setNotes(notes.map((n, i) => (i === editingIdx ? editText : n)));
+        setEditingIdx(null);
+        setEditText('');
+        setModalVisible(false);
+      }
+    } else {
+      // Add mode
+      if (note.trim()) {
+        setNotes([note, ...notes]);
+        setNote('');
+        setModalVisible(false);
+      }
     }
   };
 
   return (
-    <View className="mb-3 w-full">
-      {/* dropdown */}
-      <TouchableOpacity onPress={() => setOpen(!open)} className="flex-row justify-between items-center px-4 py-3 rounded-2xl border border-[#35345a]">
-        <Text className="text-primaryFont text-base font-InterBold">Notes</Text>
-        <Text className="text-primaryFont text-xl">{open ? '▲' : '▼'}</Text>
-      </TouchableOpacity>
-      {open && (
-        <View className="px-2 py-3 rounded-b-2xl">
-          {/* input area */}
-          <View className="flex-row items-center mb-3">
+    <View className='w-full'>
+      <View className="flex-row items-center justify-between mb-3">
+        <Text className="text-primaryFont text-3xl font-BellezaRegular">Notes</Text>
+        <Pressable
+          onPress={() => openModal(null)}
+          className="bg-secondaryFont rounded-full px-3 py-2"
+        >
+          <Image source={require('../assets/icons/add.png')} style={{ width: 18, height: 18, tintColor: 'black' }} />
+        </Pressable>
+      </View>
+      <Modal
+        visible={modalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => { setModalVisible(false); setEditingIdx(null); }}
+      >
+        <View className="flex-1 justify-center items-center bg-black/60">
+          <View className="bg-[#23223a] p-6 rounded-2xl w-11/12 max-w-md">
+            <Text className="text-primaryFont text-2xl font-BellezaRegular mb-3">
+              {editingIdx !== null ? 'Edit Note' : 'Add Note'}
+            </Text>
             <TextInput
-              className="flex-1 bg-[#23223a] text-primaryFont px-4 py-2 rounded-xl border border-[#35345a] mr-2 text-sm"
-              placeholder="Add a note..."
+              className="bg-[#23223a] text-primaryFont py-2 mb-4 text-base font-InterBold"
+              placeholder={editingIdx !== null ? 'Edit your note...' : 'Type your note...'}
               placeholderTextColor="#828282"
-              value={note}
-              onChangeText={setNote}
+              value={editingIdx !== null ? editText : note}
+              onChangeText={editingIdx !== null ? setEditText : setNote}
               multiline
               maxLength={200}
+              autoFocus
             />
-            <Pressable
-              onPress={addNote}
-              className="bg-accentFont rounded-xl px-4 py-2 active:opacity-80"
-            >
-              <Text className="text-white font-bold text-base">+</Text>
-            </Pressable>
-          </View>
-          {/* notes list */}
-          {notes.length === 0 ? (
-            <Text className="text-secondaryFont text-center mt-2">No notes yet. Add your first note!</Text>
-          ) : (
-            <View>
-              {notes.map((item, index) => (
-                <View key={index} className="bg-[#35345a] rounded-xl px-4 py-2 mb-2 flex-row items-center">
-                  {editingIdx === index ? (
-                    <>
-                      <TextInput
-                        className="flex-1 bg-transparent text-primaryFont text-sm mr-2"
-                        value={editText}
-                        onChangeText={setEditText}
-                        autoFocus
-                        multiline
-                        maxLength={200}
-                      />
-                      <Pressable onPress={() => saveEdit(index)} className="px-2 py-1 mr-1 rounded bg-green-600 active:opacity-80">
-                        <Text className="text-white text-xs">Save</Text>
-                      </Pressable>
-                      <Pressable onPress={() => { setEditingIdx(null); setEditText(''); }} className="px-2 py-1 rounded bg-gray-600 active:opacity-80">
-                        <Text className="text-white text-xs">Cancel</Text>
-                      </Pressable>
-                    </>
-                  ) : (
-                    <>
-                      <Text className="text-primaryFont text-sm flex-1">{item}</Text>
-                      <Pressable onPress={() => startEdit(index)} className="px-2 py-1 mr-1 rounded bg-blue-600 active:opacity-80">
-                        <Text className="text-white text-xs">Edit</Text>
-                      </Pressable>
-                      <Pressable onPress={() => deleteNote(index)} className="px-2 py-1 rounded bg-red-600 active:opacity-80">
-                        <Text className="text-white text-xs">Delete</Text>
-                      </Pressable>
-                    </>
-                  )}
-                </View>
-              ))}
+            <View className="flex-row justify-end">
+              <Pressable onPress={() => { setModalVisible(false); setEditingIdx(null); }} className="px-4 py-2 mr-2 rounded bg-gray-600 active:opacity-80">
+                <Text className="text-white text-sm">Cancel</Text>
+              </Pressable>
+              <Pressable onPress={handleModalAction} className="px-4 py-2 rounded bg-accentFont active:opacity-80">
+                <Text className="text-white text-sm">{editingIdx !== null ? 'Save' : 'Add'}</Text>
+              </Pressable>
             </View>
-          )}
+          </View>
         </View>
-      )}
+      </Modal>
+      <View className="mb-3 w-full bg- rounded-2xl shadow-md">
+        {/* notes list */}
+        {notes.length === 0 ? (
+          <Text className="text-secondaryFont text-center mt-4 mb-4">No notes yet. Add your first note!</Text>
+        ) : (
+          <View className="w-full">
+            {notes.map((item, index) => (
+              <View key={index} className="bg-buttonPrimaryBG rounded-xl px-4 py-2 mb-2 flex-row items-center relative">
+                <Text className="text-primaryFont text-sm flex-1">{item}</Text>
+                <Pressable onPress={() => setMenuIdx(menuIdx === index ? null : index)} className="p-2">
+                  <Image source={require('../assets/icons/3-dots.png')} style={{ width: 14, height: 14, tintColor: 'white' }} />
+                </Pressable>
+                {menuIdx === index && (
+                  <>
+                    {/* Overlay to close menu when clicking outside */}
+                    <Pressable
+                      className="absolute inset-0 z-10"
+                      style={{ left: 0, top: 0, right: 0, bottom: 0 }}
+                      onPress={() => setMenuIdx(null)}
+                    >
+                      {/* Transparent overlay */}
+                    </Pressable>
+                    <View className="absolute right-10 top-2 bg-[#23223a] border border-[#35345a] rounded-xl shadow-lg z-20 flex-col">
+                      <Pressable onPress={() => { setMenuIdx(null); openModal(index); }} className="px-6 py-2">
+                        <Text className="text-blue-400 text-base">Edit Note</Text>
+                      </Pressable>
+                      <Pressable onPress={() => { setMenuIdx(null); deleteNote(index); }} className="px-6 py-2">
+                        <Text className="text-red-400 text-base">Delete Note</Text>
+                      </Pressable>
+                    </View>
+                  </>
+                )}
+              </View>
+            ))}
+          </View>
+        )}
+      </View>
+      {/* divider */}
+      <View className="h-[1px] bg-[#222] w-full mb-6" />
     </View>
   );
 }

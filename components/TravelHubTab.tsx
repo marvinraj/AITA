@@ -9,7 +9,7 @@ export default function TravelHubTab() {
       {/* Essentials Section */}
       <View className="mb-6">
         {/* section title */}
-        <Text className="text-primaryFont text-2xl font-BellezaRegular mb-3">Essentials</Text>
+        <Text className="text-primaryFont text-3xl font-BellezaRegular mb-3">Essentials</Text>
         {/* icons grid */}
         <View className="bg-[#1a2636] rounded-2xl px-2 py-4 shadow-sm border border-[#23223a]">
           {/* first row */}
