@@ -9,52 +9,52 @@ export default function TravelHubTab() {
       {/* Essentials Section */}
       <View className="mb-6">
         {/* section title */}
-        <Text className="text-primaryFont text-lg font-bold mb-3">Essentials</Text>
+        <Text className="text-primaryFont text-2xl font-BellezaRegular mb-3">Essentials</Text>
         {/* icons grid */}
-        <View className="bg-[#23223a] rounded-2xl px-2 py-4 shadow-sm">
+        <View className="bg-[#1a2636] rounded-2xl px-2 py-4 shadow-sm border border-[#23223a]">
           {/* first row */}
           <View className="flex-row justify-between items-center mb-4">
             <View className="items-center flex-1">
-              <Text className="text-xl mb-1">✈️</Text>
+              <Text className="text-xl mb-1 text-white">✈️</Text>
               <Text className="text-xs text-primaryFont">Flight</Text>
             </View>
             <View className="items-center flex-1">
-              <Text className="text-xl mb-1">🏨</Text>
+              <Text className="text-xl mb-1 text-white">🏨</Text>
               <Text className="text-xs text-primaryFont">Lodging</Text>
             </View>
             <View className="items-center flex-1">
-              <Text className="text-xl mb-1">🚗</Text>
+              <Text className="text-xl mb-1 text-white">🚗</Text>
               <Text className="text-xs text-primaryFont">Rental</Text>
             </View>
             <View className="items-center flex-1">
-              <Text className="text-xl mb-1">🍽️</Text>
+              <Text className="text-xl mb-1 text-white">🍽️</Text>
               <Text className="text-xs text-primaryFont">Food</Text>
             </View>
             <View className="items-center flex-1">
-              <Text className="text-xl mb-1">📎</Text>
+              <Text className="text-xl mb-1 text-white">📎</Text>
               <Text className="text-xs text-primaryFont">Attach</Text>
             </View>
           </View>
           {/* second row */}
           <View className="flex-row justify-between items-center">
             <View className="items-center flex-1">
-              <Text className="text-xl mb-1">💳</Text>
+              <Text className="text-xl mb-1 text-white">💳</Text>
               <Text className="text-xs text-primaryFont">Cards</Text>
             </View>
             <View className="items-center flex-1">
-              <Text className="text-xl mb-1">🩺</Text>
+              <Text className="text-xl mb-1 text-white">🩺</Text>
               <Text className="text-xs text-primaryFont">Health</Text>
             </View>
             <View className="items-center flex-1">
-              <Text className="text-xl mb-1">🛂</Text>
+              <Text className="text-xl mb-1 text-white">🛂</Text>
               <Text className="text-xs text-primaryFont">Passport</Text>
             </View>
             <View className="items-center flex-1">
-              <Text className="text-xl mb-1">📱</Text>
+              <Text className="text-xl mb-1 text-white">📱</Text>
               <Text className="text-xs text-primaryFont">SIM</Text>
             </View>
             <View className="items-center flex-1">
-              <Text className="text-xl mb-1">🧳</Text>
+              <Text className="text-xl mb-1 text-white">🧳</Text>
               <Text className="text-xs text-primaryFont">Luggage</Text>
             </View>
           </View>
