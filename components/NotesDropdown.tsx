@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Image, Modal, Pressable, Text, TextInput, View } from 'react-native';
+import { colors } from '../constants/colors';
 
 export default function NotesCard() {
   // state for the current note input
@@ -118,7 +119,7 @@ export default function NotesCard() {
               <View key={index} className="bg-buttonPrimaryBG rounded-xl px-4 py-2 mb-2 flex-row items-center relative">
                 <Text className="text-primaryFont text-sm flex-1">{item}</Text>
                 <Pressable onPress={() => setMenuIdx(menuIdx === index ? null : index)} className="p-2">
-                  <Image source={require('../assets/icons/3-dots.png')} style={{ width: 14, height: 14, tintColor: 'white' }} />
+                  <Image source={require('../assets/icons/3-dots.png')} style={{ width: 14, height: 14, tintColor: colors.secondaryFont }} />
                 </Pressable>
                 {menuIdx === index && (
                   <>
