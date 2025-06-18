@@ -14,64 +14,64 @@ export default function TravelHubTab() {
         {/* icons grid as horizontally scrollable mini cards */}
         <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-2">
           <View className="flex-row items-center">
-            <View className="mr-3">
-              <View className="bg-[#001d3d] rounded-2xl p-5 shadow-sm items-center">
-                <Image source={require('../assets/icons/plane.png')} style={{ width: 36, height: 36, marginBottom: 8 }} contentFit="contain" />
-                <Text className="text-sm text-primaryFont">Flight</Text>
+            <View className="mr-2">
+              <View className="bg-[#001d3d] rounded-xl p-3 shadow-sm items-center">
+                <Image source={require('../assets/icons/plane.png')} style={{ width: 22, height: 22, marginBottom: 4 }} contentFit="contain" />
+                <Text className="text-xs text-primaryFont">Flight</Text>
               </View>
             </View>
-            <View className="mr-3">
-              <View className="bg-[#374259] rounded-2xl p-5 shadow-sm items-center">
-                <Image source={require('../assets/icons/lodging.png')} style={{ width: 36, height: 36, marginBottom: 8 }} contentFit="contain" />
-                <Text className="text-sm text-primaryFont">Lodging</Text>
+            <View className="mr-2">
+              <View className="bg-[#374259] rounded-xl p-3 shadow-sm items-center">
+                <Image source={require('../assets/icons/lodging.png')} style={{ width: 22, height: 22, marginBottom: 4 }} contentFit="contain" />
+                <Text className="text-xs text-primaryFont">Lodging</Text>
               </View>
             </View>
-            <View className="mr-3">
-              <View className="bg-[#400406] rounded-2xl p-5 shadow-sm items-center">
-                <Image source={require('../assets/icons/rental.png')} style={{ width: 36, height: 36, marginBottom: 8 }} contentFit="contain" />
-                <Text className="text-sm text-primaryFont">Rental</Text>
+            <View className="mr-2">
+              <View className="bg-[#400406] rounded-xl p-3 shadow-sm items-center">
+                <Image source={require('../assets/icons/rental.png')} style={{ width: 22, height: 22, marginBottom: 4 }} contentFit="contain" />
+                <Text className="text-xs text-primaryFont">Rental</Text>
               </View>
             </View>
-            <View className="mr-3">
-              <View className="bg-[#5e503f] rounded-2xl p-5 shadow-sm items-center">
-                <Image source={require('../assets/icons/food.png')} style={{ width: 36, height: 36, marginBottom: 8 }} contentFit="contain" />
-                <Text className="text-sm text-primaryFont">Food</Text>
+            <View className="mr-2">
+              <View className="bg-[#5e503f] rounded-xl p-3 shadow-sm items-center">
+                <Image source={require('../assets/icons/food.png')} style={{ width: 22, height: 22, marginBottom: 4 }} contentFit="contain" />
+                <Text className="text-xs text-primaryFont">Food</Text>
               </View>
             </View>
-            <View className="mr-3">
-              <View className="bg-[#621708] rounded-2xl p-5 shadow-sm items-center">
-                <Image source={require('../assets/icons/attach.png')} style={{ width: 36, height: 36, marginBottom: 8 }} contentFit="contain" />
-                <Text className="text-sm text-primaryFont">Attach</Text>
+            <View className="mr-2">
+              <View className="bg-[#621708] rounded-xl p-3 shadow-sm items-center">
+                <Image source={require('../assets/icons/attach.png')} style={{ width: 22, height: 22, marginBottom: 4 }} contentFit="contain" />
+                <Text className="text-xs text-primaryFont">Attach</Text>
               </View>
             </View>
-            <View className="mr-3">
-              <View className="bg-[#3c1518] rounded-2xl p-5 shadow-sm items-center">
-                <Image source={require('../assets/icons/cards.png')} style={{ width: 36, height: 36, marginBottom: 8 }} contentFit="contain" />
-                <Text className="text-sm text-primaryFont">Cards</Text>
+            <View className="mr-2">
+              <View className="bg-[#3c1518] rounded-xl p-3 shadow-sm items-center">
+                <Image source={require('../assets/icons/cards.png')} style={{ width: 22, height: 22, marginBottom: 4 }} contentFit="contain" />
+                <Text className="text-xs text-primaryFont">Cards</Text>
               </View>
             </View>
-            <View className="mr-3">
-              <View className="bg-[#1e1b18] rounded-2xl p-5 shadow-sm items-center">
-                <Image source={require('../assets/icons/health.png')} style={{ width: 36, height: 36, marginBottom: 8 }} contentFit="contain" />
-                <Text className="text-sm text-primaryFont">Health</Text>
+            <View className="mr-2">
+              <View className="bg-[#1e1b18] rounded-xl p-3 shadow-sm items-center">
+                <Image source={require('../assets/icons/health.png')} style={{ width: 22, height: 22, marginBottom: 4 }} contentFit="contain" />
+                <Text className="text-xs text-primaryFont">Health</Text>
               </View>
             </View>
-            <View className="mr-3">
-              <View className="bg-[#4b3d33] rounded-2xl p-5 shadow-sm items-center">
-                <Image source={require('../assets/icons/passport.png')} style={{ width: 36, height: 32, marginBottom: 8 }} contentFit="contain" />
-                <Text className="text-sm text-primaryFont">Passport</Text>
+            <View className="mr-2">
+              <View className="bg-[#4b3d33] rounded-xl p-3 shadow-sm items-center">
+                <Image source={require('../assets/icons/passport.png')} style={{ width: 22, height: 20, marginBottom: 4 }} contentFit="contain" />
+                <Text className="text-xs text-primaryFont">Passport</Text>
               </View>
             </View>
-            <View className="mr-3">
-              <View className="bg-[#1a1f16] rounded-2xl p-5 shadow-sm items-center">
-                <Image source={require('../assets/icons/sim.png')} style={{ width: 36, height: 36, marginBottom: 8 }} contentFit="contain" />
-                <Text className="text-sm text-primaryFont">SIM</Text>
+            <View className="mr-2">
+              <View className="bg-[#1a1f16] rounded-xl p-3 shadow-sm items-center">
+                <Image source={require('../assets/icons/sim.png')} style={{ width: 22, height: 22, marginBottom: 4 }} contentFit="contain" />
+                <Text className="text-xs text-primaryFont">SIM</Text>
               </View>
             </View>
             <View>
-              <View className="bg-[#1b263b] rounded-2xl p-5 shadow-sm items-center">
-                <Image source={require('../assets/icons/luggage.png')} style={{ width: 36, height: 36, marginBottom: 8 }} contentFit="contain" />
-                <Text className="text-sm text-primaryFont">Luggage</Text>
+              <View className="bg-[#1b263b] rounded-xl p-3 shadow-sm items-center">
+                <Image source={require('../assets/icons/luggage.png')} style={{ width: 22, height: 22, marginBottom: 4 }} contentFit="contain" />
+                <Text className="text-xs text-primaryFont">Luggage</Text>
               </View>
             </View>
           </View>
