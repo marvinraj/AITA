@@ -43,17 +43,19 @@ const chatAI = () => {
     }
   };
 
+  // ----- API COMMUNICATION -----
+
   // function to call the Hugging Face API
   const sendMessageToModel = async (messagesForApi: { role: string; content: string }[]) => {
     try {
-      const response = await fetch('https://6f91-34-75-154-200.ngrok-free.app/generate', {
+      const response = await fetch('https://4358-34-69-129-68.ngrok-free.app/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ messages: messagesForApi }),
       });
       const data = await response.json();
-      const generated = data.result?.[0]?.generated_text?.find((msg: any) => msg.role === 'assistant');
-      return generated?.content || '';
+      // Gemma returns a plain string in data.result
+      return data.result || '';
     } catch (error) {
       console.error('Error communicating with AI:', error);
       return 'Sorry, there was an error.';
@@ -62,6 +64,15 @@ const chatAI = () => {
 
   // utility to remove <think>...</think> blocks
   const stripThink = (text: string) => text.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
+
+  // utility to extract only the assistant's reply after the last 'Assistant:'
+  const extractAssistantReply = (text: string) => {
+    const idx = text.lastIndexOf('Assistant:');
+    if (idx !== -1) {
+      return text.substring(idx + 'Assistant:'.length).trim();
+    }
+    return text.trim();
+  };
 
   // function to handle sending messages
   const handleSend = async () => {
@@ -72,12 +83,18 @@ const chatAI = () => {
 
     // prepare messages for API (convert to {role, content})
     const apiMessages = [...messages, userMsg].map(m => ({ role: m.role, content: m.text }));
+
     const assistantReply = await sendMessageToModel(apiMessages);
-    // Remove <think>...</think> from assistant reply
-    const cleanReply = stripThink(assistantReply);
+    console.log("Raw assistant reply:", assistantReply); // <-- Add this line
+
+    // remove <think>...</think> and extract only the assistant's reply
+    const cleanReply = extractAssistantReply(stripThink(assistantReply));
+
     const assistantMsg = { role: 'assistant' as const, text: cleanReply, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) };
     setMessages(prev => [...prev, assistantMsg]);
   };
+
+    // ----- API COMMUNICATION -----
 
   return (
     <GestureHandlerRootView className="flex-1 bg-primaryBG">
