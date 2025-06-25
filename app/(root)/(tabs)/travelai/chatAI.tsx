@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
 import React, { useRef, useState } from 'react';
-import { Dimensions, Image, KeyboardAvoidingView, Platform, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Dimensions, Image, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { GestureHandlerRootView, PanGestureHandler, State } from 'react-native-gesture-handler';
 
 //  constants
@@ -17,8 +17,10 @@ const chatAI = () => {
   const initialTopHeight = useRef(topHeight);
   // state to manage the input text and messages
   const [input, setInput] = useState("");
-  // state to manage the chat messages
-  const [messages, setMessages] = useState<Array<{ text: string; time: string }>>([]);
+  // state to manage the chat messages (now with role)
+  const [messages, setMessages] = useState<Array<{ role: 'user' | 'assistant'; text: string; time: string }>>([]);
+  // ref for scrollview
+  const scrollViewRef = useRef<ScrollView>(null);
 
   // only update height during gesture
   const onGestureEvent = (event: any) => {
@@ -41,14 +43,40 @@ const chatAI = () => {
     }
   };
 
+  // function to call the Hugging Face API
+  const sendMessageToModel = async (messagesForApi: { role: string; content: string }[]) => {
+    try {
+      const response = await fetch('https://6f91-34-75-154-200.ngrok-free.app/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: messagesForApi }),
+      });
+      const data = await response.json();
+      const generated = data.result?.[0]?.generated_text?.find((msg: any) => msg.role === 'assistant');
+      return generated?.content || '';
+    } catch (error) {
+      console.error('Error communicating with AI:', error);
+      return 'Sorry, there was an error.';
+    }
+  };
+
+  // utility to remove <think>...</think> blocks
+  const stripThink = (text: string) => text.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
+
   // function to handle sending messages
-  const handleSend = () => {
+  const handleSend = async () => {
     if (input.trim() === "") return;
-    setMessages([
-      ...messages,
-      { text: input, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }
-    ]);
+    const userMsg = { role: 'user' as const, text: input, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) };
+    setMessages(prev => [...prev, userMsg]);
     setInput("");
+
+    // prepare messages for API (convert to {role, content})
+    const apiMessages = [...messages, userMsg].map(m => ({ role: m.role, content: m.text }));
+    const assistantReply = await sendMessageToModel(apiMessages);
+    // Remove <think>...</think> from assistant reply
+    const cleanReply = stripThink(assistantReply);
+    const assistantMsg = { role: 'assistant' as const, text: cleanReply, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) };
+    setMessages(prev => [...prev, assistantMsg]);
   };
 
   return (
@@ -88,16 +116,21 @@ const chatAI = () => {
         >
           <View className="flex-1 bg-slate-100 overflow-hidden justify-end mt-3 rounded-2xl"> 
             {/* chat messages area */}
-            <View className="flex-1 px-2 pb-2 w-full justify-end">
+            <ScrollView
+              ref={scrollViewRef}
+              className="flex-1 px-2 pb-2 w-full"
+              contentContainerStyle={{ justifyContent: 'flex-end', flexGrow: 1 }}
+              onContentSizeChange={() => scrollViewRef.current?.scrollToEnd({ animated: true })}
+            >
               {messages.map((msg, idx) => (
-                <View key={idx} className="w-full items-end mb-2">
-                  <View className="bg-accentFont rounded-2xl px-4 py-2 max-w-[80%]">
-                    <Text className="text-primaryBG text-base">{msg.text}</Text>
+                <View key={idx} className={`w-full items-${msg.role === 'user' ? 'end' : 'start'} mb-2`}>
+                  <View className={`rounded-2xl px-4 py-2 max-w-[80%] ${msg.role === 'user' ? 'bg-accentFont' : 'bg-primaryFont'}` }>
+                    <Text className={`text-base ${msg.role === 'user' ? 'text-primaryBG' : 'text-primaryBG/80'}`}>{msg.text}</Text>
                   </View>
-                  <Text className="text-xs text-secondaryFont mt-1 mr-2">{msg.time}</Text>
+                  <Text className="text-xs text-secondaryFont mt-1 ml-2 mr-2">{msg.time}</Text>
                 </View>
               ))}
-            </View>
+            </ScrollView>
             {/* input area */}
             <View className="flex-row items-center p-3 bg-secondaryBG border-t border-[#323232] mb-2">
               <TextInput
