@@ -19,8 +19,13 @@ const chatAI = () => {
   const [input, setInput] = useState("");
   // state to manage the chat messages (now with role)
   const [messages, setMessages] = useState<Array<{ role: 'user' | 'assistant'; text: string; time: string }>>([]);
+  // state to manage loading
+  const [isLoading, setIsLoading] = useState(false);
   // ref for scrollview
   const scrollViewRef = useRef<ScrollView>(null);
+
+  // constants for context management
+  const MAX_CONTEXT_MESSAGES = 20;
 
   // only update height during gesture
   const onGestureEvent = (event: any) => {
@@ -46,19 +51,28 @@ const chatAI = () => {
   // ----- API COMMUNICATION -----
 
   // function to call the Hugging Face API
-  const sendMessageToModel = async (messagesForApi: { role: string; content: string }[]) => {
+  const sendMessageToModel = async (messagesForApi: any[]) => {
     try {
-      const response = await fetch('https://4358-34-69-129-68.ngrok-free.app/generate', {
+      const response = await fetch('https://2291-35-202-136-144.ngrok-free.app/generate', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
         body: JSON.stringify({ messages: messagesForApi }),
       });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
       const data = await response.json();
-      // Gemma returns a plain string in data.result
-      return data.result || '';
+      
+      if (!data.result) {
+        throw new Error('No result in response');
+      }
+
+      return data.result;
     } catch (error) {
       console.error('Error communicating with AI:', error);
-      return 'Sorry, there was an error.';
+      return 'Sorry, I encountered an error while processing your request. Please try again.';
     }
   };
 
@@ -76,22 +90,46 @@ const chatAI = () => {
 
   // function to handle sending messages
   const handleSend = async () => {
-    if (input.trim() === "") return;
+    if (input.trim() === "" || isLoading) return;
+    
+    setIsLoading(true);
     const userMsg = { role: 'user' as const, text: input, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) };
     setMessages(prev => [...prev, userMsg]);
     setInput("");
 
-    // prepare messages for API (convert to {role, content})
-    const apiMessages = [...messages, userMsg].map(m => ({ role: m.role, content: m.text }));
+    try {
+      // Keep only recent messages to stay within context window
+      const recentMessages = [...messages, userMsg].slice(-MAX_CONTEXT_MESSAGES);
 
-    const assistantReply = await sendMessageToModel(apiMessages);
-    console.log("Raw assistant reply:", assistantReply); // <-- Add this line
+      // Add system message and prepare messages for API
+      const systemMessage = {
+        role: "system",
+        content: [{ type: "text", text: "You are AITA, a helpful AI travel assistant. Provide helpful, accurate travel advice and recommendations." }]
+      };
 
-    // remove <think>...</think> and extract only the assistant's reply
-    const cleanReply = extractAssistantReply(stripThink(assistantReply));
+      const apiMessages = [
+        systemMessage,
+        ...recentMessages.map(m => ({
+          role: m.role,
+          content: [{ type: "text", text: m.text }]
+        }))
+      ];
 
-    const assistantMsg = { role: 'assistant' as const, text: cleanReply, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) };
-    setMessages(prev => [...prev, assistantMsg]);
+      const assistantReply = await sendMessageToModel(apiMessages);
+      console.log("Raw assistant reply:", assistantReply);
+
+      // remove <think>...</think> and extract only the assistant's reply
+      const cleanReply = extractAssistantReply(stripThink(assistantReply));
+
+      const assistantMsg = { role: 'assistant' as const, text: cleanReply, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) };
+      setMessages(prev => [...prev, assistantMsg]);
+    } catch (error) {
+      console.error('Send message error:', error);
+      const errorMsg = { role: 'assistant' as const, text: 'Sorry, there was an error. Please try again.', time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) };
+      setMessages(prev => [...prev, errorMsg]);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
     // ----- API COMMUNICATION -----
@@ -158,10 +196,15 @@ const chatAI = () => {
                 value={input}
                 onChangeText={setInput}
                 onSubmitEditing={handleSend}
+                editable={!isLoading}
               />
               {/* send message button */}
-              <TouchableOpacity className="bg-accentFont rounded-2xl px-4 py-3 justify-center items-center" onPress={handleSend}>
-                <Text className="text-primaryBG text-lg font-bold">↑</Text>
+              <TouchableOpacity 
+                className={`rounded-2xl px-4 py-3 justify-center items-center ${isLoading ? 'bg-gray-400' : 'bg-accentFont'}`} 
+                onPress={handleSend}
+                disabled={isLoading}
+              >
+                <Text className="text-primaryBG text-lg font-bold">{isLoading ? '...' : '↑'}</Text>
               </TouchableOpacity>
             </View>
           </View>
