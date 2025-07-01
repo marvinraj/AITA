@@ -53,9 +53,13 @@ const chatAI = () => {
   // function to call the Hugging Face API
   const sendMessageToModel = async (messagesForApi: any[]) => {
     try {
-      const response = await fetch('https://2291-35-202-136-144.ngrok-free.app/generate', {
+      const response = await fetch('https://aita-travel-ai.loca.lt/generate', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+        headers: { 
+          'Content-Type': 'application/json', 
+          // 'ngrok-skip-browser-warning': 'true' // ngrok header to skip browser warning
+          'Bypass-Tunnel-Reminder': 'true'  // LocalTunnel header
+        },
         body: JSON.stringify({ messages: messagesForApi }),
       });
 
