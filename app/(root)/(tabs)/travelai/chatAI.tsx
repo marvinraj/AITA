@@ -2,6 +2,7 @@ import { useRouter } from 'expo-router';
 import React, { useRef, useState } from 'react';
 import { Dimensions, Image, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { GestureHandlerRootView, PanGestureHandler, State } from 'react-native-gesture-handler';
+import { aitaApi, type Message } from '../../../../lib/api';
 
 //  constants
 const HEADER_HEIGHT = 45;
@@ -18,14 +19,11 @@ const chatAI = () => {
   // state to manage the input text and messages
   const [input, setInput] = useState("");
   // state to manage the chat messages (now with role)
-  const [messages, setMessages] = useState<Array<{ role: 'user' | 'assistant'; text: string; time: string }>>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
   // state to manage loading
   const [isLoading, setIsLoading] = useState(false);
   // ref for scrollview
   const scrollViewRef = useRef<ScrollView>(null);
-
-  // constants for context management
-  const MAX_CONTEXT_MESSAGES = 20;
 
   // only update height during gesture
   const onGestureEvent = (event: any) => {
@@ -48,95 +46,43 @@ const chatAI = () => {
     }
   };
 
-  // ----- API COMMUNICATION -----
-
-  // function to call the Hugging Face API
-  const sendMessageToModel = async (messagesForApi: any[]) => {
-    try {
-      const response = await fetch('https://aita-travel-ai.loca.lt/generate', {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json', 
-          // 'ngrok-skip-browser-warning': 'true' // ngrok header to skip browser warning
-          'Bypass-Tunnel-Reminder': 'true'  // LocalTunnel header
-        },
-        body: JSON.stringify({ messages: messagesForApi }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      
-      if (!data.result) {
-        throw new Error('No result in response');
-      }
-
-      return data.result;
-    } catch (error) {
-      console.error('Error communicating with AI:', error);
-      return 'Sorry, I encountered an error while processing your request. Please try again.';
-    }
-  };
-
-  // utility to remove <think>...</think> blocks
-  const stripThink = (text: string) => text.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
-
-  // utility to extract only the assistant's reply after the last 'Assistant:'
-  const extractAssistantReply = (text: string) => {
-    const idx = text.lastIndexOf('Assistant:');
-    if (idx !== -1) {
-      return text.substring(idx + 'Assistant:'.length).trim();
-    }
-    return text.trim();
-  };
+  // ----- MESSAGE HANDLING -----
 
   // function to handle sending messages
   const handleSend = async () => {
     if (input.trim() === "" || isLoading) return;
     
     setIsLoading(true);
-    const userMsg = { role: 'user' as const, text: input, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) };
+    const userMsg: Message = { 
+      role: 'user', 
+      text: input, 
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
+    };
     setMessages(prev => [...prev, userMsg]);
     setInput("");
 
     try {
-      // Keep only recent messages to stay within context window
-      const recentMessages = [...messages, userMsg].slice(-MAX_CONTEXT_MESSAGES);
+      // Use the API service to get response
+      const assistantReply = await aitaApi.createChatCompletion([...messages, userMsg]);
 
-      // Add system message and prepare messages for API
-      const systemMessage = {
-        role: "system",
-        content: [{ type: "text", text: "You are AITA, a helpful AI travel assistant. Provide helpful, accurate travel advice and recommendations." }]
+      const assistantMsg: Message = { 
+        role: 'assistant', 
+        text: assistantReply, 
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
       };
-
-      const apiMessages = [
-        systemMessage,
-        ...recentMessages.map(m => ({
-          role: m.role,
-          content: [{ type: "text", text: m.text }]
-        }))
-      ];
-
-      const assistantReply = await sendMessageToModel(apiMessages);
-      console.log("Raw assistant reply:", assistantReply);
-
-      // remove <think>...</think> and extract only the assistant's reply
-      const cleanReply = extractAssistantReply(stripThink(assistantReply));
-
-      const assistantMsg = { role: 'assistant' as const, text: cleanReply, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) };
       setMessages(prev => [...prev, assistantMsg]);
     } catch (error) {
       console.error('Send message error:', error);
-      const errorMsg = { role: 'assistant' as const, text: 'Sorry, there was an error. Please try again.', time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) };
+      const errorMsg: Message = { 
+        role: 'assistant', 
+        text: 'Sorry, there was an error. Please try again.', 
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
+      };
       setMessages(prev => [...prev, errorMsg]);
     } finally {
       setIsLoading(false);
     }
   };
-
-    // ----- API COMMUNICATION -----
 
   return (
     <GestureHandlerRootView className="flex-1 bg-primaryBG">
@@ -184,9 +130,9 @@ const chatAI = () => {
               {messages.map((msg, idx) => (
                 <View key={idx} className={`w-full items-${msg.role === 'user' ? 'end' : 'start'} mb-2`}>
                   <View className={`rounded-2xl px-4 py-2 max-w-[80%] ${msg.role === 'user' ? 'bg-accentFont' : 'bg-primaryFont'}` }>
-                    <Text className={`text-base ${msg.role === 'user' ? 'text-primaryBG' : 'text-primaryBG/80'}`}>{msg.text}</Text>
+                    <Text className={`text-base ${msg.role === 'user' ? 'text-primaryBG' : 'text-primaryBG/80'}`}>{msg.text || ''}</Text>
                   </View>
-                  <Text className="text-xs text-secondaryFont mt-1 ml-2 mr-2">{msg.time}</Text>
+                  <Text className="text-xs text-secondaryFont mt-1 ml-2 mr-2">{msg.time || ''}</Text>
                 </View>
               ))}
             </ScrollView>
