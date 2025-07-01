@@ -63,7 +63,7 @@ const SettingsScreen = () => {
             keyExtractor={item => item.title}
             renderItem={({ item }) => (
             <TouchableOpacity
-                className="flex-row items-center px-4 py-4 border-b border-[#222]"
+                className="flex-row items-center px-4 py-4 border-b border-border"
                 onPress={() => {}} // sdd navigation later
             >
                 <View className="flex-1">

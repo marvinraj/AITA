@@ -61,7 +61,7 @@ const ProfileScreen = () => {
         <Text className="text-secondaryFont text-sm font-InterRegular">{profileData.username}  •  {profileData.travels} Travels</Text>
       </View>
       {/* travels & saves tabs */}
-      <View className="flex-row items-end border-b border-[#222] mb-2 ml-0 pl-4 mt-12">
+      <View className="flex-row items-end border-b border-border mb-2 ml-0 pl-4 mt-12">
         {TABS.map(tab => (
           <TouchableOpacity
             key={tab}

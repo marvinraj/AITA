@@ -136,7 +136,7 @@ const SmartForm = () => {
         >
             {/* close button */}
             <TouchableOpacity
-                className="absolute top-6 right-1 z-20 bg-[#232325] border border-[#39393b] rounded-full w-10 h-10 items-center justify-center shadow-md"
+                className="absolute top-6 right-1 z-20 bg-secondaryBG border border-border rounded-full w-10 h-10 items-center justify-center shadow-md"
                 onPress={() => router.back()}
                 accessibilityLabel="Close form"
                 activeOpacity={0.8}
@@ -148,7 +148,7 @@ const SmartForm = () => {
             {/* destination */}
             <Text className="text-primaryFont font-InterBold mb-2 w-full">Where do you want to go?</Text>
             <TextInput
-                className="bg-[#232325] text-primaryFont rounded-xl px-5 py-4 mb-7 w-full border border-[#39393b] text-base focus:border-accentFont"
+                className="bg-secondaryBG text-primaryFont rounded-xl px-5 py-4 mb-7 w-full border border-border text-base focus:border-accentFont"
                 placeholder="Enter destination"
                 placeholderTextColor="#888"
                 value={destination}
@@ -157,7 +157,7 @@ const SmartForm = () => {
             {/* dates */}
             <Text className="text-primaryFont font-InterBold mb-2 w-full">When do you want to go?</Text>
             <TouchableOpacity
-                className="flex-row items-center w-full bg-[#232325] border border-[#39393b] rounded-xl px-5 py-4 mb-7"
+                className="flex-row items-center w-full bg-secondaryBG border border-border rounded-xl px-5 py-4 mb-7"
                 onPress={handleDateRangePress}
                 activeOpacity={0.8}
             >
@@ -169,7 +169,7 @@ const SmartForm = () => {
             </TouchableOpacity>
             {/* Calendar picker */}
             {showCalendar && (
-                <View className="w-full mb-7 rounded-2xl overflow-hidden bg-[#232325] border border-[#39393b] shadow-lg">
+                <View className="w-full mb-7 rounded-2xl overflow-hidden bg-secondaryBG border border-border shadow-lg">
                     <Calendar
                         markingType={'period'}
                         markedDates={getMarkedDates(range)}
@@ -194,7 +194,7 @@ const SmartForm = () => {
                             textDayHeaderFontSize: 14,
                         }}
                     />
-                    <View className="flex-row justify-between px-4 py-2 border-t border-[#39393b] bg-[#232325]">
+                    <View className="flex-row justify-between px-4 py-2 border-t border-border bg-secondaryBG">
                         <TouchableOpacity onPress={() => { setRange({ start: '', end: '' }); }}>
                             <Text className="text-secondaryFont font-semibold">Reset</Text>
                         </TouchableOpacity>
@@ -210,7 +210,7 @@ const SmartForm = () => {
                 {companionOptions.map((option) => (
                 <TouchableOpacity
                     key={option.value}
-                    className={`px-5 py-2 rounded-full border ${companions === option.value ? 'bg-accentFont border-accentFont' : 'bg-[#232325] border-[#39393b]'} shadow-sm`}
+                    className={`px-5 py-2 rounded-full border ${companions === option.value ? 'bg-accentFont border-accentFont' : 'bg-secondaryBG border-border'} shadow-sm`}
                     onPress={() => setCompanions(option.value)}
                     activeOpacity={0.85}
                 >
@@ -224,7 +224,7 @@ const SmartForm = () => {
                 {activityOptions.map((activity) => (
                 <TouchableOpacity
                     key={activity}
-                    className={`px-5 py-2 rounded-full border ${activities.includes(activity) ? 'bg-accentFont border-accentFont' : 'bg-[#232325] border-[#39393b]'} shadow-sm`}
+                    className={`px-5 py-2 rounded-full border ${activities.includes(activity) ? 'bg-accentFont border-accentFont' : 'bg-secondaryBG border-border'} shadow-sm`}
                     onPress={() => toggleActivity(activity)}
                     activeOpacity={0.85}
                 >
