@@ -137,7 +137,7 @@ const chatAI = () => {
               ))}
             </ScrollView>
             {/* input area */}
-            <View className="flex-row items-center p-3 bg-secondaryBG border-t border-[#323232] mb-2">
+            <View className="flex-row items-center p-3 bg-secondaryBG border-t border-border mb-2">
               <TextInput
                 className="flex-1 bg-inputBG rounded-2xl px-4 py-3 mr-2 text-base text-primaryFont"
                 placeholder="Ask AITA anything about your trip..."

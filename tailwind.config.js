@@ -26,6 +26,9 @@ module.exports = {
         buttonSecondary: colors.buttonSecondary,
         buttonPrimaryBG: colors.buttonPrimaryBG,
         inputBG: colors.inputBG,
+        divider: colors.divider,
+        border: colors.border,
+        modal: colors.modal,
       }
     },
   },

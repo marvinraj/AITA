@@ -32,7 +32,7 @@ export default function LiveTripTab() {
         location="Paris, France"
       />
       {/* live trip tabs */}
-      <View className="flex-row items-end border-b border-[#222] mb-2 mt-2">
+      <View className="flex-row items-end border-b border-border mb-2 mt-2">
         {TABS.map(tab => {
           const isActive = activeTab === tab.key;
           return (

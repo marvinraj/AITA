@@ -211,7 +211,7 @@ export default function TravelChecklistCard() {
                           >
                             {/* Transparent overlay */}
                           </Pressable>
-                          <View className="absolute right-10 top-2 bg-[#23223a] border border-[#35345a] rounded-xl shadow-lg z-20 flex-col">
+                          <View className="absolute right-10 top-2 bg-modal border border-border rounded-xl shadow-lg z-20 flex-col">
                             <Pressable onPress={() => { setMenuIdx(null); deleteItem(itemIdx); }} className="px-6 py-2">
                               <Text className="text-red-400 text-base">Delete Item</Text>
                             </Pressable>
@@ -227,7 +227,7 @@ export default function TravelChecklistCard() {
         </View>
       )}
       {/* divider */}
-      <View className="h-[1px] bg-[#222] w-full mb-6" />
+      <View className="h-[1px] bg-divider w-full mb-6" />
       {/* Modal for add/edit checklist or item */}
       <Modal
         visible={modalVisible}
@@ -236,14 +236,14 @@ export default function TravelChecklistCard() {
         onRequestClose={() => { setModalVisible(false); setModalType(null); setEditItemIdx(null); }}
       >
         <View className="flex-1 justify-center items-center bg-black/60">
-          <View className="bg-[#23223a] p-6 rounded-2xl w-11/12 max-w-md">
+          <View className="bg-modal p-6 rounded-2xl w-11/12 max-w-md">
             <Text className="text-primaryFont text-2xl font-BellezaRegular mb-3">
               {modalType === 'addChecklist' && 'Add Checklist'}
               {modalType === 'addItem' && 'Add Item'}
               {modalType === 'editItem' && 'Edit Item'}
             </Text>
             <TextInput
-              className="bg-[#23223a] text-primaryFont py-2 mb-4 text-base font-InterBold"
+              className="bg-modal text-primaryFont py-2 mb-4 text-base font-InterBold"
               placeholder={modalType === 'addChecklist' ? 'Checklist name...' : 'Item...'}
               placeholderTextColor="#828282"
               value={modalType === 'addChecklist' ? newChecklistName : modalType === 'editItem' ? editItemText : newItem}

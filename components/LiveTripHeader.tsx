@@ -16,18 +16,18 @@ export default function LiveTripHeader({ tripName, date, weather, location }: Li
             <Text className="text-5xl font-BellezaRegular mb-4 text-primaryFont">{tripName}</Text>
             {/* weather, location */}
             <View className="flex-row items-center mb-3">
-                <View className="flex-row items-center mr-4 bg-transparent rounded-lg px-2 py-1 border-[0.5px] border-secondaryFont">
-                    <Text className="text-sm text-[#a5b4fc]">☀️</Text>
+                <View className="flex-row items-center mr-4 bg-transparent rounded-lg px-2 py-1 border-[0.5px] border-border">
+                    <Text className="text-sm">☀️</Text>
                     <Text className="text-xs ml-1 font-InterRegular text-secondaryFont">{weather}</Text>
                 </View>
-                <View className="flex-row items-center bg-transparent rounded-lg px-2 py-1 border-[0.5px] border-secondaryFont">
-                    <Text className="text-sm text-[#6ee7b7]">📍</Text>
+                <View className="flex-row items-center bg-transparent rounded-lg px-2 py-1 border-[0.5px] border-border">
+                    <Text className="text-sm">📍</Text>
                     <Text className="text-xs ml-1 font-InterRegular text-secondaryFont">{location}</Text>
                 </View>
             </View>
             {/* date */}
             <View className="flex-row items-center">
-                <Text className="text-sm text-[#a5b4fc]">📅</Text>
+                <Text className="text-sm">📅</Text>
                 <Text className="text-xs ml-2 font-InterRegular tracking-wide text-secondaryFont">{date}</Text>
             </View>
         </View>
