@@ -1,6 +1,6 @@
 export const colors = {
   // background
-  primaryBG: '#0d0d0d',
+  primaryBG: '#0B0705', // 0d0d0d
   secondaryBG: '#1F1E1E',
   // fonts
   primaryFont: '#FFFFFF',
