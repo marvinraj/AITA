@@ -114,33 +114,35 @@ export default function NotesCard() {
         {notes.length === 0 ? (
           <Text className="text-secondaryFont text-center mt-4 mb-4">No notes yet. Add your first note!</Text>
         ) : (
-          <View className="w-full">
+          <View className="w-full flex-row flex-wrap justify-between">
             {notes.map((item, index) => (
-              <View key={index} className="bg-buttonPrimaryBG rounded-xl px-4 py-2 mb-2 flex-row items-center relative">
-                <Text className="text-primaryFont text-sm flex-1">{item}</Text>
-                <Pressable onPress={() => setMenuIdx(menuIdx === index ? null : index)} className="p-2">
-                  <Image source={require('../assets/icons/3-dots.png')} style={{ width: 14, height: 14, tintColor: colors.secondaryFont }} />
-                </Pressable>
-                {menuIdx === index && (
-                  <>
-                    {/* Overlay to close menu when clicking outside */}
-                    <Pressable
-                      className="absolute inset-0 z-10"
-                      style={{ left: 0, top: 0, right: 0, bottom: 0 }}
-                      onPress={() => setMenuIdx(null)}
-                    >
-                      {/* Transparent overlay */}
-                    </Pressable>
-                    <View className="absolute right-10 top-2 bg-modal border border-border rounded-xl shadow-lg z-20 flex-col">
-                      <Pressable onPress={() => { setMenuIdx(null); openModal(index); }} className="px-6 py-2">
-                        <Text className="text-blue-400 text-base">Edit Note</Text>
+              <View key={index} className="bg-buttonPrimaryBG rounded-xl p-4 mb-3 relative" style={{ width: '48%', minHeight: 120 }}>
+                <Text className="text-primaryFont text-sm flex-1 mb-2" numberOfLines={4}>{item}</Text>
+                <View className="absolute top-2 right-2">
+                  <Pressable onPress={() => setMenuIdx(menuIdx === index ? null : index)} className="p-1">
+                    <Image source={require('../assets/icons/3-dots.png')} style={{ width: 14, height: 14, tintColor: colors.secondaryFont }} />
+                  </Pressable>
+                  {menuIdx === index && (
+                    <>
+                      {/* Overlay to close menu when clicking outside */}
+                      <Pressable
+                        className="absolute inset-0 z-10"
+                        style={{ left: -200, top: -50, right: -50, bottom: -50 }}
+                        onPress={() => setMenuIdx(null)}
+                      >
+                        {/* Transparent overlay */}
                       </Pressable>
-                      <Pressable onPress={() => { setMenuIdx(null); deleteNote(index); }} className="px-6 py-2">
-                        <Text className="text-red-400 text-base">Delete Note</Text>
-                      </Pressable>
-                    </View>
-                  </>
-                )}
+                      <View className="absolute right-0 top-6 bg-modal border border-border rounded-xl shadow-lg z-20 flex-col min-w-[120px]">
+                        <Pressable onPress={() => { setMenuIdx(null); openModal(index); }} className="px-4 py-3 border-b border-border">
+                          <Text className="text-primaryFont text-sm font-UrbanistRegular">Edit Note</Text>
+                        </Pressable>
+                        <Pressable onPress={() => { setMenuIdx(null); deleteNote(index); }} className="px-4 py-3">
+                          <Text className="text-red-400 text-sm font-UrbanistRegular">Delete Note</Text>
+                        </Pressable>
+                      </View>
+                    </>
+                  )}
+                </View>
               </View>
             ))}
           </View>

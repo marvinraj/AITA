@@ -11,7 +11,7 @@ interface LiveTripHeaderProps {
 export default function LiveTripHeader({ tripName, date, weather, location }: LiveTripHeaderProps) {
   return (
     <View className="my-3">
-      <View className="rounded-2xl px- py-6 mb-4 flex-row items-center justify-between bg-[#] shadow-lg shadow-white/15">
+      <View className="rounded-2xl py-6 mb-4 flex-row items-center justify-between shadow-lg shadow-white/15">
         <View className="flex-1 justify-between">
             {/* date */}
             <View className="flex-row items-center">
@@ -22,25 +22,25 @@ export default function LiveTripHeader({ tripName, date, weather, location }: Li
             <Text className="text-5xl font-UrbanistSemiBold mb-4 text-primaryFont">{tripName}</Text>
             {/* weather, location */}
             <View className="flex-row items-center mb-3">
-                <View className="flex-row items-center mr-2 bg-transparent rounded-lg px-2 py-1 border-[0.5px] border-border">
+                <View className="flex-row items-center mr-2 bg-secondaryBG rounded-lg px-2 py-1 border-[0.5px] border-border">
                     <Text className="text-xs">☀️</Text>
-                    <Text className="text-sm ml-1 font-UrbanistRegular text-secondaryFont">{weather}</Text>
+                    <Text className="text-sm ml-1 font-UrbanistRegular text-primaryFont">{weather}</Text>
                 </View>
-                <View className="flex-row items-center bg-transparent rounded-lg px-2 py-1 border-[0.5px] border-border">
+                <View className="flex-row items-center bg-secondaryBG rounded-lg px-2 py-1 border-[0.5px] border-border">
                     <Text className="text-xs">📍</Text>
-                    <Text className="text-sm ml-1 font-UrbanistRegular text-secondaryFont">{location}</Text>
+                    <Text className="text-sm ml-1 font-UrbanistRegular text-primaryFont">{location}</Text>
                 </View>
             </View>
             
         </View>
         {/* not sure yet -> maybe ai button? */}
-        <View className="ml-6 flex-row items-center">
+        <View className="flex-row items-center">
             <LinearGradient
                 colors={['#ff6b6b', '#e53030', '#cc1e1e']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 style={{
-                    width: 64,
+                    width: 70,
                     height: 80,
                     borderRadius: 16,
                     shadowColor: '#000',

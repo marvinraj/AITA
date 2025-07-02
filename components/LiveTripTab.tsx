@@ -40,7 +40,7 @@ export default function LiveTripTab() {
               <Text
                 className={
                   isActive
-                    ? 'text-primaryFont font-UrbanistSemiBold text-base'
+                    ? 'text-[#f48080] font-UrbanistSemiBold text-base'
                     : 'text-secondaryFont font-UrbanistSemiBold text-base'
                 }
                 onPress={() => setActiveTab(tab.key)}
@@ -48,7 +48,7 @@ export default function LiveTripTab() {
                 {tab.key}
               </Text>
               {isActive && (
-                <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 2, backgroundColor: '#ffffff', borderRadius: 2 }} />
+                <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 2, backgroundColor: '#f48080', borderRadius: 2 }} />
               )}
             </View>
           );
