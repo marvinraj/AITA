@@ -69,7 +69,7 @@ export default function NotesCard() {
   return (
     <View className='w-full'>
       <View className="flex-row items-center justify-between mb-3">
-        <Text className="text-primaryFont text-3xl font-BellezaRegular">Notes</Text>
+        <Text className="text-primaryFont text-xl font-UrbanistSemiBold">Notes</Text>
         <Pressable
           onPress={() => openModal(null)}
           className="bg-transparent px-3 py-2"

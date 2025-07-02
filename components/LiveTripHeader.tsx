@@ -1,3 +1,4 @@
+import { LinearGradient } from 'expo-linear-gradient';
 import { Text, View } from 'react-native';
 
 interface LiveTripHeaderProps {
@@ -10,30 +11,45 @@ interface LiveTripHeaderProps {
 export default function LiveTripHeader({ tripName, date, weather, location }: LiveTripHeaderProps) {
   return (
     <View className="my-3">
-      <View className="rounded-2xl px-6 py-6 mb-4 flex-row items-center justify-between bg-primaryBG shadow-lg shadow-white/15">
+      <View className="rounded-2xl px- py-6 mb-4 flex-row items-center justify-between bg-[#] shadow-lg shadow-white/15">
         <View className="flex-1 justify-between">
+            {/* date */}
+            <View className="flex-row items-center">
+                {/* <Text className="text-sm">📅</Text> */}
+                <Text className="text-sm font-UrbanistSemiBold tracking-wide text-buttonSecondary mb-1">{date}</Text>
+            </View>
             {/* trip name */}
             <Text className="text-5xl font-UrbanistSemiBold mb-4 text-primaryFont">{tripName}</Text>
             {/* weather, location */}
             <View className="flex-row items-center mb-3">
-                <View className="flex-row items-center mr-4 bg-transparent rounded-lg px-2 py-1 border-[0.5px] border-border">
-                    <Text className="text-sm">☀️</Text>
-                    <Text className="text-xs ml-1 font-UrbanistRegular text-secondaryFont">{weather}</Text>
+                <View className="flex-row items-center mr-2 bg-transparent rounded-lg px-2 py-1 border-[0.5px] border-border">
+                    <Text className="text-xs">☀️</Text>
+                    <Text className="text-sm ml-1 font-UrbanistRegular text-secondaryFont">{weather}</Text>
                 </View>
                 <View className="flex-row items-center bg-transparent rounded-lg px-2 py-1 border-[0.5px] border-border">
-                    <Text className="text-sm">📍</Text>
-                    <Text className="text-xs ml-1 font-UrbanistRegular text-secondaryFont">{location}</Text>
+                    <Text className="text-xs">📍</Text>
+                    <Text className="text-sm ml-1 font-UrbanistRegular text-secondaryFont">{location}</Text>
                 </View>
             </View>
-            {/* date */}
-            <View className="flex-row items-center">
-                <Text className="text-sm">📅</Text>
-                <Text className="text-xs ml-2 font-UrbanistRegular tracking-wide text-secondaryFont">{date}</Text>
-            </View>
+            
         </View>
         {/* not sure yet -> maybe ai button? */}
         <View className="ml-6 flex-row items-center">
-            <View className="w-24 h-16 rounded-2xl bg-primaryBG shadow-lg shadow-accentFont/20" />
+            <LinearGradient
+                colors={['#ff6b6b', '#e53030', '#cc1e1e']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={{
+                    width: 64,
+                    height: 80,
+                    borderRadius: 16,
+                    shadowColor: '#000',
+                    shadowOffset: { width: 0, height: 4 },
+                    shadowOpacity: 0.2,
+                    shadowRadius: 8,
+                    elevation: 8,
+                }}
+            />
         </View>
       </View>
     </View>

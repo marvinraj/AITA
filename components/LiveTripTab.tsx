@@ -32,7 +32,7 @@ export default function LiveTripTab() {
         location="Paris, France"
       />
       {/* live trip tabs */}
-      <View className="flex-row items-end border-b border-border mb-2 mt-2">
+      <View className="flex-row items-end  border-border mb-2">
         {TABS.map(tab => {
           const isActive = activeTab === tab.key;
           return (
@@ -40,8 +40,8 @@ export default function LiveTripTab() {
               <Text
                 className={
                   isActive
-                    ? 'text-white font-UrbanistSemiBold text-sm'
-                    : 'text-secondaryFont font-UrbanistSemiBold text-sm'
+                    ? 'text-primaryFont font-UrbanistSemiBold text-base'
+                    : 'text-secondaryFont font-UrbanistSemiBold text-base'
                 }
                 onPress={() => setActiveTab(tab.key)}
               >
