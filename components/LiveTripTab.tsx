@@ -1,5 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Text, View } from 'react-native';
+import { tripsService } from '../lib/services/tripsService';
+import { Trip } from '../types/database';
 import ItineraryTab from './ItineraryTab';
 import LiveTripHeader from './LiveTripHeader';
 import SavesTab from './SavesTab';
@@ -14,12 +16,63 @@ const TABS = [
 ];
 
 export default function LiveTripTab() {
-
   // state to manage active tab
   const [activeTab, setActiveTab] = useState('Travel Hub');
+  // trip state
+  const [currentTrip, setCurrentTrip] = useState<Trip | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  // Load current trip on component mount
+  useEffect(() => {
+    loadCurrentTrip();
+  }, []);
+
+  const loadCurrentTrip = async () => {
+    try {
+      setLoading(true);
+      
+      // Try to get the most recent trip
+      const trip = await tripsService.getCurrentTrip();
+      
+      if (!trip) {
+        // No trips found, create a default one
+        const defaultTrip = await tripsService.createTrip({
+          name: 'My Travel Plans',
+          destination: 'Planning your next adventure',
+          status: 'planning'
+        });
+        setCurrentTrip(defaultTrip);
+      } else {
+        setCurrentTrip(trip);
+      }
+    } catch (err) {
+      console.error('Error loading current trip:', err);
+      // Create a fallback trip if all else fails
+      setCurrentTrip({
+        id: 'fallback',
+        user_id: 'fallback',
+        name: 'My Travel Plans',
+        destination: 'Planning your next adventure',
+        status: 'planning',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
   
   // determine the active component based on the active tab
   const ActiveComponent = TABS.find(tab => tab.key === activeTab)?.component || TravelHubTab;
+
+  // Show loading state while trip is being loaded
+  if (loading || !currentTrip) {
+    return (
+      <View className="flex-1 bg-primaryBG justify-center items-center">
+        <Text className="text-secondaryFont">Loading your trip...</Text>
+      </View>
+    );
+  }
 
   return (
     <View className="flex-1 bg-primaryBG">
@@ -31,12 +84,7 @@ export default function LiveTripTab() {
         shadowRadius: 15,
         elevation: 5,
       }}>
-        <LiveTripHeader
-          tripName="Europe Trip"
-          date="June 10 - June 20, 2025"
-          weather="Sunny, 25°C"
-          location="Paris, France"
-        />
+        <LiveTripHeader trip={currentTrip} />
       </View>
       {/* live trip tabs */}
       <View className="flex-row items-end  border-border mb-2 mt-3">
@@ -62,7 +110,7 @@ export default function LiveTripTab() {
         })}
       </View>
       {/* Active Tab Content */}
-      <ActiveComponent />
+      <ActiveComponent trip={currentTrip} />
     </View>
   );
 }

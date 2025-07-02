@@ -1,10 +1,15 @@
-import { View, Text } from 'react-native'
-import React from 'react'
+import React from 'react';
+import { Text, View } from 'react-native';
+import { Trip } from '../types/database';
 
-export default function SavesTab() {
+interface SavesTabProps {
+  trip: Trip;
+}
+
+export default function SavesTab({ trip }: SavesTabProps) {
   return (
     <View className="flex-1 items-center justify-center">
-      <Text className="text-primaryFont text-lg">Saves Content</Text>
+      <Text className="text-primaryFont text-lg">Saves for {trip.name}</Text>
     </View>
   )
 }

@@ -1,7 +1,8 @@
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { Calendar } from 'react-native-calendars';
+import { tripsService } from '../../../../lib/services/tripsService';
 
 // define options for companions and activities
 const companionOptions = [
@@ -36,6 +37,8 @@ const SmartForm = () => {
     // calendar modal state
     const [showCalendar, setShowCalendar] = useState(false);
     const [range, setRange] = useState<{start: string, end: string}>({ start: '', end: '' });
+    // loading state for trip creation
+    const [isCreatingTrip, setIsCreatingTrip] = useState(false);
 
     // function to toggle activity selection
     const toggleActivity = (activity: string) => {
@@ -70,18 +73,43 @@ const SmartForm = () => {
     };
 
     // function to handle form submission
-    const handleSubmit = () => {
-        // pass form data to chatAI screen (could use params, context, or global state)
-        router.push({
-        pathname: '/travelai/chatAI',
-        params: {
-            destination,
-            startDate: range.start,
-            endDate: range.end,
-            companions,
-            activities: activities.join(','),
-        },
-        });
+    const handleSubmit = async () => {
+        try {
+            setIsCreatingTrip(true);
+            
+            // Create trip in database
+            const tripData = await tripsService.createTrip({
+                name: `${destination} Trip`,
+                destination: destination,
+                start_date: range.start,
+                end_date: range.end,
+                companions: companions,
+                activities: activities.join(','),
+                status: 'planning'
+            });
+
+            // Navigate to chatAI with the trip ID and other params
+            router.push({
+                pathname: '/travelai/chatAI',
+                params: {
+                    tripId: tripData.id,
+                    destination,
+                    startDate: range.start,
+                    endDate: range.end,
+                    companions,
+                    activities: activities.join(','),
+                },
+            });
+        } catch (error) {
+            console.error('Error creating trip:', error);
+            Alert.alert(
+                'Error', 
+                'Failed to create your trip. Please try again.',
+                [{ text: 'OK' }]
+            );
+        } finally {
+            setIsCreatingTrip(false);
+        }
     };
 
     // helper to get month name from date string
@@ -234,12 +262,14 @@ const SmartForm = () => {
             </View>
             {/* submit button */}
             <TouchableOpacity
-                className={`px-8 py-4 rounded-xl w-full items-center shadow-md ${(!destination || !range.start || !range.end || activities.length === 0) ? 'bg-[#a78bfa] opacity-60' : 'bg-accentFont'}`}
+                className={`px-8 py-4 rounded-xl w-full items-center shadow-md ${(!destination || !range.start || !range.end || activities.length === 0 || isCreatingTrip) ? 'bg-[#a78bfa] opacity-60' : 'bg-accentFont'}`}
                 onPress={handleSubmit}
-                disabled={!destination || !range.start || !range.end || activities.length === 0}
+                disabled={!destination || !range.start || !range.end || activities.length === 0 || isCreatingTrip}
                 activeOpacity={0.85}
             >
-                <Text className="text-primaryFont font-InterBold text-lg">Continue</Text>
+                <Text className="text-primaryFont font-InterBold text-lg">
+                    {isCreatingTrip ? 'Creating Trip...' : 'Continue'}
+                </Text>
             </TouchableOpacity>
         </ScrollView>
     );

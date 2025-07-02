@@ -1,13 +1,19 @@
 import { Image } from 'expo-image';
 import { ScrollView, Text, View } from 'react-native';
+import { Trip } from '../types/database';
 import NotesDropdown from './NotesDropdown';
 import TravelChecklistDropdown from './TravelChecklistDropdown';
 
-export default function TravelHubTab() {
+interface TravelHubTabProps {
+  trip: Trip;
+}
+
+export default function TravelHubTab({ trip }: TravelHubTabProps) {
   return (
     <View className="flex-1 w-full pt-4">
       {/* Main container box */}
       <View className="flex-1 bg-[#0f0f0f] rounded-md p-5 shadow-lg shadow-black/20">
+
         {/* Essentials Section */}
         <View className="mb-6">
           {/* section title */}
@@ -83,7 +89,7 @@ export default function TravelHubTab() {
         <View className="h-[1px] bg-[#222] w-full mb-6" />
 
         {/* Dropdown Sections */}
-        <NotesDropdown />
+        <NotesDropdown tripId={trip.id} />
         <TravelChecklistDropdown />
         {/* <MemoryDropdown /> */}
 
