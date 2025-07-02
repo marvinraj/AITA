@@ -40,8 +40,8 @@ export default function LiveTripTab() {
               <Text
                 className={
                   isActive
-                    ? 'text-white font-InterRegular text-sm'
-                    : 'text-secondaryFont font-InterRegular text-sm'
+                    ? 'text-white font-UrbanistSemiBold text-sm'
+                    : 'text-secondaryFont font-UrbanistSemiBold text-sm'
                 }
                 onPress={() => setActiveTab(tab.key)}
               >

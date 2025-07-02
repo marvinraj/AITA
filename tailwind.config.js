@@ -15,6 +15,8 @@ module.exports = {
         BellezaRegular: ["Belleza-Regular"],
         InterRegular: ["Inter-Regular"],
         InterBold: ["Inter-Bold"],
+        UrbanistSemiBold: ["Urbanist-SemiBold"],
+        UrbanistRegular: ["Urbanist-Regular"],
       },
       colors: {
         primaryBG: colors.primaryBG,

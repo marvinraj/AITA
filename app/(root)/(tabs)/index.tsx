@@ -26,13 +26,13 @@ export default function HomeScreen() {
             className={`flex justify-center items-center h-14 px-4 py-2 rounded-full mr-2 ${activeTab === 'live' ? 'bg-secondaryBG' : ''}`}
             onPress={() => setActiveTab('live')}
           >
-            <Text className={`font-BellezaRegular text-center ${activeTab === 'live' ? 'text-primaryFont' : 'text-secondaryFont'}`}>Live Travel</Text>
+            <Text className={`font-UrbanistRegular text-sm text-center ${activeTab === 'live' ? 'text-primaryFont' : 'text-secondaryFont'}`}>Live Travel</Text>
           </TouchableOpacity>
           <TouchableOpacity
             className={`flex justify-center items-center h-14 px-4 py-2 rounded-full ${activeTab === 'future' ? 'bg-secondaryBG' : ''}`}
             onPress={() => setActiveTab('future')}
           >
-            <Text className={`font-BellezaRegular text-center ${activeTab === 'future' ? 'text-primaryFont' : 'text-secondaryFont'}`}>Future Travels</Text>
+            <Text className={`font-UrbanistRegular text-sm text-center ${activeTab === 'future' ? 'text-primaryFont' : 'text-secondaryFont'}`}>Future Travels</Text>
           </TouchableOpacity>
         </View>
         {/* tab content */}

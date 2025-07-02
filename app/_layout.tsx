@@ -9,6 +9,8 @@ export default function RootLayout() {
     'Belleza-Regular': require('../assets/fonts/Belleza-Regular.ttf'),
     'Inter-Regular': require('../assets/fonts/Inter-Regular.ttf'),
     'Inter-Bold': require('../assets/fonts/Inter-Bold.ttf'),
+    'Urbanist-SemiBold': require('../assets/fonts/Urbanist-SemiBold.ttf'),
+    'Urbanist-Regular': require('../assets/fonts/Urbanist-Regular.ttf'),
   });
 
   if (!fontsLoaded) {
