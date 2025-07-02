@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { Text, View } from 'react-native';
-import BudgetTab from './BudgetTab';
 import ItineraryTab from './ItineraryTab';
-import SavesTab from './SavesTab';
 import LiveTripHeader from './LiveTripHeader';
+import SavesTab from './SavesTab';
 import TravelHubTab from './TravelHubTab';
 
 // tabs for live trip
@@ -24,13 +23,21 @@ export default function LiveTripTab() {
 
   return (
     <View className="flex-1 bg-primaryBG">
-      {/* main header component */}
-      <LiveTripHeader
-        tripName="Europe Trip"
-        date="June 10 - June 20, 2025"
-        weather="Sunny, 25°C"
-        location="Paris, France"
-      />
+      {/* main header component with white shadow */}
+      <View style={{
+        shadowColor: '#ffffff',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.2,
+        shadowRadius: 15,
+        elevation: 5,
+      }}>
+        <LiveTripHeader
+          tripName="Europe Trip"
+          date="June 10 - June 20, 2025"
+          weather="Sunny, 25°C"
+          location="Paris, France"
+        />
+      </View>
       {/* live trip tabs */}
       <View className="flex-row items-end  border-border mb-2">
         {TABS.map(tab => {
