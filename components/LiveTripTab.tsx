@@ -39,7 +39,7 @@ export default function LiveTripTab() {
         />
       </View>
       {/* live trip tabs */}
-      <View className="flex-row items-end  border-border mb-2">
+      <View className="flex-row items-end  border-border mb-2 mt-3">
         {TABS.map(tab => {
           const isActive = activeTab === tab.key;
           return (
