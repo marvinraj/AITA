@@ -1,6 +1,6 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Alert, Modal, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Modal, ScrollView, Text, TextInput, TouchableOpacity, View, Image } from 'react-native';
 import ItineraryTab from '../../../components/ItineraryTab';
 import LiveTripHeader from '../../../components/LiveTripHeader';
 import SavesTab from '../../../components/SavesTab';
@@ -187,26 +187,26 @@ export default function TripDetailsPage() {
             onPress={handleBack}
             activeOpacity={0.8}
           >
-            <Text className="text-2xl mr-2">←</Text>
-            <Text className="text-primaryFont font-UrbanistSemiBold">Back to My Trips</Text>
+            {/* <Text className="text-2xl mr-2 text-primaryFont">←</Text> */}
+            <Image source={require('../../../assets/icons/back-arrow.png')} style={{ width: 22, height: 22 }} />
           </TouchableOpacity>
           
           {/* Trip actions */}
           <View className="flex-row items-center">
             <TouchableOpacity
-              className="bg-secondaryBG border border-border rounded-lg px-3 py-2 mr-2"
+              className="bg-secondaryBG border border-border rounded-xl px-3 py-2 mr-2"
               onPress={handleEditTrip}
               activeOpacity={0.8}
             >
-              <Text className="text-primaryFont font-UrbanistSemiBold text-sm">✏️ Edit</Text>
+              <Image source={require('../../../assets/icons/edit.png')} style={{ width: 22, height: 22 }} />
             </TouchableOpacity>
-            <TouchableOpacity
+            {/* <TouchableOpacity
               className="bg-red-600/20 border border-red-600 rounded-lg px-3 py-2"
               onPress={handleDeleteTrip}
               activeOpacity={0.8}
             >
               <Text className="text-red-400 font-UrbanistSemiBold text-sm">🗑️ Delete</Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </View>
         </View>
       </View>
@@ -319,7 +319,7 @@ export default function TripDetailsPage() {
             </View>
 
             {/* Action Buttons */}
-            <View className="flex-row gap-3 mb-8">
+            <View className="flex-row gap-3 mb-4">
               <TouchableOpacity
                 className="flex-1 bg-secondaryBG border border-border rounded-xl py-3"
                 onPress={() => setShowEditModal(false)}
@@ -339,6 +339,15 @@ export default function TripDetailsPage() {
                   {editLoading ? 'Saving...' : 'Save Changes'}
                 </Text>
               </TouchableOpacity>
+            </View>
+            <View className='mt-8'>
+                <TouchableOpacity
+                    className=" py-3"
+                    onPress={handleDeleteTrip}
+                    activeOpacity={0.8}
+                >
+                    <Text className="text-red-400 font-UrbanistSemiBold">🗑️ Delete trip</Text>
+            </TouchableOpacity>
             </View>
           </ScrollView>
         </View>
