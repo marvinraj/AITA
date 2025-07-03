@@ -318,13 +318,13 @@ export default function TravelChecklistDropdown({ tripId }: TravelChecklistDropd
                                 }} 
                                 className="px-6 py-2"
                               >
-                                <Text className="text-primaryFont text-base">Edit Item</Text>
+                                <Text className="text-primaryFont text-sm font-UrbanistRegular">Edit Item</Text>
                               </Pressable>
                               <Pressable 
                                 onPress={() => handleDeleteItem(item.id)} 
                                 className="px-6 py-2"
                               >
-                                <Text className="text-red-400 text-base">Delete Item</Text>
+                                <Text className="text-red-400 text-sm font-UrbanistRegular">Delete Item</Text>
                               </Pressable>
                             </View>
                           </>
