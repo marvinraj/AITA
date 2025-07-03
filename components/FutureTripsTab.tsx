@@ -83,7 +83,7 @@ export default function FutureTripsTab() {
     <View className="flex-1 bg-primaryBG px-4 pt-6">
       {/* Header */}
       <View className="flex-row items-center justify-between mb-6">
-        <Text className="text-2xl font-UrbanistSemiBold text-primaryFont">My Trips</Text>
+        <Text className="text-2xl font-BellezaRegular text-primaryFont">My Trips</Text>
         <TouchableOpacity
           className="bg-accentFont px-4 py-2 rounded-xl"
           onPress={handleCreateTrip}

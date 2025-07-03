@@ -118,7 +118,7 @@ export default function NotesDropdown({ tripId }: NotesDropdownProps) {
   return (
     <View className='w-full'>
       <View className="flex-row items-center justify-between mb-3">
-        <Text className="text-primaryFont text-xl font-UrbanistSemiBold">
+        <Text className="text-primaryFont text-xl font-BellezaRegular">
           Notes ({notes.length})
         </Text>
         <Pressable

@@ -109,7 +109,7 @@ export default function TravelChecklistCard() {
     <View className="w-full">
       {/* Checklist title and add checklist button */}
       <View className="flex-row items-center justify-between mb-3">
-        <Text className="text-primaryFont text-xl font-UrbanistSemiBold">Travel Checklist</Text>
+        <Text className="text-primaryFont text-xl font-BellezaRegular">Travel Checklist</Text>
         <Pressable
           onPress={() => openModal('addChecklist')}
           className="bg-transparent px-3 py-2"
