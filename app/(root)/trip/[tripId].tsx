@@ -218,6 +218,7 @@ export default function TripDetailsPage() {
         shadowOpacity: 0.2,
         shadowRadius: 15,
         elevation: 5,
+        paddingHorizontal: 16
       }}>
         <LiveTripHeader trip={trip} />
       </View>
