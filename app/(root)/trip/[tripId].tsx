@@ -263,7 +263,7 @@ export default function TripDetailsPage() {
           {/* Modal Header */}
           <View className="pt-12 px-4 pb-4 border-b border-border">
             <View className="flex-row items-center justify-between">
-              <Text className="text-xl font-UrbanistSemiBold text-primaryFont">Edit Trip</Text>
+              <Text className="text-2xl font-UrbanistSemiBold text-primaryFont">Edit Trip</Text>
               <TouchableOpacity
                 onPress={() => setShowEditModal(false)}
                 activeOpacity={0.8}
@@ -274,11 +274,11 @@ export default function TripDetailsPage() {
           </View>
 
           {/* Edit Form */}
-          <ScrollView className="flex-1 px-4 pt-6">
+          <ScrollView className="flex-1 px-4 pt-8">
             {/* Trip Name */}
             <Text className="text-primaryFont font-UrbanistSemiBold mb-2">Trip Name</Text>
             <TextInput
-              className="bg-secondaryBG text-primaryFont rounded-xl px-4 py-3 mb-4 border border-border"
+              className="bg-secondaryBG text-primaryFont rounded-xl px-4 py-3 mb-8 border border-border"
               placeholder="Enter trip name"
               placeholderTextColor="#888"
               value={editForm.name}
@@ -288,7 +288,7 @@ export default function TripDetailsPage() {
             {/* Destination */}
             <Text className="text-primaryFont font-UrbanistSemiBold mb-2">Destination</Text>
             <TextInput
-              className="bg-secondaryBG text-primaryFont rounded-xl px-4 py-3 mb-4 border border-border"
+              className="bg-secondaryBG text-primaryFont rounded-xl px-4 py-3 mb-8 border border-border"
               placeholder="Enter destination"
               placeholderTextColor="#888"
               value={editForm.destination}
@@ -297,7 +297,7 @@ export default function TripDetailsPage() {
 
             {/* Trip Status */}
             <Text className="text-primaryFont font-UrbanistSemiBold mb-2">Trip Status</Text>
-            <View className="flex-row gap-2 mb-6">
+            <View className="flex-row gap-2 mb-8">
               {(['planning', 'active', 'completed'] as const).map((status) => (
                 <TouchableOpacity
                   key={status}

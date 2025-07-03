@@ -157,121 +157,125 @@ const SmartForm = () => {
     }
 
     return (
-        <ScrollView
-            className="flex-1 bg-primaryBG px-6"
-            contentContainerStyle={{ alignItems: 'center', paddingTop: 40, paddingBottom: 32 }}
-            showsVerticalScrollIndicator={false}
-        >
-            {/* close button */}
-            <TouchableOpacity
-                className="absolute top-6 right-1 z-20 bg-secondaryBG border border-border rounded-full w-10 h-10 items-center justify-center shadow-md"
-                onPress={() => router.back()}
-                accessibilityLabel="Close form"
-                activeOpacity={0.8}
-            >
-                <Text className="text-2xl text-secondaryFont">✕</Text>
-            </TouchableOpacity>
-            {/* title */}
-            <Text className="text-3xl font-BellezaRegular text-primaryFont mb-10 mt-2 tracking-wide">Trip Details</Text>
-            {/* destination */}
-            <Text className="text-primaryFont font-InterBold mb-2 w-full">Where do you want to go?</Text>
-            <TextInput
-                className="bg-secondaryBG text-primaryFont rounded-xl px-5 py-4 mb-7 w-full border border-border text-base focus:border-accentFont"
-                placeholder="Enter destination"
-                placeholderTextColor="#888"
-                value={destination}
-                onChangeText={setDestination}
-            />
-            {/* dates */}
-            <Text className="text-primaryFont font-InterBold mb-2 w-full">When do you want to go?</Text>
-            <TouchableOpacity
-                className="flex-row items-center w-full bg-secondaryBG border border-border rounded-xl px-5 py-4 mb-7"
-                onPress={handleDateRangePress}
-                activeOpacity={0.8}
-            >
-                <Text className="text-2xl mr-3">📅</Text>
-                <Text className={`text-primaryFont font-semibold text-lg ${range.start && range.end ? '' : 'opacity-60'}`}
-                >
-                    {getDateRangeDisplay(range.start, range.end)}
-                </Text>
-            </TouchableOpacity>
-            {/* Calendar picker */}
-            {showCalendar && (
-                <View className="w-full mb-7 rounded-2xl overflow-hidden bg-secondaryBG border border-border shadow-lg">
-                    <Calendar
-                        markingType={'period'}
-                        markedDates={getMarkedDates(range)}
-                        onDayPress={handleDayPress}
-                        minDate={new Date().toISOString().split('T')[0]}
-                        theme={{
-                            backgroundColor: '#232325',
-                            calendarBackground: '#232325',
-                            textSectionTitleColor: '#fff',
-                            dayTextColor: '#fff',
-                            todayTextColor: '#7C3AED',
-                            selectedDayBackgroundColor: '#7C3AED',
-                            selectedDayTextColor: '#fff',
-                            monthTextColor: '#fff',
-                            arrowColor: '#fff',
-                            textDisabledColor: '#444',
-                            textDayFontFamily: 'Inter-Regular',
-                            textMonthFontFamily: 'Inter-Bold',
-                            textDayHeaderFontFamily: 'Inter-Regular',
-                            textDayFontSize: 16,
-                            textMonthFontSize: 18,
-                            textDayHeaderFontSize: 14,
-                        }}
-                    />
-                    <View className="flex-row justify-between px-4 py-2 border-t border-border bg-secondaryBG">
-                        <TouchableOpacity onPress={() => { setRange({ start: '', end: '' }); }}>
-                            <Text className="text-secondaryFont font-semibold">Reset</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity onPress={() => setShowCalendar(false)}>
-                            <Text className="text-accentFont font-bold">Apply</Text>
-                        </TouchableOpacity>
-                    </View>
+        <View className="flex-1 bg-primaryBG">
+            {/* Header */}
+            <View className="pt-12 px-4 pb-4 border-b border-border">
+                <View className="flex-row items-center justify-between">
+                    <Text className="text-2xl font-BellezaRegular text-primaryFont">Trip Details</Text>
+                    <TouchableOpacity
+                        onPress={() => router.back()}
+                        accessibilityLabel="Close form"
+                        activeOpacity={0.8}
+                    >
+                        <Text className="text-2xl text-secondaryFont">✕</Text>
+                    </TouchableOpacity>
                 </View>
-            )}
-            {/* companions */}
-            <Text className="text-primaryFont font-InterBold mb-2 w-full">Who's coming with you?</Text>
-            <View className="flex-row flex-wrap gap-2 mb-7 w-full">
-                {companionOptions.map((option) => (
-                <TouchableOpacity
-                    key={option.value}
-                    className={`px-5 py-2 rounded-full border ${companions === option.value ? 'bg-accentFont border-accentFont' : 'bg-secondaryBG border-border'} shadow-sm`}
-                    onPress={() => setCompanions(option.value)}
-                    activeOpacity={0.85}
-                >
-                    <Text className={` font-InterRegular ${companions === option.value ? 'text-primaryBG' : 'text-primaryFont'}`}>{option.label}</Text>
-                </TouchableOpacity>
-                ))}
             </View>
-            {/* activities */}
-            <Text className="text-primaryFont font-InterBold mb-2 w-full">How do you want to spend your time?</Text>
-            <View className="flex-row flex-wrap gap-2 mb-10 w-full">
-                {activityOptions.map((activity) => (
-                <TouchableOpacity
-                    key={activity}
-                    className={`px-5 py-2 rounded-full border ${activities.includes(activity) ? 'bg-accentFont border-accentFont' : 'bg-secondaryBG border-border'} shadow-sm`}
-                    onPress={() => toggleActivity(activity)}
-                    activeOpacity={0.85}
-                >
-                    <Text className={` font-InterRegular ${activities.includes(activity) ? 'text-primaryBG' : 'text-primaryFont'}`}>{activity}</Text>
-                </TouchableOpacity>
-                ))}
-            </View>
-            {/* submit button */}
-            <TouchableOpacity
-                className={`px-8 py-4 rounded-xl w-full items-center shadow-md ${(!destination || !range.start || !range.end || activities.length === 0 || isCreatingTrip) ? 'bg-[#a78bfa] opacity-60' : 'bg-accentFont'}`}
-                onPress={handleSubmit}
-                disabled={!destination || !range.start || !range.end || activities.length === 0 || isCreatingTrip}
-                activeOpacity={0.85}
+
+            <ScrollView 
+                className="flex-1 px-4 pt-8"
+                showsVerticalScrollIndicator={false}
             >
-                <Text className="text-primaryFont font-InterBold text-lg">
-                    {isCreatingTrip ? 'Creating Trip...' : 'Continue'}
-                </Text>
-            </TouchableOpacity>
-        </ScrollView>
+                {/* destination */}
+                <Text className="text-primaryFont font-UrbanistSemiBold mb-2">Where do you want to go?</Text>
+                <TextInput
+                    className="bg-secondaryBG text-primaryFont rounded-xl px-4 py-3 mb-8 border border-border"
+                    placeholder="Enter destination"
+                    placeholderTextColor="#888"
+                    value={destination}
+                    onChangeText={setDestination}
+                />
+                {/* dates */}
+                <Text className="text-primaryFont font-UrbanistSemiBold mb-2">When do you want to go?</Text>
+                <TouchableOpacity
+                    className="flex-row items-center w-full bg-secondaryBG border border-border rounded-xl px-4 py-3 mb-8"
+                    onPress={handleDateRangePress}
+                    activeOpacity={0.8}
+                >
+                    <Text className="text-2xl mr-3">📅</Text>
+                    <Text className={`text-primaryFont font-UrbanistSemiBold ${range.start && range.end ? '' : 'opacity-60'}`}
+                    >
+                        {getDateRangeDisplay(range.start, range.end)}
+                    </Text>
+                </TouchableOpacity>
+                {/* Calendar picker */}
+                {showCalendar && (
+                    <View className="w-full mb-4 rounded-2xl overflow-hidden bg-secondaryBG border border-border shadow-lg">
+                        <Calendar
+                            markingType={'period'}
+                            markedDates={getMarkedDates(range)}
+                            onDayPress={handleDayPress}
+                            minDate={new Date().toISOString().split('T')[0]}
+                            theme={{
+                                backgroundColor: '#232325',
+                                calendarBackground: '#232325',
+                                textSectionTitleColor: '#fff',
+                                dayTextColor: '#fff',
+                                todayTextColor: '#7C3AED',
+                                selectedDayBackgroundColor: '#7C3AED',
+                                selectedDayTextColor: '#fff',
+                                monthTextColor: '#fff',
+                                arrowColor: '#fff',
+                                textDisabledColor: '#444',
+                                textDayFontFamily: 'Inter-Regular',
+                                textMonthFontFamily: 'Inter-Bold',
+                                textDayHeaderFontFamily: 'Inter-Regular',
+                                textDayFontSize: 16,
+                                textMonthFontSize: 18,
+                                textDayHeaderFontSize: 14,
+                            }}
+                        />
+                        <View className="flex-row justify-between px-4 py-2 border-t border-border bg-secondaryBG">
+                            <TouchableOpacity onPress={() => { setRange({ start: '', end: '' }); }}>
+                                <Text className="text-secondaryFont font-UrbanistSemiBold">Reset</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity onPress={() => setShowCalendar(false)}>
+                                <Text className="text-accentFont font-UrbanistSemiBold">Apply</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                )}
+                {/* companions */}
+                <Text className="text-primaryFont font-UrbanistSemiBold mb-2">Who's coming with you?</Text>
+                <View className="flex-row flex-wrap gap-2 mb-8">
+                    {companionOptions.map((option) => (
+                    <TouchableOpacity
+                        key={option.value}
+                        className={`px-4 py-2 rounded-full border ${companions === option.value ? 'bg-accentFont border-accentFont' : 'bg-secondaryBG border-border'}`}
+                        onPress={() => setCompanions(option.value)}
+                        activeOpacity={0.8}
+                    >
+                        <Text className={`font-UrbanistSemiBold ${companions === option.value ? 'text-primaryBG' : 'text-primaryFont'}`}>{option.label}</Text>
+                    </TouchableOpacity>
+                    ))}
+                </View>
+                {/* activities */}
+                <Text className="text-primaryFont font-UrbanistSemiBold mb-2">How do you want to spend your time?</Text>
+                <View className="flex-row flex-wrap gap-2 mb-6">
+                    {activityOptions.map((activity) => (
+                    <TouchableOpacity
+                        key={activity}
+                        className={`px-4 py-2 rounded-full border ${activities.includes(activity) ? 'bg-accentFont border-accentFont' : 'bg-secondaryBG border-border'}`}
+                        onPress={() => toggleActivity(activity)}
+                        activeOpacity={0.8}
+                    >
+                        <Text className={`font-UrbanistSemiBold ${activities.includes(activity) ? 'text-primaryBG' : 'text-primaryFont'}`}>{activity}</Text>
+                    </TouchableOpacity>
+                    ))}
+                </View>
+                {/* submit button */}
+                <TouchableOpacity
+                    className={`px-8 py-3 rounded-xl w-full items-center mb-4 ${(!destination || !range.start || !range.end || activities.length === 0 || isCreatingTrip) ? 'bg-accentFont/50' : 'bg-accentFont'}`}
+                    onPress={handleSubmit}
+                    disabled={!destination || !range.start || !range.end || activities.length === 0 || isCreatingTrip}
+                    activeOpacity={0.8}
+                >
+                    <Text className="text-primaryBG font-UrbanistSemiBold">
+                        {isCreatingTrip ? 'Creating Trip...' : 'Continue'}
+                    </Text>
+                </TouchableOpacity>
+            </ScrollView>
+        </View>
     );
 };
 
