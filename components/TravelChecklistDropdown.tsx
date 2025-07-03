@@ -1,109 +1,178 @@
 import { useState } from 'react';
-import { Image, Modal, Pressable, Text, TextInput, View } from 'react-native';
+import { Alert, Image, Modal, Pressable, Text, TextInput, View } from 'react-native';
 import { colors } from '../constants/colors';
+import { useChecklist } from '../hooks/useChecklist';
 
-interface ChecklistItem {
-  id: string;
-  text: string;
-  checked: boolean;
+interface TravelChecklistDropdownProps {
+  tripId: string;
 }
 
-interface Checklist {
-  id: string;
-  name: string;
-  items: ChecklistItem[];
-}
+export default function TravelChecklistDropdown({ tripId }: TravelChecklistDropdownProps) {
+  const {
+    items,
+    loading,
+    error,
+    createItem,
+    updateItem,
+    toggleItem,
+    deleteItem,
+    stats,
+    getItemsByCategory
+  } = useChecklist({
+    tripId,
+    autoLoad: true,
+    enableStats: true,
+    enableCategories: true
+  });
 
-function uuid() {
-  return Math.random().toString(36).slice(2) + Date.now().toString(36);
-}
-
-export default function TravelChecklistCard() {
-  const [checklists, setChecklists] = useState<Checklist[]>([]);
-  const [activeIdx, setActiveIdx] = useState(0);
+  // Track checklists separately from items to support empty checklists
+  const [availableChecklists, setAvailableChecklists] = useState<string[]>([]);
+  
+  // Merge tracked checklists with categories from existing items
+  const categoriesFromItems = [...new Set(items.map(item => item.category))].filter(Boolean);
+  const allChecklists = [...new Set([...availableChecklists, ...categoriesFromItems])];
+  
+  const [activeChecklistName, setActiveChecklistName] = useState<string>('');
   const [newChecklistName, setNewChecklistName] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
   const [modalType, setModalType] = useState<'addChecklist' | 'addItem' | 'editItem' | null>(null);
   const [newItem, setNewItem] = useState('');
-  const [editItemIdx, setEditItemIdx] = useState<number | null>(null);
+  const [editItemId, setEditItemId] = useState<string | null>(null);
   const [editItemText, setEditItemText] = useState('');
-  const [menuIdx, setMenuIdx] = useState<number | null>(null);
-  // state for which item is being edited
-  const [editingItemIdx, setEditingItemIdx] = useState<{ checklistIdx: number, itemIdx: number } | null>(null);
+  const [menuItemId, setMenuItemId] = useState<string | null>(null);
+  const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [editingItemText, setEditingItemText] = useState('');
 
-  // Add checklist
-  const handleAddChecklist = () => {
-    if (newChecklistName.trim()) {
-      setChecklists([{ id: uuid(), name: newChecklistName, items: [] }, ...checklists]);
-      setActiveIdx(0);
-      setNewChecklistName('');
-      setModalVisible(false);
-      setModalType(null);
+  // Set the first available checklist as active when items load
+  if (allChecklists.length > 0 && !activeChecklistName) {
+    setActiveChecklistName(allChecklists[0]);
+  }
+
+  // Add checklist (create new category)
+  const handleAddChecklist = async () => {
+    if (!newChecklistName.trim()) return;
+    
+    const newCategoryName = newChecklistName.toLowerCase().replace(/\s+/g, '_');
+    setAvailableChecklists(prev => [...prev, newCategoryName]);
+    setActiveChecklistName(newCategoryName);
+    setNewChecklistName('');
+    setModalVisible(false);
+    setModalType(null);
+  };
+
+  // Delete checklist (delete all items in category)
+  const deleteChecklist = async (checklistName: string) => {
+    try {
+      const itemsToDelete = getItemsByCategory(checklistName);
+      await Promise.all(itemsToDelete.map(item => deleteItem(item.id)));
+      
+      // Remove from tracked checklists
+      setAvailableChecklists(prev => prev.filter(name => name !== checklistName));
+      
+      // Set active to first remaining checklist
+      const remainingChecklists = allChecklists.filter(name => name !== checklistName);
+      if (remainingChecklists.length > 0) {
+        setActiveChecklistName(remainingChecklists[0]);
+      } else {
+        setActiveChecklistName('');
+      }
+    } catch (err) {
+      Alert.alert('Error', 'Failed to delete checklist. Please try again.');
     }
   };
 
-  // Delete checklist
-  const deleteChecklist = (idx: number) => {
-    const updated = checklists.filter((_, i) => i !== idx);
-    setChecklists(updated);
-    setActiveIdx(Math.max(0, idx - 1));
-  };
-
-  // Add item
-  const handleAddItem = () => {
-    if (!newItem.trim() || !checklists[activeIdx]) return;
-    const updated = [...checklists];
-    updated[activeIdx].items = [
-      { id: uuid(), text: newItem, checked: false },
-      ...updated[activeIdx].items,
-    ];
-    setChecklists(updated);
-    setNewItem('');
-    setModalVisible(false);
-    setModalType(null);
+  // Add item to active checklist
+  const handleAddItem = async () => {
+    if (!newItem.trim() || !activeChecklistName) return;
+    
+    try {
+      await createItem({
+        trip_id: tripId,
+        item_name: newItem,
+        category: activeChecklistName
+      });
+      setNewItem('');
+      setModalVisible(false);
+      setModalType(null);
+    } catch (err) {
+      Alert.alert('Error', 'Failed to add item. Please try again.');
+    }
   };
 
   // Edit item
-  const handleEditItem = () => {
-    if (editItemIdx === null || !editItemText.trim()) return;
-    const updated = [...checklists];
-    updated[activeIdx].items[editItemIdx].text = editItemText;
-    setChecklists(updated);
-    setEditItemIdx(null);
-    setEditItemText('');
-    setModalVisible(false);
-    setModalType(null);
+  const handleEditItem = async () => {
+    if (!editItemId || !editItemText.trim()) return;
+    
+    try {
+      await updateItem(editItemId, { item_name: editItemText });
+      setEditItemId(null);
+      setEditItemText('');
+      setModalVisible(false);
+      setModalType(null);
+    } catch (err) {
+      Alert.alert('Error', 'Failed to update item. Please try again.');
+    }
   };
 
   // Toggle item checked
-  const toggleItem = (itemIdx: number) => {
-    const updated = [...checklists];
-    updated[activeIdx].items[itemIdx].checked = !updated[activeIdx].items[itemIdx].checked;
-    setChecklists(updated);
+  const handleToggleItem = async (itemId: string, currentStatus: boolean) => {
+    try {
+      await toggleItem(itemId, !currentStatus);
+    } catch (err) {
+      Alert.alert('Error', 'Failed to update item. Please try again.');
+    }
   };
 
   // Delete item
-  const deleteItem = (itemIdx: number) => {
-    const updated = [...checklists];
-    updated[activeIdx].items = updated[activeIdx].items.filter((_, i) => i !== itemIdx);
-    setChecklists(updated);
-    setMenuIdx(null);
+  const handleDeleteItem = async (itemId: string) => {
+    try {
+      await deleteItem(itemId);
+      setMenuItemId(null);
+    } catch (err) {
+      Alert.alert('Error', 'Failed to delete item. Please try again.');
+    }
+  };
+
+  // Save inline edit
+  const handleInlineEdit = async (itemId: string, newText: string) => {
+    if (!newText.trim()) {
+      setEditingItemId(null);
+      setEditingItemText('');
+      return;
+    }
+    
+    try {
+      await updateItem(itemId, { item_name: newText });
+      setEditingItemId(null);
+      setEditingItemText('');
+    } catch (err) {
+      Alert.alert('Error', 'Failed to update item. Please try again.');
+      setEditingItemId(null);
+      setEditingItemText('');
+    }
   };
 
   // Open modal for add/edit
-  const openModal = (type: 'addChecklist' | 'addItem' | 'editItem', idx?: number) => {
+  const openModal = (type: 'addChecklist' | 'addItem' | 'editItem', itemId?: string, itemName?: string) => {
     setModalType(type);
     setModalVisible(true);
-    if (type === 'editItem' && typeof idx === 'number') {
-      setEditItemIdx(idx);
-      setEditItemText(checklists[activeIdx].items[idx].text);
+    if (type === 'editItem' && itemId && itemName) {
+      setEditItemId(itemId);
+      setEditItemText(itemName);
     } else if (type === 'addItem') {
       setNewItem('');
     } else if (type === 'addChecklist') {
       setNewChecklistName('');
     }
   };
+
+  if (error) {
+    return (
+      <View className="w-full">
+        <Text className="text-red-400 text-center">Error loading checklist: {error}</Text>
+      </View>
+    );
+  }
 
   return (
     <View className="w-full">
@@ -113,127 +182,178 @@ export default function TravelChecklistCard() {
         <Pressable
           onPress={() => openModal('addChecklist')}
           className="bg-transparent px-3 py-2"
+          disabled={loading}
         >
           <Image source={require('../assets/icons/add.png')} style={{ width: 18, height: 18, tintColor: 'white' }} />
         </Pressable>
       </View>
+
       {/* Each checklist as a card */}
-      {checklists.length === 0 ? (
+      {allChecklists.length === 0 ? (
         <Text className="text-secondaryFont text-center mt-4 mb-4">No checklists yet. Add your first checklist!</Text>
       ) : (
         <View className="flex flex-col gap-y-4 w-full">
-          {checklists.map((c, idx) => (
-            <View key={c.id} className="w-full bg-buttonPrimaryBG rounded-2xl px-4 py-5 shadow-md">
-              {/* Checklist name and delete button */}
-              <View className="flex-row items-center justify-between mb-3">
-                <Text className={"text-primaryFont text-base font-InterBold" + (activeIdx === idx ? '' : ' opacity-70')}>{c.name}</Text>
-                <Pressable onPress={() => deleteChecklist(idx)} className="px-2 py-1 rounded-full bg-red-900 active:opacity-80 ml-1">
-                  <Text className="text-white text-xs">✕</Text>
-                </Pressable>
-              </View>
-              {/* Add item input for this checklist */}
-              <View className="w-full bg- rounded-xl px-2 py-2 flex-row items-center mb-3">
-                <TextInput
-                  className="flex-1 bg-transparent text-primaryFont text-sm font-InterRegular"
-                  placeholder="Add an item..."
-                  placeholderTextColor="#828282"
-                  value={activeIdx === idx ? newItem : ''}
-                  onChangeText={val => { if (activeIdx === idx) setNewItem(val); }}
-                  maxLength={60}
-                  onSubmitEditing={() => { if (activeIdx === idx) handleAddItem(); }}
-                  returnKeyType="done"
-                />
-                {/* <Pressable onPress={() => { if (activeIdx === idx) handleAddItem(); }} className="px-2 py-1 rounded bg-accentFont active:opacity-80">
-                  <Text className="text-white text-xs">Add</Text>
-                </Pressable> */}
-              </View>
-              {/* Checklist items */}
-              {c.items.length === 0 ? (
-                <Text className="text-secondaryFont font-InterRegular text-center mt-2">No items yet. Add your first item!</Text>
-              ) : (
-                <View className="flex flex-col gap-y-2 w-full">
-                  {c.items.map((item, itemIdx) => (
-                    <View
-                      key={item.id}
-                      className="w-full rounded-xl px-4 flex-row items-center relative"
-                    >
-                      <Pressable onPress={() => { setActiveIdx(idx); toggleItem(itemIdx); }} className="mr-3" hitSlop={10}>
-                        <Text className={item.checked ? 'text-green-400 text-lg' : 'text-gray-400 text-lg'}>
-                          {item.checked ? '☑️' : '⬜'}
-                        </Text>
-                      </Pressable>
-                      {editingItemIdx && editingItemIdx.checklistIdx === idx && editingItemIdx.itemIdx === itemIdx ? (
-                        <TextInput
-                          className="flex-1 bg-transparent font-InterRegular text-primaryFont text-sm mr-2"
-                          value={editingItemText}
-                          onChangeText={setEditingItemText}
-                          autoFocus
-                          maxLength={60}
-                          onSubmitEditing={() => {
-                            const updated = [...checklists];
-                            updated[idx].items[itemIdx].text = editingItemText;
-                            setChecklists(updated);
-                            setEditingItemIdx(null);
-                            setEditingItemText('');
-                          }}
-                          onBlur={() => {
-                            setEditingItemIdx(null);
-                            setEditingItemText('');
-                          }}
-                        />
-                      ) : (
-                        <Pressable
-                          className="flex-1"
+          {allChecklists.map((checklistName) => {
+            const checklistItems = getItemsByCategory(checklistName);
+            const isActive = activeChecklistName === checklistName;
+            const displayName = checklistName.charAt(0).toUpperCase() + checklistName.slice(1).replace(/_/g, ' ');
+            
+            return (
+              <View key={checklistName} className="w-full bg-buttonPrimaryBG rounded-2xl px-4 py-5 shadow-md">
+                {/* Checklist name and delete button */}
+                <View className="flex-row items-center justify-between mb-3">
+                  <Text className={`text-primaryFont text-base font-InterBold ${!isActive ? 'opacity-70' : ''}`}>
+                    {displayName}
+                  </Text>
+                  <Pressable 
+                    onPress={() => deleteChecklist(checklistName)} 
+                    className="px-2 py-1 rounded-full bg-red-900 active:opacity-80 ml-1"
+                  >
+                    <Text className="text-white text-xs">✕</Text>
+                  </Pressable>
+                </View>
+
+                {/* Add item input for this checklist */}
+                <View className="w-full rounded-xl px-2 py-2 flex-row items-center mb-3">
+                  <TextInput
+                    className="flex-1 bg-transparent text-primaryFont text-sm font-InterRegular"
+                    placeholder="Add an item..."
+                    placeholderTextColor="#828282"
+                    value={isActive ? newItem : ''}
+                    onChangeText={(val) => {
+                      if (isActive) setNewItem(val);
+                    }}
+                    onFocus={() => setActiveChecklistName(checklistName)}
+                    maxLength={100}
+                    onSubmitEditing={() => {
+                      if (isActive) handleAddItem();
+                    }}
+                    returnKeyType="done"
+                    editable={!loading}
+                  />
+                </View>
+
+                {/* Checklist items */}
+                {loading ? (
+                  <Text className="text-secondaryFont font-InterRegular text-center mt-2">Loading...</Text>
+                ) : checklistItems.length === 0 ? (
+                  <Text className="text-secondaryFont font-InterRegular text-center mt-2">No items yet. Add your first item!</Text>
+                ) : (
+                  <View className="flex flex-col gap-y-2 w-full">
+                    {checklistItems.map((item) => (
+                      <View
+                        key={item.id}
+                        className="w-full rounded-xl px-4 flex-row items-center relative"
+                      >
+                        <Pressable 
                           onPress={() => {
-                            setActiveIdx(idx);
-                            setEditingItemIdx({ checklistIdx: idx, itemIdx });
-                            setEditingItemText(item.text);
-                          }}
+                            setActiveChecklistName(checklistName);
+                            handleToggleItem(item.id, item.is_completed);
+                          }} 
+                          className="mr-3" 
+                          hitSlop={10}
+                          disabled={loading}
                         >
-                          <Text className={
-                            'text-primaryFont text-sm' +
-                            (item.checked ? ' line-through text-secondaryFont' : '')
-                          }>
-                            {item.text}
+                          <Text className={item.is_completed ? 'text-green-400 text-lg' : 'text-gray-400 text-lg'}>
+                            {item.is_completed ? '☑️' : '⬜'}
                           </Text>
                         </Pressable>
-                      )}
-                      <Pressable onPress={() => { setActiveIdx(idx); setMenuIdx(menuIdx === itemIdx && activeIdx === idx ? null : itemIdx); }} className="p-2">
-                        <Image source={require('../assets/icons/3-dots.png')} style={{ width: 14, height: 14, tintColor: colors.secondaryFont }} />
-                      </Pressable>
-                      {menuIdx === itemIdx && activeIdx === idx && (
-                        <>
-                          {/* Overlay to close menu when clicking outside */}
+
+                        {editingItemId === item.id ? (
+                          <TextInput
+                            className="flex-1 bg-transparent font-InterRegular text-primaryFont text-sm mr-2"
+                            value={editingItemText}
+                            onChangeText={setEditingItemText}
+                            autoFocus
+                            maxLength={100}
+                            onSubmitEditing={() => handleInlineEdit(item.id, editingItemText)}
+                            onBlur={() => handleInlineEdit(item.id, editingItemText)}
+                          />
+                        ) : (
                           <Pressable
-                            className="absolute inset-0 z-10"
-                            style={{ left: 0, top: 0, right: 0, bottom: 0 }}
-                            onPress={() => setMenuIdx(null)}
+                            className="flex-1"
+                            onPress={() => {
+                              setActiveChecklistName(checklistName);
+                              setEditingItemId(item.id);
+                              setEditingItemText(item.item_name);
+                            }}
+                            disabled={loading}
                           >
-                            {/* Transparent overlay */}
+                            <Text className={
+                              'text-primaryFont text-sm' +
+                              (item.is_completed ? ' line-through text-secondaryFont' : '')
+                            }>
+                              {item.item_name}
+                            </Text>
                           </Pressable>
-                          <View className="absolute right-10 top-2 bg-modal border border-border rounded-xl shadow-lg z-20 flex-col">
-                            <Pressable onPress={() => { setMenuIdx(null); deleteItem(itemIdx); }} className="px-6 py-2">
-                              <Text className="text-red-400 text-base">Delete Item</Text>
-                            </Pressable>
-                          </View>
-                        </>
-                      )}
-                    </View>
-                  ))}
-                </View>
-              )}
-            </View>
-          ))}
+                        )}
+
+                        <Pressable 
+                          onPress={() => {
+                            setActiveChecklistName(checklistName);
+                            setMenuItemId(menuItemId === item.id ? null : item.id);
+                          }} 
+                          className="p-2"
+                          disabled={loading}
+                        >
+                          <Image 
+                            source={require('../assets/icons/3-dots.png')} 
+                            style={{ width: 14, height: 14, tintColor: colors.secondaryFont }} 
+                          />
+                        </Pressable>
+
+                        {menuItemId === item.id && (
+                          <>
+                            {/* Overlay to close menu when clicking outside */}
+                            <Pressable
+                              className="absolute inset-0 z-10"
+                              style={{ left: 0, top: 0, right: 0, bottom: 0 }}
+                              onPress={() => setMenuItemId(null)}
+                            />
+                            <View className="absolute right-10 top-2 bg-modal border border-border rounded-xl shadow-lg z-20 flex-col">
+                              <Pressable 
+                                onPress={() => {
+                                  setMenuItemId(null);
+                                  openModal('editItem', item.id, item.item_name);
+                                }} 
+                                className="px-6 py-2"
+                              >
+                                <Text className="text-primaryFont text-base">Edit Item</Text>
+                              </Pressable>
+                              <Pressable 
+                                onPress={() => handleDeleteItem(item.id)} 
+                                className="px-6 py-2"
+                              >
+                                <Text className="text-red-400 text-base">Delete Item</Text>
+                              </Pressable>
+                            </View>
+                          </>
+                        )}
+                      </View>
+                    ))}
+                  </View>
+                )}
+              </View>
+            );
+          })}
         </View>
       )}
+
       {/* divider */}
       <View className="h-[1px] bg-divider w-full mb-6" />
+
       {/* Modal for add/edit checklist or item */}
       <Modal
         visible={modalVisible}
         transparent
         animationType="fade"
-        onRequestClose={() => { setModalVisible(false); setModalType(null); setEditItemIdx(null); }}
+        onRequestClose={() => { 
+          setModalVisible(false); 
+          setModalType(null); 
+          setEditItemId(null); 
+          setEditItemText('');
+          setNewChecklistName('');
+        }}
       >
         <View className="flex-1 justify-center items-center bg-black/60">
           <View className="bg-modal p-6 rounded-2xl w-11/12 max-w-md">
@@ -246,27 +366,56 @@ export default function TravelChecklistCard() {
               className="bg-modal text-primaryFont py-2 mb-4 text-base font-InterBold"
               placeholder={modalType === 'addChecklist' ? 'Checklist name...' : 'Item...'}
               placeholderTextColor="#828282"
-              value={modalType === 'addChecklist' ? newChecklistName : modalType === 'editItem' ? editItemText : newItem}
-              onChangeText={modalType === 'addChecklist' ? setNewChecklistName : modalType === 'editItem' ? setEditItemText : setNewItem}
-              maxLength={modalType === 'addChecklist' ? 40 : 60}
+              value={
+                modalType === 'addChecklist' ? newChecklistName : 
+                modalType === 'editItem' ? editItemText : 
+                newItem
+              }
+              onChangeText={
+                modalType === 'addChecklist' ? setNewChecklistName : 
+                modalType === 'editItem' ? setEditItemText : 
+                setNewItem
+              }
+              maxLength={modalType === 'addChecklist' ? 40 : 100}
               autoFocus
             />
             <View className="flex-row justify-end">
-              <Pressable onPress={() => { setModalVisible(false); setModalType(null); setEditItemIdx(null); }} className="px-4 py-2 mr-2 rounded bg-gray-600 active:opacity-80">
+              <Pressable 
+                onPress={() => { 
+                  setModalVisible(false); 
+                  setModalType(null); 
+                  setEditItemId(null);
+                  setEditItemText('');
+                  setNewChecklistName('');
+                }} 
+                className="px-4 py-2 mr-2 rounded bg-gray-600 active:opacity-80"
+              >
                 <Text className="text-white text-sm">Cancel</Text>
               </Pressable>
               {modalType === 'addChecklist' && (
-                <Pressable onPress={handleAddChecklist} className="px-4 py-2 rounded bg-accentFont active:opacity-80">
+                <Pressable 
+                  onPress={handleAddChecklist} 
+                  className="px-4 py-2 rounded bg-accentFont active:opacity-80"
+                  disabled={loading}
+                >
                   <Text className="text-white text-sm">Add</Text>
                 </Pressable>
               )}
               {modalType === 'addItem' && (
-                <Pressable onPress={handleAddItem} className="px-4 py-2 rounded bg-accentFont active:opacity-80">
+                <Pressable 
+                  onPress={handleAddItem} 
+                  className="px-4 py-2 rounded bg-accentFont active:opacity-80"
+                  disabled={loading}
+                >
                   <Text className="text-white text-sm">Add</Text>
                 </Pressable>
               )}
               {modalType === 'editItem' && (
-                <Pressable onPress={handleEditItem} className="px-4 py-2 rounded bg-accentFont active:opacity-80">
+                <Pressable 
+                  onPress={handleEditItem} 
+                  className="px-4 py-2 rounded bg-accentFont active:opacity-80"
+                  disabled={loading}
+                >
                   <Text className="text-white text-sm">Save</Text>
                 </Pressable>
               )}

@@ -90,7 +90,7 @@ export default function TravelHubTab({ trip }: TravelHubTabProps) {
 
         {/* Dropdown Sections */}
         <NotesDropdown tripId={trip.id} />
-        <TravelChecklistDropdown />
+        <TravelChecklistDropdown tripId={trip.id} />
         {/* <MemoryDropdown /> */}
 
         {/* Placeholder for rest of Travel Hub content */}
