@@ -1,106 +1,79 @@
-// API service for AITA - handles communication with the backend AI model (on google colab)
+// API service for AITA - handles communication with Google Gemini AI
+
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 interface Message {
-  role: 'user' | 'assistant' | 'system';
-  text?: string;
-  content?: Array<{ type: string; text: string }>;
+  role: 'user' | 'assistant';
+  text: string;
   time?: string;
 }
 
-// This interface is used to format messages for the API
-interface ApiMessage {
-  role: string;
-  content: Array<{ type: string; text: string }>;
-}
-
 class AITAApiService {
-    // Base URL for the AI service
-    private readonly baseUrl = 'https://aita-travel-ai.loca.lt';
-
-    // Maximum number of messages to keep in context
+    private genAI: GoogleGenerativeAI;
     private readonly maxContextMessages = 20;
+    private readonly systemPrompt = "You are AITA, a helpful AI travel assistant. Provide helpful, accurate travel advice and recommendations. Keep responses concise and friendly.";
 
+    constructor() {
+        // For development, we'll use the API key directly
+        // In production, you should use environment variables
+        const apiKey = 'AIzaSyDiJkARWeU-ZJr99Rs4NZbPKsQRSqX5LqQ';
+        this.genAI = new GoogleGenerativeAI(apiKey);
+    }
 
-   // Send messages to the AI model and get a response
-    async sendMessage(messages: Message[]): Promise<string> {
+    // Create a chat completion with context management
+    async createChatCompletion(messages: Message[]): Promise<string> {
         try {
-            const response = await fetch(`${this.baseUrl}/generate`, {
-                method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json', 
-                    'Bypass-Tunnel-Reminder': 'true'  // LocalTunnel header
-                },
-                body: JSON.stringify({ messages: this.formatMessagesForApi(messages) }),
+            // Keep only recent messages to stay within context window
+            const recentMessages = messages.slice(-this.maxContextMessages);
+            
+            // Get the Gemini model (using the correct model name)
+            const model = this.genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+            
+            // Convert messages to Gemini format and create chat
+            const history = recentMessages.slice(0, -1).map(msg => ({
+                role: msg.role === 'assistant' ? 'model' : 'user',
+                parts: [{ text: msg.text }]
+            }));
+            
+            // Start chat with history and system prompt
+            const chat = model.startChat({
+                history: [
+                    {
+                        role: 'user',
+                        parts: [{ text: this.systemPrompt }]
+                    },
+                    {
+                        role: 'model',
+                        parts: [{ text: 'I understand. I am AITA, your travel assistant. How can I help you with your travel plans?' }]
+                    },
+                    ...history
+                ],
+                generationConfig: {
+                    maxOutputTokens: 1000,
+                    temperature: 0.7,
+                }
             });
 
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const data = await response.json();
+            // Send the latest message
+            const latestMessage = recentMessages[recentMessages.length - 1];
+            const result = await chat.sendMessage(latestMessage.text);
             
-            if (!data.result) {
-                throw new Error('No result in response');
-            }
-
-            return this.processResponse(data.result);
+            return result.response.text();
         } catch (error) {
-            console.error('Error communicating with AI:', error);
+            console.error('Error communicating with Gemini:', error);
             throw new Error('Failed to communicate with AI service');
         }
-    }
-
-    // Create a chat completion with system message and context management
-    async createChatCompletion(messages: Message[]): Promise<string> {
-        // Keep only recent messages to stay within context window
-        const recentMessages = messages.slice(-this.maxContextMessages);
-
-        // Add system message
-        const systemMessage: Message = {
-        role: "system",
-        content: [{ type: "text", text: "You are AITA, a helpful AI travel assistant. Provide helpful, accurate travel advice and recommendations." }]
-        };
-
-        const messagesWithSystem = [systemMessage, ...recentMessages];
-        return this.sendMessage(messagesWithSystem);
-    }
-
-    // Format messages for the API
-    private formatMessagesForApi(messages: Message[]): ApiMessage[] {
-        return messages.map(msg => ({
-        role: msg.role,
-        content: msg.content || [{ type: "text", text: msg.text || "" }]
-        }));
-    }
-
-    // Process the API response by cleaning up formatting
-    private processResponse(response: string): string {
-        // Remove <think>...</think> blocks
-        const withoutThink = response.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
-        
-        // Extract only the assistant's reply after the last 'Assistant:'
-        const assistantIndex = withoutThink.lastIndexOf('Assistant:');
-        if (assistantIndex !== -1) {
-        return withoutThink.substring(assistantIndex + 'Assistant:'.length).trim();
-        }
-        
-        return withoutThink;
     }
 
     // Check if the API service is healthy
     async healthCheck(): Promise<boolean> {
         try {
-            const response = await fetch(`${this.baseUrl}/health`);
-            return response.ok;
+            const model = this.genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+            const result = await model.generateContent("Hello");
+            return !!result.response.text();
         } catch {
             return false;
         }
-    }
-
-    // Update the base URL (useful for development/production environments)
-    setBaseUrl(url: string): void {
-        // Remove trailing slash
-        (this as any).baseUrl = url.replace(/\/$/, '');
     }
 }
 
@@ -111,5 +84,5 @@ export const aitaApi = new AITAApiService();
 export { AITAApiService };
 
 // Export types for use in components
-    export type { ApiMessage, Message };
+    export type { Message };
 
