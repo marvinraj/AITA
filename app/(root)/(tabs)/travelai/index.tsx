@@ -1,20 +1,32 @@
 import { Link } from 'expo-router';
 import React from 'react';
-import { Text, TouchableOpacity, View } from "react-native";
+import { ImageBackground, Text, TouchableOpacity, View } from "react-native";
 
 const TravelAI = () => {
   return (
-    <View className="flex-1 bg-primaryBG items-center justify-center px-6">
+    <ImageBackground
+      source={require('../../../../assets/images/plantripbg6.jpg')}
+      style={{ flex: 1 }}
+      resizeMode="cover"
+    >
+      <View className="flex-1 items-center justify-center px-6">
       {/* header/title */}
       <Text className="text-5xl font-BellezaRegular text-primaryFont mb-4">Plan a New Trip</Text>
       {/* description */}
-      <Text className="text-base font-InterRegular text-secondaryFont mb-8 text-center">Choose how you want to plan your trip. You can plan everything yourself or let AITA help you!</Text>
+      <Text className="text-sm font-InterRegular text-primaryFont/65 mb-8 text-center">Choose how you want to plan your trip. You can plan everything yourself or let AITA help you!</Text>
       {/* 2 buttons */}
       <View className="w-full gap-4">
         {/* manual button -> need to alter the href soon*/}
         <Link href={'/travelai/manual'} asChild>
-          <TouchableOpacity className="flex-row items-center bg-buttonPrimaryBG rounded-2xl px-5 py-6 mb-2 w-full shadow-md">
-            <View className="bg-[#2D2D30] rounded-full p-3 mr-4">
+          <TouchableOpacity className="flex-row items-center bg-primaryBG rounded-2xl px-5 py-6 mb-2 w-full shadow-md" style={{
+            shadowColor: '#ffffff',
+            shadowOffset: { width: 0, height: 1 },
+            shadowOpacity: 0.2,
+            shadowRadius: 8,
+            elevation: 8,
+            opacity: 0.65,
+          }}>
+            <View className="bg-inputBG rounded-full p-3 mr-4">
               <Text className="text-xl">📝</Text> 
             </View>
             <View className="flex-1">
@@ -26,8 +38,15 @@ const TravelAI = () => {
         </Link>
         {/* ai button */}
         <Link href={'/travelai/smartForm'} asChild>
-          <TouchableOpacity className="flex-row items-center bg-buttonPrimaryBG rounded-2xl px-5 py-6 w-full shadow-md">
-            <View className="bg-[#2D2D30] rounded-full p-3 mr-4">
+          <TouchableOpacity className="flex-row items-center bg-primaryBG rounded-2xl px-5 py-6 w-full shadow-md" style={{
+            shadowColor: '#ffffff',
+            shadowOffset: { width: 0, height: 1 },
+            shadowOpacity: 0.2,
+            shadowRadius: 8,
+            elevation: 8,
+            opacity: 0.65,
+          }}>
+            <View className="bg-inputBG rounded-full p-3 mr-4">
               <Text className="text-xl">🤖</Text>
             </View>
             <View className="flex-1">
@@ -38,7 +57,8 @@ const TravelAI = () => {
           </TouchableOpacity>
         </Link>
       </View>
-    </View>
+      </View>
+    </ImageBackground>
   )
 }
 
