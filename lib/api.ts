@@ -14,9 +14,11 @@ class AITAApiService {
     private readonly systemPrompt = "You are AITA, a helpful AI travel assistant. Provide helpful, accurate travel advice and recommendations. Keep responses concise and friendly.";
 
     constructor() {
-        // For development, we'll use the API key directly
-        // In production, you should use environment variables
-        const apiKey = 'AIzaSyDiJkARWeU-ZJr99Rs4NZbPKsQRSqX5LqQ';
+        // Get API key from environment variables
+        const apiKey = process.env.EXPO_PUBLIC_GEMINI_API_KEY;
+        if (!apiKey) {
+            throw new Error('EXPO_PUBLIC_GEMINI_API_KEY is not set in environment variables');
+        }
         this.genAI = new GoogleGenerativeAI(apiKey);
     }
 
