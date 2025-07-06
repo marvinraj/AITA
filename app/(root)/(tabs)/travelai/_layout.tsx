@@ -1,15 +1,10 @@
-import { View, Text } from 'react-native';
-import React from 'react';
 import { Stack } from 'expo-router';
+import React from 'react';
 
 const TravelAILayout = () => {
   return (
-    <Stack screenOptions={{ headerShown: false }}>
+    <Stack screenOptions={{ headerShown: false }} initialRouteName="index">
       <Stack.Screen name="index"/>
-      <Stack.Screen 
-        name="chatAI" 
-        options={{ presentation: 'modal', gestureEnabled: false }}
-      />
       <Stack.Screen 
         name="smartForm"
         options={{ presentation: 'modal' }} 

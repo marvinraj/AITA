@@ -1,8 +1,10 @@
-import { useRouter } from 'expo-router';
-import React, { useRef, useState } from 'react';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import React, { useEffect, useRef, useState } from 'react';
 import { Dimensions, Image, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { GestureHandlerRootView, PanGestureHandler, State } from 'react-native-gesture-handler';
-import { aitaApi, type Message } from '../../../../lib/api';
+import { useAIChat } from '../../hooks/useAIChat';
+import { TripsService } from '../../lib/services/tripsService';
+import { Trip } from '../../types/database';
 
 //  constants
 const HEADER_HEIGHT = 45;
@@ -10,20 +12,61 @@ const DIVIDER_HEIGHT = 4;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 
 const chatAI = () => {
-  // use router from expo-router to handle navigation
+  // Get tripId from navigation parameters (passed when navigating to this screen)
+  const { tripId } = useLocalSearchParams<{ tripId: string }>();
+  
+  console.log('ChatAI screen mounted with tripId:', tripId);
+  
+  // Use router from expo-router to handle navigation
   const router = useRouter();
-  // state to manage the height of the top panel
+  
+  // Initialize services
+  const tripsService = new TripsService();
+  
+  // State for trip data
+  const [trip, setTrip] = useState<Trip | null>(null);
+  const [tripLoading, setTripLoading] = useState(true);
+  
+  // Use persistent AI chat hook - automatically loads/creates chat for this trip
+  const {
+    chat,
+    messages,
+    loading,
+    error,
+    sendMessage,
+    isReady
+  } = useAIChat({
+    tripId: tripId || '',
+    autoLoad: true
+  });
+  
+  // State to manage the height of the top panel
   const [topHeight, setTopHeight] = useState((SCREEN_HEIGHT - HEADER_HEIGHT) * 0.4);
-  // ref to store the initial height during gesture
+  // Ref to store the initial height during gesture
   const initialTopHeight = useRef(topHeight);
-  // state to manage the input text and messages
+  // State to manage the input text
   const [input, setInput] = useState("");
-  // state to manage the chat messages (now with role)
-  const [messages, setMessages] = useState<Message[]>([]);
-  // state to manage loading
-  const [isLoading, setIsLoading] = useState(false);
-  // ref for scrollview
+  // Ref for scrollview
   const scrollViewRef = useRef<ScrollView>(null);
+
+  // Load trip data when component mounts
+  useEffect(() => {
+    const loadTrip = async () => {
+      if (!tripId) return;
+      
+      try {
+        setTripLoading(true);
+        const tripData = await tripsService.getTripById(tripId);
+        setTrip(tripData);
+      } catch (error) {
+        console.error('Failed to load trip:', error);
+      } finally {
+        setTripLoading(false);
+      }
+    };
+
+    loadTrip();
+  }, [tripId]);
 
   // only update height during gesture
   const onGestureEvent = (event: any) => {
@@ -48,39 +91,16 @@ const chatAI = () => {
 
   // ----- MESSAGE HANDLING -----
 
-  // function to handle sending messages
+  // Function to handle sending messages (now uses persistent storage)
   const handleSend = async () => {
-    if (input.trim() === "" || isLoading) return;
+    if (input.trim() === "" || loading || !isReady) return;
     
-    setIsLoading(true);
-    const userMsg: Message = { 
-      role: 'user', 
-      text: input, 
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
-    };
-    setMessages(prev => [...prev, userMsg]);
-    setInput("");
-
     try {
-      // Use the API service to get response
-      const assistantReply = await aitaApi.createChatCompletion([...messages, userMsg]);
-
-      const assistantMsg: Message = { 
-        role: 'assistant', 
-        text: assistantReply, 
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
-      };
-      setMessages(prev => [...prev, assistantMsg]);
+      await sendMessage(input);
+      setInput(""); // Clear input after successful send
     } catch (error) {
-      console.error('Send message error:', error);
-      const errorMsg: Message = { 
-        role: 'assistant', 
-        text: 'Sorry, there was an error. Please try again.', 
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
-      };
-      setMessages(prev => [...prev, errorMsg]);
-    } finally {
-      setIsLoading(false);
+      console.error('Error sending message:', error);
+      // Error handling is already done in the hook
     }
   };
 
@@ -90,11 +110,13 @@ const chatAI = () => {
         {/* header */}
         <View className="flex-row justify-between px-4 bg-primaryBG" style={{ height: HEADER_HEIGHT }}>
           <TouchableOpacity onPress={() => router.back()}>
-            <Image source={require('../../../../assets/icons/back-arrow.png')} style={{ width: 24, height: 24 }} />
+            <Image source={require('../../assets/icons/back-arrow.png')} style={{ width: 24, height: 24 }} />
           </TouchableOpacity>
-          <Text className="font-InterBold text-xl text-primaryFont">Europe Trip</Text>
+          <Text className="font-InterBold text-xl text-primaryFont">
+            {tripLoading ? 'Loading...' : trip?.destination || 'AI Assistant'}
+          </Text>
           <TouchableOpacity>
-            <Image source={require('../../../../assets/icons/3-dots.png')} style={{ width: 20, height: 20 }} />
+            <Image source={require('../../assets/icons/3-dots.png')} style={{ width: 20, height: 20 }} />
           </TouchableOpacity>
         </View>
         
@@ -127,34 +149,48 @@ const chatAI = () => {
               contentContainerStyle={{ justifyContent: 'flex-end', flexGrow: 1 }}
               onContentSizeChange={() => scrollViewRef.current?.scrollToEnd({ animated: true })}
             >
-              {messages.map((msg, idx) => (
-                <View key={idx} className={`w-full items-${msg.role === 'user' ? 'end' : 'start'} mb-2`}>
-                  <View className={`rounded-2xl px-4 py-2 max-w-[80%] ${msg.role === 'user' ? 'bg-accentFont' : 'bg-primaryFont'}` }>
-                    <Text className={`text-base ${msg.role === 'user' ? 'text-primaryBG' : 'text-primaryBG/80'}`}>{msg.text || ''}</Text>
-                  </View>
-                  <Text className="text-xs text-secondaryFont mt-1 ml-2 mr-2">{msg.time || ''}</Text>
+              {loading && messages.length === 0 ? (
+                <View className="flex-1 justify-center items-center">
+                  <Text className="text-secondaryFont">Loading chat...</Text>
                 </View>
-              ))}
+              ) : error ? (
+                <View className="flex-1 justify-center items-center">
+                  <Text className="text-red-400 text-center">{error}</Text>
+                </View>
+              ) : (
+                messages.map((msg) => (
+                  <View key={msg.id} className={`w-full items-${msg.role === 'user' ? 'end' : 'start'} mb-2`}>
+                    <View className={`rounded-2xl px-4 py-2 max-w-[80%] ${msg.role === 'user' ? 'bg-accentFont' : 'bg-primaryFont'}` }>
+                      <Text className={`text-base ${msg.role === 'user' ? 'text-primaryBG' : 'text-primaryBG/80'}`}>
+                        {msg.content || ''}
+                      </Text>
+                    </View>
+                    <Text className="text-xs text-secondaryFont mt-1 ml-2 mr-2">
+                      {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </Text>
+                  </View>
+                ))
+              )}
             </ScrollView>
             {/* input area */}
             <View className="flex-row items-center p-3 bg-secondaryBG border-t border-border mb-2">
               <TextInput
                 className="flex-1 bg-inputBG rounded-2xl px-4 py-3 mr-2 text-base text-primaryFont"
-                placeholder="Ask AITA anything about your trip..."
+                placeholder={trip?.destination ? `Ask about your trip to ${trip.destination}...` : "Ask AITA anything about your trip..."}
                 placeholderTextColor="#828282"
                 returnKeyType="send"
                 value={input}
                 onChangeText={setInput}
                 onSubmitEditing={handleSend}
-                editable={!isLoading}
+                editable={!loading && isReady}
               />
               {/* send message button */}
               <TouchableOpacity 
-                className={`rounded-2xl px-4 py-3 justify-center items-center ${isLoading ? 'bg-gray-400' : 'bg-accentFont'}`} 
+                className={`rounded-2xl px-4 py-3 justify-center items-center ${loading || !isReady ? 'bg-gray-400' : 'bg-accentFont'}`} 
                 onPress={handleSend}
-                disabled={isLoading}
+                disabled={loading || !isReady}
               >
-                <Text className="text-primaryBG text-lg font-bold">{isLoading ? '...' : '↑'}</Text>
+                <Text className="text-primaryBG text-lg font-bold">{loading ? '...' : '↑'}</Text>
               </TouchableOpacity>
             </View>
           </View>
