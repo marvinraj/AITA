@@ -199,7 +199,7 @@ export default function TravelChecklistDropdown({ tripId }: TravelChecklistDropd
             const displayName = checklistName.charAt(0).toUpperCase() + checklistName.slice(1).replace(/_/g, ' ');
             
             return (
-              <View key={checklistName} className="w-full bg-buttonPrimaryBG rounded-2xl px-4 py-5 shadow-md">
+              <View key={checklistName} className="w-full bg-secondaryBG/60 rounded-2xl px-4 py-5 shadow-md">
                 {/* Checklist name and delete button */}
                 <View className="flex-row items-center justify-between mb-3">
                   <Text className={`text-primaryFont text-base font-InterBold ${!isActive ? 'opacity-70' : ''}`}>

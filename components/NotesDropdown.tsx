@@ -209,7 +209,7 @@ export default function NotesDropdown({ tripId }: NotesDropdownProps) {
             ) : (
               <View className="w-full flex-row flex-wrap justify-between">
                 {notes.map((item) => (
-                  <View key={item.id} className="bg-buttonPrimaryBG rounded-xl p-4 mb-3 relative" style={{ width: '48%', minHeight: 120 }}>
+                  <View key={item.id} className="bg-secondaryBG/60 rounded-xl p-4 mb-3 relative" style={{ width: '48%', minHeight: 120 }}>
                     <Text className="text-primaryFont text-sm flex-1 mb-2" numberOfLines={4}>
                       {item.content}
                     </Text>
@@ -273,8 +273,6 @@ export default function NotesDropdown({ tripId }: NotesDropdownProps) {
           </>
         )}
       </View>
-      {/* divider */}
-      <View className="h-[1px] bg-divider w-full mb-6" />
     </View>
   );
 }
