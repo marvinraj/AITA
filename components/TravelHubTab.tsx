@@ -12,7 +12,7 @@ export default function TravelHubTab({ trip }: TravelHubTabProps) {
   return (
     <View className="flex-1 w-full pt-4">
       {/* Main container box */}
-      <View className="flex-1 bg-[#0f0f0f] rounded-md p-5 shadow-lg shadow-black/20">
+      <View className="flex-1 bg-secondaryBG/50 rounded-md p-5 shadow-lg shadow-black/20">
 
         {/* Essentials Section */}
         <View className="mb-6">

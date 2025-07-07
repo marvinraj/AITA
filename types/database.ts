@@ -60,6 +60,37 @@ export interface AIMessage {
   response_time_ms?: number;
 }
 
+// Itinerary System Types
+export interface ItineraryItem {
+  id: string;
+  trip_id: string;
+  user_id: string;
+  title: string;
+  description?: string;
+  date: string; // ISO date string (YYYY-MM-DD)
+  time?: string; // Time in HH:MM format
+  duration?: number; // Duration in minutes
+  location?: string;
+  category: 'activity' | 'restaurant' | 'hotel' | 'transport' | 'flight' | 'other';
+  priority: 'low' | 'medium' | 'high';
+  order: number; // Order within the day
+  notes?: string;
+  cost?: number;
+  currency?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+// Helper interface for UI components
+export interface DailyItinerary {
+  date: string;
+  dayOfWeek: string;
+  formattedDate: string; // "Tuesday, 22 Jul"
+  items: ItineraryItem[];
+  isExpanded: boolean;
+  itemCount: number;
+}
+
 // Input types for creating and updating records
 export interface CreateNoteInput {
   trip_id: string;
@@ -140,6 +171,38 @@ export interface UpdateAIMessageInput {
   token_count?: number;
   model_used?: string;
   response_time_ms?: number;
+}
+
+// Itinerary input types
+export interface CreateItineraryItemInput {
+  trip_id: string;
+  title: string;
+  description?: string;
+  date: string; // ISO date string (YYYY-MM-DD)
+  time?: string; // Time in HH:MM format
+  duration?: number;
+  location?: string;
+  category?: 'activity' | 'restaurant' | 'hotel' | 'transport' | 'flight' | 'other';
+  priority?: 'low' | 'medium' | 'high';
+  order?: number;
+  notes?: string;
+  cost?: number;
+  currency?: string;
+}
+
+export interface UpdateItineraryItemInput {
+  title?: string;
+  description?: string;
+  date?: string;
+  time?: string;
+  duration?: number;
+  location?: string;
+  category?: 'activity' | 'restaurant' | 'hotel' | 'transport' | 'flight' | 'other';
+  priority?: 'low' | 'medium' | 'high';
+  order?: number;
+  notes?: string;
+  cost?: number;
+  currency?: string;
 }
 
 // Helper types for UI components
