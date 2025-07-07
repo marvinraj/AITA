@@ -47,7 +47,7 @@ export default function DatePicker({
   }
   
   return (
-    <View className="py-3">
+    <View className="py-4 mb-3">
       <ScrollView 
         horizontal 
         showsHorizontalScrollIndicator={false}
@@ -57,7 +57,7 @@ export default function DatePicker({
             {/* Edit button (pencil icon) */}
           {onEditPress && (
             <TouchableOpacity
-              className="w-10 h-10 rounded-full border border-secondaryFont/30 items-center justify-center mr-2"
+              className="w-14 h-14 rounded-full border border-secondaryFont/30 items-center justify-center mr-2"
               onPress={onEditPress}
             >
               <Text className="text-secondaryFont text-xs">✏️</Text>
@@ -68,7 +68,7 @@ export default function DatePicker({
               key={dateButton.date}
               onPress={() => onDateSelect(dateButton.date)}
               className={`
-                rounded-full px-4 py-2 mr-2
+                rounded-full px-5 py-4 mr-2
                 ${dateButton.isSelected 
                   ? 'bg-primaryFont' 
                   : 'bg-transparent border border-secondaryFont/30'
