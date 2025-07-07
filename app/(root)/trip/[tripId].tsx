@@ -1,6 +1,6 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Alert, Modal, ScrollView, Text, TextInput, TouchableOpacity, View, Image } from 'react-native';
+import { Alert, Image, Modal, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import ItineraryTab from '../../../components/ItineraryTab';
 import LiveTripHeader from '../../../components/LiveTripHeader';
 import SavesTab from '../../../components/SavesTab';
@@ -249,7 +249,7 @@ export default function TripDetailsPage() {
 
       {/* Active Tab Content */}
       <View className="flex-1 px-4">
-        <ActiveComponent trip={trip} />
+        <ActiveComponent trip={trip} onTripUpdate={setTrip} />
       </View>
 
       {/* Edit Trip Modal */}

@@ -110,7 +110,7 @@ export default function LiveTripTab() {
         })}
       </View>
       {/* Active Tab Content */}
-      <ActiveComponent trip={currentTrip} />
+      <ActiveComponent trip={currentTrip} onTripUpdate={setCurrentTrip} />
     </View>
   );
 }
