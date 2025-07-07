@@ -45,7 +45,7 @@ export default function LiveTripHeader({ trip, weather = "Sunny, 25°C" }: LiveT
   return (
     <View className="my-1">
       <LinearGradient
-        colors={['#d44444', '#b81818', '#901616', '#701212']}
+        colors={['#4a1a2b', '#3d1623', '#2d0914', '#1f0509']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={{
@@ -94,8 +94,8 @@ export default function LiveTripHeader({ trip, weather = "Sunny, 25°C" }: LiveT
                   end={{ x: 1, y: 1 }}
                   style={{
                       width: 70,
-                      height: 80,
-                      borderRadius: 16,
+                      height: 75,
+                      borderRadius: 32,
                       shadowColor: '#000',
                       shadowOffset: { width: 0, height: 2 },
                       shadowOpacity: 0.3,
