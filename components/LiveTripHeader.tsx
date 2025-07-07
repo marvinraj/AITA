@@ -1,5 +1,6 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { Text, View } from 'react-native';
+import { useRouter } from 'expo-router';
+import { Text, TouchableOpacity, View } from 'react-native';
 import { Trip } from '../types/database';
 
 interface LiveTripHeaderProps {
@@ -8,6 +9,12 @@ interface LiveTripHeaderProps {
 }
 
 export default function LiveTripHeader({ trip, weather = "Sunny, 25°C" }: LiveTripHeaderProps) {
+  const router = useRouter();
+  
+  // Handle chat button press
+  const handleChatPress = () => {
+    router.push(`/chatAI?tripId=${trip.id}`);
+  };
   // Format trip dates for display
   const formatTripDates = () => {
     if (trip.start_date && trip.end_date) {
@@ -78,23 +85,30 @@ export default function LiveTripHeader({ trip, weather = "Sunny, 25°C" }: LiveT
                   )}
               </View>
           </View>
-          {/* not sure yet -> maybe ai button? */}
+          {/* AI Chat button */}
           <View className="flex-row items-center">
-              <LinearGradient
-                colors={['#e55555', '#cc1e1e', '#a01a1a', '#801515']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={{
-                    width: 70,
-                    height: 80,
-                    borderRadius: 16,
-                    shadowColor: '#000',
-                    shadowOffset: { width: 0, height: 2 },
-                    shadowOpacity: 0.3,
-                    shadowRadius: 4,
-                    elevation: 6,
-                }}
-              />
+              <TouchableOpacity onPress={handleChatPress}>
+                <LinearGradient
+                  colors={['#e55555', '#cc1e1e', '#a01a1a', '#801515']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={{
+                      width: 70,
+                      height: 80,
+                      borderRadius: 16,
+                      shadowColor: '#000',
+                      shadowOffset: { width: 0, height: 2 },
+                      shadowOpacity: 0.3,
+                      shadowRadius: 4,
+                      elevation: 6,
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                  }}
+                >
+                  {/* <Text className="text-3xl">🤖</Text> */}
+                  <Text className="text-sm text-primaryFont/70 font-UrbanistSemiBold">AITA</Text>
+                </LinearGradient>
+              </TouchableOpacity>
           </View>
         </View>
       </LinearGradient>

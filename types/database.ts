@@ -38,6 +38,28 @@ export interface ChecklistItem {
   updated_at: string;
 }
 
+// AI Chat System Types
+export interface AIChat {
+  id: string;
+  trip_id: string;
+  title: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AIMessage {
+  id: string;
+  chat_id: string;
+  role: 'user' | 'assistant' | 'system';
+  content: string;
+  message_order: number;
+  created_at: string;
+  token_count?: number;
+  model_used?: string;
+  response_time_ms?: number;
+}
+
 // Input types for creating and updating records
 export interface CreateNoteInput {
   trip_id: string;
@@ -89,6 +111,35 @@ export interface UpdateChecklistItemInput {
   priority?: 'low' | 'medium' | 'high';
   notes?: string;
   due_date?: string;
+}
+
+// Input types for AI chat system
+export interface CreateAIChatInput {
+  trip_id: string;
+  title?: string;
+  is_active?: boolean;
+}
+
+export interface UpdateAIChatInput {
+  title?: string;
+  is_active?: boolean;
+}
+
+export interface CreateAIMessageInput {
+  chat_id: string;
+  role: 'user' | 'assistant' | 'system';
+  content: string;
+  message_order: number;
+  token_count?: number;
+  model_used?: string;
+  response_time_ms?: number;
+}
+
+export interface UpdateAIMessageInput {
+  content?: string;
+  token_count?: number;
+  model_used?: string;
+  response_time_ms?: number;
 }
 
 // Helper types for UI components

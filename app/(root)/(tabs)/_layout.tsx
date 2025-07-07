@@ -1,9 +1,9 @@
-import { View, Text, Image } from 'react-native'
-import resolveConfig from 'tailwindcss/resolveConfig'
-import tailwindConfig from '@/tailwind.config'
-import React from 'react'
-import { Tabs } from 'expo-router'
 import { icons } from '@/constants/icons'
+import tailwindConfig from '@/tailwind.config'
+import { Tabs, useRouter } from 'expo-router'
+import React from 'react'
+import { Image } from 'react-native'
+import resolveConfig from 'tailwindcss/resolveConfig'
 
 
 const fullConfig = resolveConfig(tailwindConfig)
@@ -11,6 +11,8 @@ const colors = fullConfig.theme?.colors as any
 
 
 const TabsLayout = () => {
+  const router = useRouter();
+
   return (
     <Tabs
         screenOptions={{
@@ -81,6 +83,13 @@ const TabsLayout = () => {
                         />
                     </>
                 )
+            }}
+            listeners={{
+                tabPress: (e) => {
+                    // Reset the travelai stack to the index screen when tab is pressed
+                    // This ensures we always go to the planning page, not the chat
+                    router.push('/travelai');
+                }
             }}
         />
         <Tabs.Screen

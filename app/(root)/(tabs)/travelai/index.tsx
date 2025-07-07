@@ -1,8 +1,12 @@
 import { Link } from 'expo-router';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { ImageBackground, Text, TouchableOpacity, View } from "react-native";
 
 const TravelAI = () => {
+  useEffect(() => {
+    console.log('TravelAI index page mounted');
+  }, []);
+
   return (
     <ImageBackground
       source={require('../../../../assets/images/plantripbg6.jpg')}
