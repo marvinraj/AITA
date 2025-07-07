@@ -160,7 +160,7 @@ export default function FutureTripsTab() {
           {trips.map((trip, index) => (
             <View key={trip.id}>
               <TouchableOpacity
-                className="rounded-xl py-2 px-2 mb-4 shadow-sm"
+                className="rounded-xl py-2 px-2 mb-2 shadow-sm"
                 onPress={() => handleTripPress(trip.id)}
                 activeOpacity={0.8}
               >
@@ -182,7 +182,7 @@ export default function FutureTripsTab() {
                   {/* Trip content */}
                   <View className="flex-1">
                     {/* Trip header */}
-                    <View className="flex-row items-start justify-between mb-3">
+                    <View className="flex-row items-start justify-between mb-2">
                       <View className="flex-1">
                         <Text className="text-lg font-UrbanistSemiBold text-primaryFont mb-1">
                           {trip.name}
@@ -222,7 +222,7 @@ export default function FutureTripsTab() {
               
               {/* Divider - only show if not the last item */}
               {index < trips.length - 1 && (
-                <View className="h-[1px] bg-divider/70 mx-4 mb-4" />
+                <View className="h-[1px] bg-divider/70 mx-4 mb-3" />
               )}
             </View>
           ))}
