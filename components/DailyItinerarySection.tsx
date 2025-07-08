@@ -1,29 +1,36 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 import Animated, {
-    Extrapolate,
-    interpolate,
-    useAnimatedStyle,
-    useSharedValue,
-    withTiming
+  Extrapolate,
+  interpolate,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming
 } from 'react-native-reanimated';
+import { getCategoryIcon } from '../constants/categories';
 import { formatDayHeader } from '../lib/utils/dateUtils';
 import { ItineraryItem } from '../types/database';
+import AddActivityModal from './AddActivityModal';
 
 interface DailyItinerarySectionProps {
   date: string;
   items: ItineraryItem[];
   isExpanded: boolean;
   onToggle: (date: string) => void;
+  tripId: string;
+  onActivityAdded: () => void;
 }
 
 export default function DailyItinerarySection({ 
   date, 
   items, 
   isExpanded, 
-  onToggle 
+  onToggle,
+  tripId,
+  onActivityAdded
 }: DailyItinerarySectionProps) {
   
+  const [showAddModal, setShowAddModal] = useState(false);
   const animatedHeight = useSharedValue(isExpanded ? 1 : 0);
   const rotationValue = useSharedValue(isExpanded ? 1 : 0);
 
@@ -35,10 +42,24 @@ export default function DailyItinerarySection({
 
   // Animated styles
   const animatedContentStyle = useAnimatedStyle(() => {
+    // Use a more generous height calculation that grows properly
+    const baseHeight = 40; // Base padding
+    const emptyStateHeight = 120; // Height for empty state
+    const itemHeight = 90; // More generous per-item height
+    const buttonHeight = 60; // Height for add button with margins
+    
+    let totalHeight;
+    if (items.length === 0) {
+      totalHeight = emptyStateHeight;
+    } else {
+      // For items: base + (items * height) + button
+      totalHeight = baseHeight + (items.length * itemHeight) + buttonHeight;
+    }
+    
     const height = interpolate(
       animatedHeight.value,
       [0, 1],
-      [0, items.length * 80 + 20], // Approximate height based on items
+      [0, totalHeight],
       Extrapolate.CLAMP
     );
     
@@ -67,6 +88,17 @@ export default function DailyItinerarySection({
   // Handle toggle
   const handleToggle = () => {
     onToggle(date);
+  };
+
+  // Handle add activity
+  const handleAddActivity = () => {
+    setShowAddModal(true);
+  };
+
+  // Handle activity added
+  const handleActivityAdded = () => {
+    onActivityAdded();
+    setShowAddModal(false);
   };
 
   return (
@@ -105,6 +137,17 @@ export default function DailyItinerarySection({
             {items.map((item, index) => (
               <ItineraryItemCard key={item.id} item={item} />
             ))}
+            
+            {/* Add Activity Button - Always visible when expanded */}
+            <TouchableOpacity 
+              className="mt-3 mb-1 px-4 py-3 bg-accentFont/20 rounded-lg border border-accentFont/30 flex-row items-center justify-center"
+              onPress={handleAddActivity}
+              activeOpacity={0.7}
+            >
+              <Text className="text-accentFont text-sm font-UrbanistSemiBold">
+                + Add Activity
+              </Text>
+            </TouchableOpacity>
           </View>
         ) : (
           <View className="py-6 items-center">
@@ -112,8 +155,9 @@ export default function DailyItinerarySection({
               No activities planned for this day
             </Text>
             <TouchableOpacity 
-              className="mt-2 px-4 py-2 bg-accentFont/20 rounded-lg"
-              onPress={() => console.log('Add activity for', date)}
+              className="mt-3 px-4 py-3 bg-accentFont/20 rounded-lg"
+              onPress={handleAddActivity}
+              activeOpacity={0.7}
             >
               <Text className="text-accentFont text-sm font-UrbanistSemiBold">
                 + Add Activity
@@ -122,6 +166,15 @@ export default function DailyItinerarySection({
           </View>
         )}
       </Animated.View>
+      
+      {/* Add Activity Modal */}
+      <AddActivityModal
+        visible={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        date={date}
+        tripId={tripId}
+        onActivityAdded={handleActivityAdded}
+      />
     </View>
   );
 }
@@ -132,18 +185,6 @@ interface ItineraryItemCardProps {
 }
 
 function ItineraryItemCard({ item }: ItineraryItemCardProps) {
-  // Get category icon
-  const getCategoryIcon = (category: string) => {
-    switch (category) {
-      case 'restaurant': return '🍽️';
-      case 'hotel': return '🏨';
-      case 'activity': return '🎯';
-      case 'transport': return '🚗';
-      case 'flight': return '✈️';
-      default: return '📍';
-    }
-  };
-
   // Format time display
   const formatTime = (time?: string) => {
     if (!time) return '';

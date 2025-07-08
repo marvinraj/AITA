@@ -71,9 +71,9 @@ export interface ItineraryItem {
   time?: string; // Time in HH:MM format
   duration?: number; // Duration in minutes
   location?: string;
-  category: 'activity' | 'restaurant' | 'hotel' | 'transport' | 'flight' | 'other';
+  category: 'activity' | 'restaurant' | 'hotel' | 'transport' | 'flight' | 'attraction' | 'shopping' | 'nightlife' | 'other';
   priority: 'low' | 'medium' | 'high';
-  order: number; // Order within the day
+  item_order: number; // Order within the day
   notes?: string;
   cost?: number;
   currency?: string;
@@ -182,9 +182,9 @@ export interface CreateItineraryItemInput {
   time?: string; // Time in HH:MM format
   duration?: number;
   location?: string;
-  category?: 'activity' | 'restaurant' | 'hotel' | 'transport' | 'flight' | 'other';
+  category?: 'activity' | 'restaurant' | 'hotel' | 'transport' | 'flight' | 'attraction' | 'shopping' | 'nightlife' | 'other';
   priority?: 'low' | 'medium' | 'high';
-  order?: number;
+  item_order?: number;
   notes?: string;
   cost?: number;
   currency?: string;
@@ -199,7 +199,7 @@ export interface UpdateItineraryItemInput {
   location?: string;
   category?: 'activity' | 'restaurant' | 'hotel' | 'transport' | 'flight' | 'other';
   priority?: 'low' | 'medium' | 'high';
-  order?: number;
+  item_order?: number;
   notes?: string;
   cost?: number;
   currency?: string;

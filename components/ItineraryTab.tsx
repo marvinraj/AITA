@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { Alert, Modal, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, Modal, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { Calendar } from 'react-native-calendars';
+import { itineraryService } from '../lib/services/itineraryService';
 import { tripsService } from '../lib/services/tripsService';
 import { formatDayHeader, generateDateRange, getDayOfWeek } from '../lib/utils/dateUtils';
 import { DailyItinerary, Trip } from '../types/database';
@@ -16,27 +17,60 @@ export default function ItineraryTab({ trip, onTripUpdate }: ItineraryTabProps) 
   const [selectedDate, setSelectedDate] = useState<string | undefined>(undefined);
   const [expandedDays, setExpandedDays] = useState<Set<string>>(new Set());
   const [dailyItineraries, setDailyItineraries] = useState<DailyItinerary[]>([]);
+  const [loadingItinerary, setLoadingItinerary] = useState(false);
   
   // Date editing modal state
   const [showDateEditModal, setShowDateEditModal] = useState(false);
   const [editingDateRange, setEditingDateRange] = useState<{start: string, end: string}>({ start: '', end: '' });
   const [isUpdatingTrip, setIsUpdatingTrip] = useState(false);
-  // Generate daily itinerary structure when trip dates change
-  useEffect(() => {
-    if (trip.start_date && trip.end_date) {
+  // Load itinerary data from database
+  const loadItineraryData = async () => {
+    if (!trip.start_date || !trip.end_date) return;
+    
+    setLoadingItinerary(true);
+    try {
+      // Load all itinerary items for this trip
+      const items = await itineraryService.getItineraryByTrip(trip.id);
+      
+      // Generate daily itinerary structure
       const dateRange = generateDateRange(trip.start_date, trip.end_date);
       
+      const dailies: DailyItinerary[] = dateRange.map(date => {
+        // Filter items for this specific date
+        const dateItems = items.filter((item: any) => item.date === date);
+        
+        return {
+          date,
+          dayOfWeek: getDayOfWeek(date),
+          formattedDate: formatDayHeader(date),
+          items: dateItems,
+          isExpanded: expandedDays.has(date),
+          itemCount: dateItems.length
+        };
+      });
+      
+      setDailyItineraries(dailies);
+    } catch (error) {
+      console.error('Error loading itinerary data:', error);
+      // Fallback to empty structure
+      const dateRange = generateDateRange(trip.start_date, trip.end_date);
       const dailies: DailyItinerary[] = dateRange.map(date => ({
         date,
         dayOfWeek: getDayOfWeek(date),
         formattedDate: formatDayHeader(date),
-        items: [], // TODO: Load actual itinerary items from database
-        isExpanded: false,
+        items: [],
+        isExpanded: expandedDays.has(date),
         itemCount: 0
       }));
-      
       setDailyItineraries(dailies);
+    } finally {
+      setLoadingItinerary(false);
     }
+  };
+
+  // Load itinerary data when trip dates change
+  useEffect(() => {
+    loadItineraryData();
   }, [trip.start_date, trip.end_date]);
   
   // Handle date selection from horizontal picker
@@ -173,6 +207,12 @@ export default function ItineraryTab({ trip, onTripUpdate }: ItineraryTabProps) 
     return markedDates;
   };
   
+  // Handle activity added - refresh the itinerary data
+  const handleActivityAdded = async () => {
+    console.log('Activity added, refreshing itinerary data');
+    await loadItineraryData();
+  };
+
   return (
     <View className="flex-1 bg-primaryBG">
       {/* Date Picker */}
@@ -197,25 +237,36 @@ export default function ItineraryTab({ trip, onTripUpdate }: ItineraryTabProps) 
         className="flex-1"
         showsVerticalScrollIndicator={false}
       >
-        {dailyItineraries.map((daily) => (
-          <DailyItinerarySection
-            key={daily.date}
-            date={daily.date}
-            items={daily.items}
-            isExpanded={expandedDays.has(daily.date)}
-            onToggle={handleDayToggle}
-          />
-        ))}
-        
-        {/* Empty state */}
-        {dailyItineraries.length === 0 && trip.start_date && trip.end_date && (
+        {loadingItinerary ? (
           <View className="flex-1 items-center justify-center py-20">
-            <Text className="text-secondaryFont text-lg mb-2">Ready to plan!</Text>
-            <Text className="text-secondaryFont text-sm text-center">
-              Your trip dates are set.{'\n'}
-              Start adding activities to your itinerary.
-            </Text>
+            <ActivityIndicator size="large" color="#f48080" />
+            <Text className="text-secondaryFont text-sm mt-2">Loading itinerary...</Text>
           </View>
+        ) : (
+          <>
+            {dailyItineraries.map((daily) => (
+              <DailyItinerarySection
+                key={daily.date}
+                date={daily.date}
+                items={daily.items}
+                isExpanded={expandedDays.has(daily.date)}
+                onToggle={handleDayToggle}
+                tripId={trip.id}
+                onActivityAdded={handleActivityAdded}
+              />
+            ))}
+            
+            {/* Empty state */}
+            {dailyItineraries.length === 0 && trip.start_date && trip.end_date && (
+              <View className="flex-1 items-center justify-center py-20">
+                <Text className="text-secondaryFont text-lg mb-2">Ready to plan!</Text>
+                <Text className="text-secondaryFont text-sm text-center">
+                  Your trip dates are set.{'\n'}
+                  Start adding activities to your itinerary.
+                </Text>
+              </View>
+            )}
+          </>
         )}
         
         {/* Bottom padding */}
