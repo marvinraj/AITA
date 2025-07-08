@@ -116,7 +116,7 @@ export default function DailyItinerarySection({
           {/* Item count */}
           {items.length > 0 && (
             <Text className="text-secondaryFont text-sm mr-3">
-              {items.length} {items.length === 1 ? 'item' : 'items'}
+              {items.length} {items.length === 1 ? 'activity' : 'activities'}
             </Text>
           )}
           
@@ -139,15 +139,15 @@ export default function DailyItinerarySection({
                 {/* Timeline indicator */}
                 <View className="items-center mr-3 mt-1">
                   {/* Number circle */}
-                  <View className="w-8 h-8 rounded-full bg-accentFont items-center justify-center">
-                    <Text className="text-primaryBG text-xs font-UrbanistSemiBold">
+                  <View className="w-8 h-8 rounded-full bg-accentFont/25 items-center justify-center">
+                    <Text className="text-secondaryFont text-xs font-UrbanistSemiBold">
                       {index + 1}
                     </Text>
                   </View>
                   
                   {/* Connecting line - only show if not the last item */}
                   {index < items.length - 1 && (
-                    <View className="w-0.5 h-16 bg-accentFont/40 mt-2" />
+                    <View className="w-0.5 h-16 bg-accentFont/20 mt-2" />
                   )}
                 </View>
                 
@@ -224,7 +224,7 @@ function ItineraryItemCard({ item }: ItineraryItemCardProps) {
       onPress={() => console.log('View item:', item.id)}
     >
       {/* Category Icon */}
-      <View className="w-10 h-10 rounded-full bg-accentFont/20 items-center justify-center mr-3">
+      <View className="w-10 h-10 rounded-full bg-secondaryBG/70 items-center justify-center mr-3">
         <Text className="text-lg">{getCategoryIcon(item.category)}</Text>
       </View>
       
