@@ -45,7 +45,7 @@ export default function DailyItinerarySection({
     // Use a more generous height calculation that grows properly
     const baseHeight = 40; // Base padding
     const emptyStateHeight = 120; // Height for empty state
-    const itemHeight = 90; // More generous per-item height
+    const itemHeight = 95; // Increased for timeline indicators and lines
     const buttonHeight = 60; // Height for add button with margins
     
     let totalHeight;
@@ -135,7 +135,27 @@ export default function DailyItinerarySection({
         {items.length > 0 ? (
           <View className="py-2">
             {items.map((item, index) => (
-              <ItineraryItemCard key={item.id} item={item} />
+              <View key={item.id} className="flex-row items-start">
+                {/* Timeline indicator */}
+                <View className="items-center mr-3 mt-1">
+                  {/* Number circle */}
+                  <View className="w-8 h-8 rounded-full bg-accentFont items-center justify-center">
+                    <Text className="text-primaryBG text-xs font-UrbanistSemiBold">
+                      {index + 1}
+                    </Text>
+                  </View>
+                  
+                  {/* Connecting line - only show if not the last item */}
+                  {index < items.length - 1 && (
+                    <View className="w-0.5 h-16 bg-accentFont/40 mt-2" />
+                  )}
+                </View>
+                
+                {/* Activity card - modified to work with timeline */}
+                <View className="flex-1">
+                  <ItineraryItemCard item={item} />
+                </View>
+              </View>
             ))}
             
             {/* Add Activity Button - Always visible when expanded */}
