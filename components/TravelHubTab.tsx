@@ -22,13 +22,13 @@ export default function TravelHubTab({ trip }: TravelHubTabProps) {
           <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-2">
             <View className="flex-row items-center">
               <View className="mr-2">
-                <View className="bg-[#001d3d] rounded-xl p-3 shadow-sm items-center justify-center" style={{ width: 66, height: 65 }}>
+                <View className="bg-[#001d3d]/80 rounded-xl p-3 shadow-sm items-center justify-center" style={{ width: 66, height: 65 }}>
                   <Image source={require('../assets/icons/plane.png')} style={{ width: 22, height: 22, marginBottom: 4 }} contentFit="contain" />
                   <Text className="text-xs text-primaryFont font-UrbanistSemiBold">Flight</Text>
                 </View>
               </View>
               <View className="mr-2">
-                <View className="bg-[#374259] rounded-xl p-3 shadow-sm items-center justify-center" style={{ width: 66, height: 65 }}>
+                <View className="bg-[#374259]/50 rounded-xl p-3 shadow-sm items-center justify-center" style={{ width: 66, height: 65 }}>
                   <Image source={require('../assets/icons/lodging.png')} style={{ width: 22, height: 22, marginBottom: 4 }} contentFit="contain" />
                   <Text className="text-xs text-primaryFont font-UrbanistSemiBold">Lodging</Text>
                 </View>
