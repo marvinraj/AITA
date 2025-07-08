@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    Modal,
-    ScrollView,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  ActivityIndicator,
+  Alert,
+  Modal,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from 'react-native';
 import { ACTIVITY_CATEGORIES, Category, getSuggestedCategories } from '../constants/categories';
 import { itineraryService } from '../lib/services/itineraryService';

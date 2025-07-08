@@ -10,6 +10,7 @@ import Animated, {
 import { getCategoryIcon } from '../constants/categories';
 import { formatDayHeader } from '../lib/utils/dateUtils';
 import { ItineraryItem } from '../types/database';
+import ActivityDetailModal from './ActivityDetailModal';
 import AddActivityModal from './AddActivityModal';
 
 interface DailyItinerarySectionProps {
@@ -31,6 +32,8 @@ export default function DailyItinerarySection({
 }: DailyItinerarySectionProps) {
   
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [selectedActivity, setSelectedActivity] = useState<ItineraryItem | null>(null);
   const animatedHeight = useSharedValue(isExpanded ? 1 : 0);
   const rotationValue = useSharedValue(isExpanded ? 1 : 0);
 
@@ -101,6 +104,18 @@ export default function DailyItinerarySection({
     setShowAddModal(false);
   };
 
+  // Handle activity tap
+  const handleActivityTap = (activity: ItineraryItem) => {
+    setSelectedActivity(activity);
+    setShowDetailModal(true);
+  };
+
+  // Handle detail modal close
+  const handleDetailModalClose = () => {
+    setShowDetailModal(false);
+    setSelectedActivity(null);
+  };
+
   return (
     <View className="mb-2">
       {/* Day Header - Clickable */}
@@ -153,7 +168,10 @@ export default function DailyItinerarySection({
                 
                 {/* Activity card - modified to work with timeline */}
                 <View className="flex-1">
-                  <ItineraryItemCard item={item} />
+                  <ItineraryItemCard 
+                    item={item} 
+                    onPress={() => handleActivityTap(item)}
+                  />
                 </View>
               </View>
             ))}
@@ -195,6 +213,13 @@ export default function DailyItinerarySection({
         tripId={tripId}
         onActivityAdded={handleActivityAdded}
       />
+      
+      {/* Activity Detail Modal */}
+      <ActivityDetailModal
+        visible={showDetailModal}
+        onClose={handleDetailModalClose}
+        activity={selectedActivity}
+      />
     </View>
   );
 }
@@ -202,9 +227,10 @@ export default function DailyItinerarySection({
 // Individual itinerary item card
 interface ItineraryItemCardProps {
   item: ItineraryItem;
+  onPress?: () => void;
 }
 
-function ItineraryItemCard({ item }: ItineraryItemCardProps) {
+function ItineraryItemCard({ item, onPress }: ItineraryItemCardProps) {
   // Format time display
   const formatTime = (time?: string) => {
     if (!time) return '';
@@ -221,7 +247,7 @@ function ItineraryItemCard({ item }: ItineraryItemCardProps) {
   return (
     <TouchableOpacity 
       className="flex-row items-center p-3 mb-2 bg-primaryBG/50 rounded-lg border border-border/30"
-      onPress={() => console.log('View item:', item.id)}
+      onPress={onPress || (() => console.log('View item:', item.id))}
     >
       {/* Category Icon */}
       <View className="w-10 h-10 rounded-full bg-secondaryBG/70 items-center justify-center mr-3">
