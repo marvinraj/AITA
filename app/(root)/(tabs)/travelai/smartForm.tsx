@@ -268,11 +268,11 @@ const SmartForm = () => {
                     {activityOptions.map((activity) => (
                     <TouchableOpacity
                         key={activity}
-                        className={`px-4 py-2 rounded-full border ${activities.includes(activity) ? 'bg-accentFont border-accentFont' : 'bg-secondaryBG border-border'}`}
+                        className={`px-4 py-2 rounded-full border ${activities.includes(activity) ? 'bg-accentFont/50 border-accentFont/50' : 'bg-secondaryBG border-border'}`}
                         onPress={() => toggleActivity(activity)}
                         activeOpacity={0.8}
                     >
-                        <Text className={`font-UrbanistSemiBold ${activities.includes(activity) ? 'text-primaryBG' : 'text-primaryFont'}`}>{activity}</Text>
+                        <Text className={`font-UrbanistSemiBold ${activities.includes(activity) ? 'text-primaryFont' : 'text-primaryFont'}`}>{activity}</Text>
                     </TouchableOpacity>
                     ))}
                 </View>
