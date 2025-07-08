@@ -53,7 +53,7 @@ const SignUp = () => {
         <View className="w-full mb-6" style={{maxWidth: 400}}>
           <Text className="text-primaryFont text-sm mb-2 font-InterRegular">Name</Text>
           <TextInput
-            placeholder="enter name"
+            placeholder="Enter name"
             placeholderTextColor="#666"
             className="bg-inputBG focus:border-primaryFont rounded-full px-6 py-5 mb-5 text-primaryFont text-base font-InterRegular"
             value={name}
@@ -61,7 +61,7 @@ const SignUp = () => {
           />
           <Text className="text-primaryFont text-sm mb-2 font-InterRegular">Email</Text>
           <TextInput
-            placeholder="enter email"
+            placeholder="Enter email"
             placeholderTextColor="#666"
             keyboardType="email-address"
             autoCapitalize="none"
@@ -71,7 +71,7 @@ const SignUp = () => {
           />
           <Text className="text-primaryFont text-sm mb-2 font-InterRegular">Password</Text>
           <TextInput
-            placeholder="enter password"
+            placeholder="Enter password"
             placeholderTextColor="#666"
             secureTextEntry
             className="bg-inputBG focus:border-primaryFont rounded-full px-6 py-5 mb-2 text-primaryFont text-base font-InterRegular"
