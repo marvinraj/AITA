@@ -90,7 +90,7 @@ const SmartForm = () => {
 
             // Navigate to chatAI with the trip ID and other params
             router.push({
-                pathname: '/travelai/chatAI',
+                pathname: '/chatAI',
                 params: {
                     tripId: tripData.id,
                     destination,
@@ -137,23 +137,33 @@ const SmartForm = () => {
 
     // helper for markedDates for react-native-calendars
     function getMarkedDates(range: { start: string, end: string }) {
-        const marked: any = {};
-        if (range.start) {
-            marked[range.start] = { startingDay: true, color: '#7C3AED', textColor: '#fff' };
-        }
+        const markedDates: any = {};
+        
         if (range.start && range.end) {
-            let current = new Date(range.start);
-            const end = new Date(range.end);
-            while (current <= end) {
-                const dateStr = current.toISOString().split('T')[0];
-                if (dateStr !== range.start && dateStr !== range.end) {
-                    marked[dateStr] = { color: '#a78bfa', textColor: '#fff' };
-                }
-                current.setDate(current.getDate() + 1);
+            const startDate = new Date(range.start);
+            const endDate = new Date(range.end);
+            const currentDate = new Date(startDate);
+            
+            while (currentDate <= endDate) {
+                const dateString = currentDate.toISOString().split('T')[0];
+                markedDates[dateString] = {
+                    color: '#007AFF',
+                    textColor: 'white',
+                    startingDay: dateString === range.start,
+                    endingDay: dateString === range.end,
+                };
+                currentDate.setDate(currentDate.getDate() + 1);
             }
-            marked[range.end] = { endingDay: true, color: '#7C3AED', textColor: '#fff' };
+        } else if (range.start) {
+            markedDates[range.start] = {
+                color: '#007AFF',
+                textColor: 'white',
+                startingDay: true,
+                endingDay: true,
+            };
         }
-        return marked;
+        
+        return markedDates;
     }
 
     return (
@@ -200,32 +210,35 @@ const SmartForm = () => {
                 </TouchableOpacity>
                 {/* Calendar picker */}
                 {showCalendar && (
-                    <View className="w-full mb-4 rounded-2xl overflow-hidden bg-secondaryBG border border-border shadow-lg">
+                    <View className="w-full mb-4">
                         <Calendar
+                            current={range.start || new Date().toISOString().split('T')[0]}
                             markingType={'period'}
                             markedDates={getMarkedDates(range)}
                             onDayPress={handleDayPress}
                             minDate={new Date().toISOString().split('T')[0]}
                             theme={{
-                                backgroundColor: '#232325',
-                                calendarBackground: '#232325',
-                                textSectionTitleColor: '#fff',
-                                dayTextColor: '#fff',
-                                todayTextColor: '#7C3AED',
-                                selectedDayBackgroundColor: '#7C3AED',
-                                selectedDayTextColor: '#fff',
-                                monthTextColor: '#fff',
-                                arrowColor: '#fff',
-                                textDisabledColor: '#444',
-                                textDayFontFamily: 'Inter-Regular',
-                                textMonthFontFamily: 'Inter-Bold',
-                                textDayHeaderFontFamily: 'Inter-Regular',
+                                backgroundColor: 'transparent',
+                                calendarBackground: 'transparent',
+                                selectedDayBackgroundColor: '#007AFF',
+                                selectedDayTextColor: '#FFFFFF',
+                                todayTextColor: '#007AFF',
+                                dayTextColor: '#333333',
+                                textDisabledColor: '#CCCCCC',
+                                arrowColor: '#007AFF',
+                                monthTextColor: '#333333',
+                                textDayFontFamily: 'Urbanist-Regular',
+                                textMonthFontFamily: 'Urbanist-SemiBold',
+                                textDayHeaderFontFamily: 'Urbanist-Regular',
                                 textDayFontSize: 16,
                                 textMonthFontSize: 18,
                                 textDayHeaderFontSize: 14,
                             }}
+                            style={{
+                                borderRadius: 12,
+                            }}
                         />
-                        <View className="flex-row justify-between px-4 py-2 border-t border-border bg-secondaryBG">
+                        <View className="flex-row justify-between px-4 py-3 mt-4">
                             <TouchableOpacity onPress={() => { setRange({ start: '', end: '' }); }}>
                                 <Text className="text-secondaryFont font-UrbanistSemiBold">Reset</Text>
                             </TouchableOpacity>
