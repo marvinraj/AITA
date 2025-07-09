@@ -77,6 +77,8 @@ export interface ItineraryItem {
   notes?: string;
   cost?: number;
   currency?: string;
+  image_url?: string; // Primary image URL for the activity/place
+  photos?: string[]; // Array of additional photo URLs for gallery
   created_at: string;
   updated_at: string;
 }
@@ -188,6 +190,8 @@ export interface CreateItineraryItemInput {
   notes?: string;
   cost?: number;
   currency?: string;
+  image_url?: string; // Primary image URL for the activity/place
+  photos?: string[]; // Array of additional photo URLs for gallery
 }
 
 export interface UpdateItineraryItemInput {

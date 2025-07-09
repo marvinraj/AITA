@@ -47,11 +47,14 @@ export default function DatePicker({
   }
   
   return (
-    <View className="py-4 mb-3">
+    <View className="py-4 mb-3 bg-primaryBG">
       <ScrollView 
         horizontal 
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ paddingHorizontal: 0 }}
+        contentContainerStyle={{ paddingHorizontal: 16 }}
+        style={{ paddingVertical: 4 }}
+        bounces={false}
+        decelerationRate="fast"
       >
         <View className="flex-row items-center">
             {/* Edit button (pencil icon) */}

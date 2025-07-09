@@ -6,6 +6,8 @@ export interface Place {
   type: string;
   description?: string;
   category?: string; // Suggested category based on place type
+  imageUrl?: string; // Photo URL from Google Places API
+  photos?: string[]; // Multiple photo URLs if available
 }
 
 // Extended mock data with more variety and suggested categories
@@ -18,7 +20,8 @@ const mockPlaces: Place[] = [
     rating: 4.3, 
     type: "Italian Restaurant",
     description: "Traditional Roman cuisine since 1929",
-    category: "restaurant"
+    category: "restaurant",
+    imageUrl: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400"
   },
   { 
     id: '2', 
@@ -27,7 +30,8 @@ const mockPlaces: Place[] = [
     rating: 4.6, 
     type: "Trattoria",
     description: "Authentic local dishes in Trastevere",
-    category: "restaurant"
+    category: "restaurant",
+    imageUrl: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400"
   },
   { 
     id: '3', 
@@ -36,7 +40,8 @@ const mockPlaces: Place[] = [
     rating: 4.4, 
     type: "Fine Dining",
     description: "Historic restaurant specializing in offal",
-    category: "restaurant"
+    category: "restaurant",
+    imageUrl: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400"
   },
 
   // Attractions
@@ -47,7 +52,8 @@ const mockPlaces: Place[] = [
     rating: 4.6, 
     type: 'Historical Site',
     description: "Ancient amphitheater and iconic symbol of Rome",
-    category: "attraction"
+    category: "attraction",
+    imageUrl: "https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=400"
   },
   { 
     id: '5', 
@@ -56,7 +62,8 @@ const mockPlaces: Place[] = [
     rating: 4.7, 
     type: 'Museum',
     description: "Home to the Sistine Chapel and papal collections",
-    category: "attraction"
+    category: "attraction",
+    imageUrl: "https://images.unsplash.com/photo-1531572753322-ad063cecc140?w=400"
   },
   { 
     id: '6', 
@@ -65,7 +72,8 @@ const mockPlaces: Place[] = [
     rating: 4.5, 
     type: 'Fountain',
     description: "Baroque fountain where wishes come true",
-    category: "attraction"
+    category: "attraction",
+    imageUrl: "https://images.unsplash.com/photo-1525874684015-58379d421a52?w=400"
   },
   { 
     id: '7', 
@@ -179,13 +187,76 @@ const mockPlaces: Place[] = [
 class PlacesService {
   // Search places based on query
   async searchPlaces(query: string, limit: number = 10): Promise<Place[]> {
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 300));
+    const GOOGLE_PLACES_API_KEY = process.env.EXPO_PUBLIC_GOOGLE_PLACES_API_KEY;
+    
+    if (!GOOGLE_PLACES_API_KEY) {
+      console.warn('Google Places API key not found, using mock data');
+      return this.searchPlacesMock(query, limit);
+    }
     
     if (!query.trim()) {
       return [];
     }
 
+    try {
+      const response = await fetch(
+        `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(query)}&key=${GOOGLE_PLACES_API_KEY}`
+      );
+      
+      if (!response.ok) {
+        throw new Error(`Google Places API error: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      if (data.status === 'REQUEST_DENIED') {
+        throw new Error(`API request denied: ${data.error_message}`);
+      }
+      
+      if (data.status !== 'OK' && data.status !== 'ZERO_RESULTS') {
+        console.warn(`Google Places API status: ${data.status}`, data.error_message);
+      }
+      
+      console.log(`Google Places API returned ${data.results?.length || 0} results for query: "${query}"`);
+      
+      if (!data.results || data.results.length === 0) {
+        return [];
+      }
+      
+      return data.results.slice(0, limit).map((place: any) => {
+        const photoUrls = place.photos?.slice(0, 3).map((photo: any) => 
+          `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${photo.photo_reference}&key=${GOOGLE_PLACES_API_KEY}`
+        ) || [];
+        
+        console.log(`Place: ${place.name}, Photos available: ${place.photos?.length || 0}, Photo URLs generated: ${photoUrls.length}`);
+        
+        return {
+          id: place.place_id || `place_${Date.now()}_${Math.random()}`,
+          name: place.name || 'Unknown Place',
+          address: place.formatted_address || 'Address not available',
+          rating: place.rating || 0,
+          type: place.types?.[0]?.replace(/_/g, ' ') || 'place',
+          description: `${place.name || 'Unknown Place'} - ${place.types?.[0]?.replace(/_/g, ' ') || 'place'}`,
+          category: this.mapGoogleTypeToCategory(place.types?.[0] || 'establishment'),
+          imageUrl: place.photos?.[0] ? 
+            `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${place.photos[0].photo_reference}&key=${GOOGLE_PLACES_API_KEY}` 
+            : undefined,
+          photos: photoUrls
+        };
+      });
+      
+    } catch (error) {
+      console.error('Google Places API error:', error);
+      // Fallback to mock data on error
+      return this.searchPlacesMock(query, limit);
+    }
+  }
+
+  // Fallback mock search method
+  private async searchPlacesMock(query: string, limit: number = 10): Promise<Place[]> {
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
     const filtered = mockPlaces.filter(place => 
       place.name.toLowerCase().includes(query.toLowerCase()) ||
       place.address.toLowerCase().includes(query.toLowerCase()) ||
@@ -194,6 +265,33 @@ class PlacesService {
     );
 
     return filtered.slice(0, limit);
+  }
+
+  // Map Google Place types to our categories
+  private mapGoogleTypeToCategory(googleType: string): string {
+    const typeMapping: { [key: string]: string } = {
+      'restaurant': 'restaurant',
+      'food': 'restaurant',
+      'meal_takeaway': 'restaurant',
+      'cafe': 'restaurant',
+      'tourist_attraction': 'attraction',
+      'museum': 'attraction',
+      'park': 'attraction',
+      'zoo': 'attraction',
+      'amusement_park': 'attraction',
+      'lodging': 'hotel',
+      'hospital': 'health',
+      'pharmacy': 'health',
+      'shopping_mall': 'shopping',
+      'store': 'shopping',
+      'bank': 'finance',
+      'atm': 'finance',
+      'gas_station': 'transport',
+      'subway_station': 'transport',
+      'airport': 'transport'
+    };
+    
+    return typeMapping[googleType] || 'activity';
   }
 
   // Get popular places (for when no search query)

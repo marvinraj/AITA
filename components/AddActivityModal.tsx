@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Image,
   Modal,
   ScrollView,
   Text,
@@ -147,6 +148,7 @@ export default function AddActivityModal({
 
       console.log('Selected category:', selectedCategory);
       console.log('Saving activity with category:', selectedCategory);
+      console.log('Selected place photos:', selectedPlace.photos?.length || 0, selectedPlace.photos);
 
       // Create itinerary item
       const newItem = await itineraryService.createItineraryItem({
@@ -157,7 +159,9 @@ export default function AddActivityModal({
         time: timeFormatted || undefined,
         location: selectedPlace.address,
         category: selectedCategory as any, // Type assertion for now
-        priority: 'medium'
+        priority: 'medium',
+        image_url: selectedPlace.imageUrl, // Primary image URL from the place
+        photos: selectedPlace.photos || [] // All available photos for gallery
       });
 
       console.log('Activity created successfully:', newItem);
@@ -249,22 +253,36 @@ export default function AddActivityModal({
                       onPress={() => handlePlaceSelect(place)}
                       activeOpacity={0.8}
                     >
-                      <Text className="text-primaryFont font-UrbanistSemiBold">
-                        {place.name}
-                      </Text>
-                      <Text className="text-secondaryFont text-sm">
-                        📍 {place.address}
-                      </Text>
-                      {place.rating && (
-                        <Text className="text-secondaryFont text-xs mt-1">
-                          ⭐ {place.rating} • {place.type}
-                        </Text>
-                      )}
-                      {place.description && (
-                        <Text className="text-secondaryFont text-xs mt-1" numberOfLines={1}>
-                          {place.description}
-                        </Text>
-                      )}
+                      <View className="flex-row">
+                        {/* Place Image */}
+                        {place.imageUrl && (
+                          <Image
+                            source={{ uri: place.imageUrl }}
+                            className="w-16 h-16 rounded-lg mr-3"
+                            resizeMode="cover"
+                          />
+                        )}
+                        
+                        {/* Place Info */}
+                        <View className="flex-1">
+                          <Text className="text-primaryFont font-UrbanistSemiBold">
+                            {place.name || 'Unknown Place'}
+                          </Text>
+                          <Text className="text-secondaryFont text-sm">
+                            📍 {place.address || 'Address not available'}
+                          </Text>
+                          {(place.rating && place.rating > 0) && (
+                            <Text className="text-secondaryFont text-xs mt-1">
+                              ⭐ {place.rating} • {place.type || 'Place'}
+                            </Text>
+                          )}
+                          {place.description && (
+                            <Text className="text-secondaryFont text-xs mt-1" numberOfLines={1}>
+                              {place.description}
+                            </Text>
+                          )}
+                        </View>
+                      </View>
                     </TouchableOpacity>
                   ))}
                 </View>
@@ -306,22 +324,36 @@ export default function AddActivityModal({
                       onPress={() => handlePlaceSelect(place)}
                       activeOpacity={0.8}
                     >
-                      <Text className="text-primaryFont font-UrbanistSemiBold">
-                        {place.name}
-                      </Text>
-                      <Text className="text-secondaryFont text-sm">
-                        📍 {place.address}
-                      </Text>
-                      {place.rating && (
-                        <Text className="text-secondaryFont text-xs mt-1">
-                          ⭐ {place.rating} • {place.type}
-                        </Text>
-                      )}
-                      {place.description && (
-                        <Text className="text-secondaryFont text-xs mt-1" numberOfLines={1}>
-                          {place.description}
-                        </Text>
-                      )}
+                      <View className="flex-row">
+                        {/* Place Image */}
+                        {place.imageUrl && (
+                          <Image
+                            source={{ uri: place.imageUrl }}
+                            className="w-16 h-16 rounded-lg mr-3"
+                            resizeMode="cover"
+                          />
+                        )}
+                        
+                        {/* Place Info */}
+                        <View className="flex-1">
+                          <Text className="text-primaryFont font-UrbanistSemiBold">
+                            {place.name || 'Unknown Place'}
+                          </Text>
+                          <Text className="text-secondaryFont text-sm">
+                            📍 {place.address || 'Address not available'}
+                          </Text>
+                          {(place.rating && place.rating > 0) && (
+                            <Text className="text-secondaryFont text-xs mt-1">
+                              ⭐ {place.rating} • {place.type || 'Place'}
+                            </Text>
+                          )}
+                          {place.description && (
+                            <Text className="text-secondaryFont text-xs mt-1" numberOfLines={1}>
+                              {place.description}
+                            </Text>
+                          )}
+                        </View>
+                      </View>
                     </TouchableOpacity>
                   ))}
                 </View>

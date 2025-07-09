@@ -1,25 +1,102 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
-    Modal,
-    ScrollView,
-    Text,
-    TouchableOpacity,
-    View
+  Alert,
+  Dimensions,
+  Image,
+  Modal,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View
 } from 'react-native';
 import { getCategoryById, getCategoryIcon } from '../constants/categories';
+import { itineraryService } from '../lib/services/itineraryService';
 import { ItineraryItem } from '../types/database';
+
+// Get screen width for gallery
+const { width: screenWidth } = Dimensions.get('window');
+
+// Image Gallery Component
+interface ImageGalleryProps {
+  images: string[];
+}
+
+const ImageGallery: React.FC<ImageGalleryProps> = ({ images }) => {
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  console.log('ImageGallery received images:', images?.length || 0, images);
+
+  if (!images || images.length === 0) return null;
+
+  const handleScroll = (event: any) => {
+    const contentOffset = event.nativeEvent.contentOffset;
+    const imageIndex = Math.round(contentOffset.x / (screenWidth - 32)); // 32 = padding
+    setCurrentIndex(imageIndex);
+  };
+
+  return (
+    <View className="mb-4">
+      {/* Image ScrollView */}
+      <ScrollView
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        onMomentumScrollEnd={handleScroll}
+        className="rounded-lg"
+      >
+        {images.map((imageUrl, index) => (
+          <View key={index} style={{ width: screenWidth - 32 }} className="pr-0">
+            <Image
+              source={{ uri: imageUrl }}
+              className="w-full h-48 rounded-lg"
+              resizeMode="cover"
+            />
+          </View>
+        ))}
+      </ScrollView>
+      
+      {/* Image Counter & Dots */}
+      {images.length > 1 && (
+        <View className="mt-3">
+          {/* Image Counter */}
+          <View className="bg-black/70 self-center px-3 py-1 rounded-full mb-2">
+            <Text className="text-white text-xs font-UrbanistSemiBold">
+              {currentIndex + 1} / {images.length}
+            </Text>
+          </View>
+          
+          {/* Dot Indicators */}
+          <View className="flex-row justify-center space-x-2">
+            {images.map((_, index) => (
+              <View
+                key={index}
+                className={`w-2 h-2 rounded-full ${
+                  index === currentIndex ? 'bg-accentFont' : 'bg-secondaryFont/30'
+                }`}
+              />
+            ))}
+          </View>
+        </View>
+      )}
+    </View>
+  );
+};
 
 interface ActivityDetailModalProps {
   visible: boolean;
   onClose: () => void;
   activity: ItineraryItem | null;
+  onActivityDeleted?: () => void;
 }
 
 export default function ActivityDetailModal({ 
   visible, 
   onClose, 
-  activity 
+  activity,
+  onActivityDeleted 
 }: ActivityDetailModalProps) {
+  
+  const [isDeleting, setIsDeleting] = useState(false);
   
   if (!activity) return null;
 
@@ -46,6 +123,44 @@ export default function ActivityDetailModal({
   };
 
   const category = getCategoryById(activity.category);
+
+  // Handle delete activity
+  const handleDeleteActivity = () => {
+    Alert.alert(
+      'Delete Activity',
+      `Are you sure you want to delete "${activity.title}"? This action cannot be undone.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Delete', 
+          style: 'destructive',
+          onPress: confirmDeleteActivity 
+        }
+      ]
+    );
+  };
+
+  const confirmDeleteActivity = async () => {
+    if (!activity) return;
+
+    setIsDeleting(true);
+    try {
+      await itineraryService.deleteItineraryItem(activity.id);
+      
+      // Close modal and trigger refresh
+      onClose();
+      if (onActivityDeleted) {
+        onActivityDeleted();
+      }
+      
+      Alert.alert('Success', 'Activity deleted successfully');
+    } catch (error) {
+      console.error('Error deleting activity:', error);
+      Alert.alert('Error', 'Failed to delete activity. Please try again.');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   return (
     <Modal
@@ -100,6 +215,17 @@ export default function ActivityDetailModal({
               )}
             </View>
           </View>
+
+          {/* Activity Image Gallery */}
+          {activity.image_url && (
+            <ImageGallery 
+              images={
+                activity.photos && activity.photos.length > 0 
+                  ? activity.photos 
+                  : [activity.image_url]
+              }
+            />
+          )}
 
           {/* Details Section */}
           <View className="space-y-4">
@@ -195,15 +321,15 @@ export default function ActivityDetailModal({
             </TouchableOpacity>
             
             <TouchableOpacity 
-              className="bg-red-500/20 rounded-xl py-3 mt-3 items-center border border-red-500/30"
+              className={`bg-red-500/20 rounded-xl py-3 mt-3 items-center border border-red-500/30 ${
+                isDeleting ? 'opacity-50' : ''
+              }`}
               activeOpacity={0.8}
-              onPress={() => {
-                // TODO: Implement delete functionality
-                console.log('Delete activity:', activity.id);
-              }}
+              onPress={handleDeleteActivity}
+              disabled={isDeleting}
             >
               <Text className="text-red-500 font-UrbanistSemiBold">
-                Delete Activity
+                {isDeleting ? 'Deleting...' : 'Delete Activity'}
               </Text>
             </TouchableOpacity>
           </View>
