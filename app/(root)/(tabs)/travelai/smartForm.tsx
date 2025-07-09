@@ -254,11 +254,11 @@ const SmartForm = () => {
                     {companionOptions.map((option) => (
                     <TouchableOpacity
                         key={option.value}
-                        className={`px-4 py-2 rounded-full border ${companions === option.value ? 'bg-accentFont border-accentFont' : 'bg-secondaryBG border-border'}`}
+                        className={`px-4 py-2 rounded-full border ${companions === option.value ? 'bg-accentFont/50 border-accentFont/50' : 'bg-secondaryBG border-border'}`}
                         onPress={() => setCompanions(option.value)}
                         activeOpacity={0.8}
                     >
-                        <Text className={`font-UrbanistSemiBold ${companions === option.value ? 'text-primaryBG' : 'text-primaryFont'}`}>{option.label}</Text>
+                        <Text className={`font-UrbanistSemiBold ${companions === option.value ? 'text-primaryFont' : 'text-primaryFont'}`}>{option.label}</Text>
                     </TouchableOpacity>
                     ))}
                 </View>
@@ -268,17 +268,17 @@ const SmartForm = () => {
                     {activityOptions.map((activity) => (
                     <TouchableOpacity
                         key={activity}
-                        className={`px-4 py-2 rounded-full border ${activities.includes(activity) ? 'bg-accentFont border-accentFont' : 'bg-secondaryBG border-border'}`}
+                        className={`px-4 py-2 rounded-full border ${activities.includes(activity) ? 'bg-accentFont/50 border-accentFont/50' : 'bg-secondaryBG border-border'}`}
                         onPress={() => toggleActivity(activity)}
                         activeOpacity={0.8}
                     >
-                        <Text className={`font-UrbanistSemiBold ${activities.includes(activity) ? 'text-primaryBG' : 'text-primaryFont'}`}>{activity}</Text>
+                        <Text className={`font-UrbanistSemiBold ${activities.includes(activity) ? 'text-primaryFont' : 'text-primaryFont'}`}>{activity}</Text>
                     </TouchableOpacity>
                     ))}
                 </View>
                 {/* submit button */}
                 <TouchableOpacity
-                    className={`px-8 py-3 rounded-xl w-full items-center mb-4 ${(!destination || !range.start || !range.end || activities.length === 0 || isCreatingTrip) ? 'bg-accentFont/50' : 'bg-accentFont'}`}
+                    className={`px-8 py-3 rounded-xl w-full items-center mb-4 ${(!destination || !range.start || !range.end || activities.length === 0 || isCreatingTrip) ? 'bg-accentFont/30' : 'bg-accentFont/50'}`}
                     onPress={handleSubmit}
                     disabled={!destination || !range.start || !range.end || activities.length === 0 || isCreatingTrip}
                     activeOpacity={0.8}

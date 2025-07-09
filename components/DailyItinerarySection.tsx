@@ -1,29 +1,41 @@
-import React from 'react';
-import { Text, TouchableOpacity, View } from 'react-native';
+import React, { useState } from 'react';
+import { Alert, Text, TouchableOpacity, View } from 'react-native';
 import Animated, {
-    Extrapolate,
-    interpolate,
-    useAnimatedStyle,
-    useSharedValue,
-    withTiming
+  Extrapolate,
+  interpolate,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming
 } from 'react-native-reanimated';
+import { getCategoryIcon } from '../constants/categories';
+import { itineraryService } from '../lib/services/itineraryService';
 import { formatDayHeader } from '../lib/utils/dateUtils';
 import { ItineraryItem } from '../types/database';
+import ActivityDetailModal from './ActivityDetailModal';
+import AddActivityModal from './AddActivityModal';
 
 interface DailyItinerarySectionProps {
   date: string;
   items: ItineraryItem[];
   isExpanded: boolean;
   onToggle: (date: string) => void;
+  tripId: string;
+  onActivityAdded: () => void;
 }
 
 export default function DailyItinerarySection({ 
   date, 
   items, 
   isExpanded, 
-  onToggle 
+  onToggle,
+  tripId,
+  onActivityAdded
 }: DailyItinerarySectionProps) {
   
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [selectedActivity, setSelectedActivity] = useState<ItineraryItem | null>(null);
+  const [deletingActivity, setDeletingActivity] = useState<string | null>(null); // Track which activity is being deleted
   const animatedHeight = useSharedValue(isExpanded ? 1 : 0);
   const rotationValue = useSharedValue(isExpanded ? 1 : 0);
 
@@ -33,17 +45,20 @@ export default function DailyItinerarySection({
     rotationValue.value = withTiming(isExpanded ? 1 : 0, { duration: 300 });
   }, [isExpanded]);
 
-  // Animated styles
+  // Animated styles - using max-height approach for better flexibility
   const animatedContentStyle = useAnimatedStyle(() => {
+    // Instead of calculating exact height, use a large max-height that shrinks to 0
+    const maxHeight = 2000; // Large enough for any reasonable number of activities
+    
     const height = interpolate(
       animatedHeight.value,
       [0, 1],
-      [0, items.length * 80 + 20], // Approximate height based on items
+      [0, maxHeight],
       Extrapolate.CLAMP
     );
     
     return {
-      height,
+      maxHeight: height,
       opacity: animatedHeight.value,
     };
   });
@@ -69,14 +84,52 @@ export default function DailyItinerarySection({
     onToggle(date);
   };
 
+  // Handle add activity
+  const handleAddActivity = () => {
+    setShowAddModal(true);
+  };
+
+  // Handle activity added
+  const handleActivityAdded = () => {
+    onActivityAdded();
+    setShowAddModal(false);
+  };
+
+  // Handle activity tap
+  const handleActivityTap = (activity: ItineraryItem) => {
+    setSelectedActivity(activity);
+    setShowDetailModal(true);
+  };
+
+  // Handle activity delete
+  const handleActivityDelete = async (activityId: string) => {
+    setDeletingActivity(activityId); // Set loading state
+    try {
+      await itineraryService.deleteItineraryItem(activityId);
+      onActivityAdded(); // Refresh the list
+      Alert.alert('Success', 'Activity deleted successfully');
+    } catch (error) {
+      console.error('Error deleting activity:', error);
+      Alert.alert('Error', 'Failed to delete activity. Please try again.');
+    } finally {
+      setDeletingActivity(null); // Clear loading state
+    }
+  };
+
+  // Handle detail modal close
+  const handleDetailModalClose = () => {
+    setShowDetailModal(false);
+    setSelectedActivity(null);
+  };
+
   return (
     <View className="mb-2">
       {/* Day Header - Clickable */}
       <TouchableOpacity
         onPress={handleToggle}
-        className="flex-row items-center justify-between px-4 py-4 bg-secondaryBG/50 rounded-lg"
+        className="flex-row items-center justify-between px-4 py-6 bg-secondaryBG/50 rounded-lg"
       >
-        <Text className="text-primaryFont font-UrbanistSemiBold text-lg">
+        <Text className="text-primaryFont font-UrbanistSemiBold text-xl">
           {dayHeader}
         </Text>
         
@@ -84,7 +137,7 @@ export default function DailyItinerarySection({
           {/* Item count */}
           {items.length > 0 && (
             <Text className="text-secondaryFont text-sm mr-3">
-              {items.length} {items.length === 1 ? 'item' : 'items'}
+              {items.length} {items.length === 1 ? 'activity' : 'activities'}
             </Text>
           )}
           
@@ -100,28 +153,84 @@ export default function DailyItinerarySection({
         style={[animatedContentStyle, { overflow: 'hidden' }]}
         className="px-4"
       >
-        {items.length > 0 ? (
-          <View className="py-2">
-            {items.map((item, index) => (
-              <ItineraryItemCard key={item.id} item={item} />
-            ))}
-          </View>
-        ) : (
-          <View className="py-6 items-center">
-            <Text className="text-secondaryFont text-sm">
-              No activities planned for this day
-            </Text>
-            <TouchableOpacity 
-              className="mt-2 px-4 py-2 bg-accentFont/20 rounded-lg"
-              onPress={() => console.log('Add activity for', date)}
-            >
-              <Text className="text-accentFont text-sm font-UrbanistSemiBold">
-                + Add Activity
+        <View className={`${isExpanded ? 'block' : 'hidden'}`}>
+          {items.length > 0 ? (
+            <View className="py-2">
+              {items.map((item, index) => (
+                <View key={item.id} className="flex-row items-start">
+                  {/* Timeline indicator */}
+                  <View className="items-center mr-3 mt-1">
+                    {/* Number circle */}
+                    <View className="w-8 h-8 rounded-full bg-accentFont/25 items-center justify-center">
+                      <Text className="text-secondaryFont text-xs font-UrbanistSemiBold">
+                        {index + 1}
+                      </Text>
+                    </View>
+                    
+                    {/* Connecting line - only show if not the last item */}
+                    {index < items.length - 1 && (
+                      <View className="w-0.5 h-16 bg-accentFont/20 mt-2" />
+                    )}
+                  </View>
+                  
+                  {/* Activity card - modified to work with timeline */}
+                  <View className="flex-1">
+                    <ItineraryItemCard 
+                      item={item} 
+                      onPress={() => handleActivityTap(item)}
+                      onDelete={() => handleActivityDelete(item.id)}
+                      isDeleting={deletingActivity === item.id}
+                    />
+                  </View>
+                </View>
+              ))}
+              
+              {/* Add Activity Button - Always visible when expanded */}
+              <TouchableOpacity 
+                className="mt-3 mb-1 px-4 py-3 bg-accentFont/20 rounded-lg border border-accentFont/30 flex-row items-center justify-center"
+                onPress={handleAddActivity}
+                activeOpacity={0.7}
+              >
+                <Text className="text-accentFont text-sm font-UrbanistSemiBold">
+                  + Add Activity
+                </Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <View className="py-6 items-center">
+              <Text className="text-secondaryFont text-sm">
+                No activities planned for this day
               </Text>
-            </TouchableOpacity>
-          </View>
-        )}
+              <TouchableOpacity 
+                className="mt-3 px-4 py-3 bg-accentFont/20 rounded-lg"
+                onPress={handleAddActivity}
+                activeOpacity={0.7}
+              >
+                <Text className="text-accentFont text-sm font-UrbanistSemiBold">
+                  + Add Activity
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
       </Animated.View>
+      
+      {/* Add Activity Modal */}
+      <AddActivityModal
+        visible={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        date={date}
+        tripId={tripId}
+        onActivityAdded={handleActivityAdded}
+      />
+      
+      {/* Activity Detail Modal */}
+      <ActivityDetailModal
+        visible={showDetailModal}
+        onClose={handleDetailModalClose}
+        activity={selectedActivity}
+        onActivityDeleted={handleActivityAdded} // Reuse the refresh callback
+      />
     </View>
   );
 }
@@ -129,21 +238,12 @@ export default function DailyItinerarySection({
 // Individual itinerary item card
 interface ItineraryItemCardProps {
   item: ItineraryItem;
+  onPress?: () => void;
+  onDelete?: () => void;
+  isDeleting?: boolean;
 }
 
-function ItineraryItemCard({ item }: ItineraryItemCardProps) {
-  // Get category icon
-  const getCategoryIcon = (category: string) => {
-    switch (category) {
-      case 'restaurant': return '🍽️';
-      case 'hotel': return '🏨';
-      case 'activity': return '🎯';
-      case 'transport': return '🚗';
-      case 'flight': return '✈️';
-      default: return '📍';
-    }
-  };
-
+function ItineraryItemCard({ item, onPress, onDelete, isDeleting = false }: ItineraryItemCardProps) {
   // Format time display
   const formatTime = (time?: string) => {
     if (!time) return '';
@@ -157,13 +257,51 @@ function ItineraryItemCard({ item }: ItineraryItemCardProps) {
     return `${displayHour}:${minutes} ${ampm}`;
   };
 
+  // Handle long press for context menu
+  const handleLongPress = () => {
+    Alert.alert(
+      'Activity Options',
+      `What would you like to do with "${item.title}"?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'View Details', 
+          onPress: () => onPress?.()
+        },
+        { 
+          text: 'Delete', 
+          style: 'destructive',
+          onPress: () => {
+            Alert.alert(
+              'Delete Activity',
+              `Are you sure you want to delete "${item.title}"?`,
+              [
+                { text: 'Cancel', style: 'cancel' },
+                { 
+                  text: 'Delete', 
+                  style: 'destructive',
+                  onPress: () => onDelete?.()
+                }
+              ]
+            );
+          }
+        }
+      ]
+    );
+  };
+
   return (
     <TouchableOpacity 
-      className="flex-row items-center p-3 mb-2 bg-primaryBG/50 rounded-lg border border-border/30"
-      onPress={() => console.log('View item:', item.id)}
+      className={`flex-row items-center p-3 mb-2 bg-primaryBG/50 rounded-lg border border-border/30 ${
+        isDeleting ? 'opacity-50' : ''
+      }`}
+      onPress={isDeleting ? undefined : onPress || (() => console.log('View item:', item.id))}
+      onLongPress={isDeleting ? undefined : handleLongPress}
+      activeOpacity={0.7}
+      disabled={isDeleting}
     >
       {/* Category Icon */}
-      <View className="w-10 h-10 rounded-full bg-accentFont/20 items-center justify-center mr-3">
+      <View className="w-10 h-10 rounded-full bg-secondaryBG/70 items-center justify-center mr-3">
         <Text className="text-lg">{getCategoryIcon(item.category)}</Text>
       </View>
       
@@ -189,6 +327,13 @@ function ItineraryItemCard({ item }: ItineraryItemCardProps) {
         {item.location && (
           <Text className="text-secondaryFont/70 text-xs mt-1">
             📍 {item.location}
+          </Text>
+        )}
+
+        {/* Show deleting indicator */}
+        {isDeleting && (
+          <Text className="text-red-500 text-xs mt-1 font-UrbanistSemiBold">
+            Deleting...
           </Text>
         )}
       </View>

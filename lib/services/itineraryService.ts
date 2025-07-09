@@ -11,7 +11,7 @@ export class ItineraryService {
         .select('*')
         .eq('trip_id', tripId)
         .order('date', { ascending: true })
-        .order('order', { ascending: true });
+        .order('item_order', { ascending: true });
 
       if (error) {
         console.error('Error fetching itinerary:', error);
@@ -33,7 +33,7 @@ export class ItineraryService {
         .select('*')
         .eq('trip_id', tripId)
         .eq('date', date)
-        .order('order', { ascending: true });
+        .order('item_order', { ascending: true });
 
       if (error) {
         console.error('Error fetching itinerary for date:', error);
@@ -57,11 +57,11 @@ export class ItineraryService {
         throw new Error('User not authenticated');
       }
 
-      // If no order is specified, get the next order number for this date
-      let order = itemData.order;
-      if (!order) {
+      // If no item_order is specified, get the next order number for this date
+      let item_order = itemData.item_order;
+      if (!item_order) {
         const existingItems = await this.getItineraryByDate(itemData.trip_id, itemData.date);
-        order = existingItems.length + 1;
+        item_order = existingItems.length + 1;
       }
 
       const { data, error } = await supabase
@@ -69,7 +69,7 @@ export class ItineraryService {
         .insert([{
           ...itemData,
           user_id: user.id,
-          order,
+          item_order,
           category: itemData.category || 'activity',
           priority: itemData.priority || 'medium'
         }])
@@ -137,14 +137,14 @@ export class ItineraryService {
       // Update each item with its new order
       const updates = itemIds.map((itemId, index) => ({
         id: itemId,
-        order: index + 1,
+        item_order: index + 1,
         updated_at: new Date().toISOString()
       }));
 
       for (const update of updates) {
         await supabase
           .from('itinerary_items')
-          .update({ order: update.order, updated_at: update.updated_at })
+          .update({ item_order: update.item_order, updated_at: update.updated_at })
           .eq('id', update.id)
           .eq('trip_id', tripId)
           .eq('date', date);
@@ -185,3 +185,5 @@ export class ItineraryService {
     }
   }
 }
+
+export const itineraryService = new ItineraryService();

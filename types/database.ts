@@ -71,12 +71,14 @@ export interface ItineraryItem {
   time?: string; // Time in HH:MM format
   duration?: number; // Duration in minutes
   location?: string;
-  category: 'activity' | 'restaurant' | 'hotel' | 'transport' | 'flight' | 'other';
+  category: 'activity' | 'restaurant' | 'hotel' | 'transport' | 'flight' | 'attraction' | 'shopping' | 'nightlife' | 'other';
   priority: 'low' | 'medium' | 'high';
-  order: number; // Order within the day
+  item_order: number; // Order within the day
   notes?: string;
   cost?: number;
   currency?: string;
+  image_url?: string; // Primary image URL for the activity/place
+  photos?: string[]; // Array of additional photo URLs for gallery
   created_at: string;
   updated_at: string;
 }
@@ -182,12 +184,14 @@ export interface CreateItineraryItemInput {
   time?: string; // Time in HH:MM format
   duration?: number;
   location?: string;
-  category?: 'activity' | 'restaurant' | 'hotel' | 'transport' | 'flight' | 'other';
+  category?: 'activity' | 'restaurant' | 'hotel' | 'transport' | 'flight' | 'attraction' | 'shopping' | 'nightlife' | 'other';
   priority?: 'low' | 'medium' | 'high';
-  order?: number;
+  item_order?: number;
   notes?: string;
   cost?: number;
   currency?: string;
+  image_url?: string; // Primary image URL for the activity/place
+  photos?: string[]; // Array of additional photo URLs for gallery
 }
 
 export interface UpdateItineraryItemInput {
@@ -199,7 +203,7 @@ export interface UpdateItineraryItemInput {
   location?: string;
   category?: 'activity' | 'restaurant' | 'hotel' | 'transport' | 'flight' | 'other';
   priority?: 'low' | 'medium' | 'high';
-  order?: number;
+  item_order?: number;
   notes?: string;
   cost?: number;
   currency?: string;

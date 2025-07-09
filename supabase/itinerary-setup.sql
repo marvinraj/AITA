@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS itinerary_items (
     time TIME,
     duration INTEGER, -- Duration in minutes
     location TEXT,
-    category TEXT NOT NULL DEFAULT 'activity' CHECK (category IN ('activity', 'restaurant', 'hotel', 'transport', 'flight', 'other')),
+    category TEXT NOT NULL DEFAULT 'activity' CHECK (category IN ('activity', 'restaurant', 'hotel', 'transport', 'flight', 'attraction', 'shopping', 'nightlife', 'other')),
     priority TEXT NOT NULL DEFAULT 'medium' CHECK (priority IN ('low', 'medium', 'high')),
     item_order INTEGER NOT NULL DEFAULT 1,
     notes TEXT,
@@ -38,6 +38,8 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- Drop existing trigger if it exists, then create new one
+DROP TRIGGER IF EXISTS trigger_update_itinerary_items_updated_at ON itinerary_items;
 CREATE TRIGGER trigger_update_itinerary_items_updated_at
     BEFORE UPDATE ON itinerary_items
     FOR EACH ROW
@@ -45,6 +47,12 @@ CREATE TRIGGER trigger_update_itinerary_items_updated_at
 
 -- Row Level Security (RLS) policies
 ALTER TABLE itinerary_items ENABLE ROW LEVEL SECURITY;
+
+-- Drop existing policies if they exist, then create new ones
+DROP POLICY IF EXISTS "Users can view own itinerary items" ON itinerary_items;
+DROP POLICY IF EXISTS "Users can insert own itinerary items" ON itinerary_items;
+DROP POLICY IF EXISTS "Users can update own itinerary items" ON itinerary_items;
+DROP POLICY IF EXISTS "Users can delete own itinerary items" ON itinerary_items;
 
 -- Policy: Users can only see their own itinerary items
 CREATE POLICY "Users can view own itinerary items" ON itinerary_items
@@ -78,6 +86,8 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- Drop existing trigger if it exists, then create new one
+DROP TRIGGER IF EXISTS trigger_set_itinerary_item_order ON itinerary_items;
 CREATE TRIGGER trigger_set_itinerary_item_order
     BEFORE INSERT ON itinerary_items
     FOR EACH ROW
