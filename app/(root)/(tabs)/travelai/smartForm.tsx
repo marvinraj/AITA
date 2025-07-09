@@ -2,6 +2,7 @@ import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { Alert, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { Calendar } from 'react-native-calendars';
+import { Place, placesService } from '../../../../lib/services/placesService';
 import { tripsService } from '../../../../lib/services/tripsService';
 
 // define options for companions and activities
@@ -30,6 +31,10 @@ const SmartForm = () => {
     const router = useRouter();
     // state variable for destination
     const [destination, setDestination] = useState('');
+    const [destinationQuery, setDestinationQuery] = useState('');
+    const [destinationSuggestions, setDestinationSuggestions] = useState<Place[]>([]);
+    const [showDestinationSuggestions, setShowDestinationSuggestions] = useState(false);
+    const [searchingDestinations, setSearchingDestinations] = useState(false);
     // state variable for companions
     const [companions, setCompanions] = useState('solo');
     // state variable for selected activities
@@ -47,6 +52,49 @@ const SmartForm = () => {
             ? prev.filter((a) => a !== activity)
             : [...prev, activity]
         );
+    };
+
+    // Handle destination search
+    const handleDestinationSearch = async (query: string) => {
+        setDestinationQuery(query);
+        
+        if (query.length < 2) {
+            setDestinationSuggestions([]);
+            setShowDestinationSuggestions(false);
+            // Clear destination if query is empty
+            if (query.length === 0) {
+                setDestination('');
+            }
+            return;
+        }
+
+        setSearchingDestinations(true);
+        try {
+            const results = await placesService.searchPlaces(query);
+            // For destinations, we want cities, countries, and tourist attractions
+            // The placesService already filters appropriately, so we can use all results
+            setDestinationSuggestions(results.slice(0, 8)); // Show more options for destinations
+            setShowDestinationSuggestions(results.length > 0);
+        } catch (error) {
+            console.error('Error searching destinations:', error);
+            setDestinationSuggestions([]);
+            setShowDestinationSuggestions(false);
+        } finally {
+            setSearchingDestinations(false);
+        }
+    };
+
+    // Handle destination selection
+    const handleDestinationSelect = (place: Place) => {
+        setDestination(place.name);
+        setDestinationQuery(place.name);
+        setShowDestinationSuggestions(false);
+        setDestinationSuggestions([]);
+    };
+
+    // Hide suggestions when tapping outside
+    const handleHideDestinationSuggestions = () => {
+        setShowDestinationSuggestions(false);
     };
 
     // parse date to string
@@ -185,16 +233,67 @@ const SmartForm = () => {
             <ScrollView 
                 className="flex-1 px-4 pt-8"
                 showsVerticalScrollIndicator={false}
+                onScrollBeginDrag={handleHideDestinationSuggestions}
             >
                 {/* destination */}
                 <Text className="text-primaryFont font-UrbanistSemiBold mb-2">Where do you want to go?</Text>
-                <TextInput
-                    className="bg-secondaryBG text-primaryFont rounded-xl px-4 py-3 mb-8 border border-border"
-                    placeholder="Enter destination"
-                    placeholderTextColor="#888"
-                    value={destination}
-                    onChangeText={setDestination}
-                />
+                <View className="mb-8">
+                    <TextInput
+                        className="bg-secondaryBG text-primaryFont rounded-xl px-4 py-3 border border-border"
+                        placeholder="Search for cities, countries, or attractions"
+                        placeholderTextColor="#888"
+                        value={destinationQuery}
+                        onChangeText={handleDestinationSearch}
+                        onFocus={() => {
+                            if (destinationSuggestions.length > 0) {
+                                setShowDestinationSuggestions(true);
+                            }
+                        }}
+                    />
+                    
+                    {/* Destination Suggestions */}
+                    {showDestinationSuggestions && (
+                        <View className="bg-secondaryBG border border-border rounded-xl mt-2 max-h-64">
+                            <ScrollView showsVerticalScrollIndicator={false}>
+                                {searchingDestinations ? (
+                                    <View className="px-4 py-3">
+                                        <Text className="text-secondaryFont text-sm">Searching destinations...</Text>
+                                    </View>
+                                ) : (
+                                    destinationSuggestions.map((place) => (
+                                        <TouchableOpacity
+                                            key={place.id}
+                                            className="px-4 py-3 border-b border-border/30 last:border-b-0"
+                                            onPress={() => handleDestinationSelect(place)}
+                                            activeOpacity={0.7}
+                                        >
+                                            <View className="flex-row items-start">
+                                                <View className="w-8 h-8 rounded-full bg-accentFont/20 items-center justify-center mr-3 mt-0.5">
+                                                    <Text className="text-sm">🌍</Text>
+                                                </View>
+                                                <View className="flex-1">
+                                                    <Text className="text-primaryFont font-UrbanistSemiBold text-base">
+                                                        {place.name || 'Unknown Place'}
+                                                    </Text>
+                                                    {place.address && (
+                                                        <Text className="text-secondaryFont text-sm mt-0.5" numberOfLines={2}>
+                                                            {place.address}
+                                                        </Text>
+                                                    )}
+                                                    {place.type && (
+                                                        <Text className="text-secondaryFont/70 text-xs mt-1 capitalize">
+                                                            {place.type.replace(/_/g, ' ')}
+                                                        </Text>
+                                                    )}
+                                                </View>
+                                            </View>
+                                        </TouchableOpacity>
+                                    ))
+                                )}
+                            </ScrollView>
+                        </View>
+                    )}
+                </View>
                 {/* dates */}
                 <Text className="text-primaryFont font-UrbanistSemiBold mb-2">When do you want to go?</Text>
                 <TouchableOpacity
