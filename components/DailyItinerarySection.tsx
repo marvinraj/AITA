@@ -161,15 +161,15 @@ export default function DailyItinerarySection({
                   {/* Timeline indicator */}
                   <View className="items-center mr-3 mt-1">
                     {/* Number circle */}
-                    <View className="w-8 h-8 rounded-full bg-accentFont/25 items-center justify-center">
-                      <Text className="text-secondaryFont text-xs font-UrbanistSemiBold">
+                    <View className="w-8 h-8 rounded-full bg-[#311010] items-center justify-center">
+                      <Text className="text-primaryFont/50 text-xs font-UrbanistSemiBold">
                         {index + 1}
                       </Text>
                     </View>
                     
                     {/* Connecting line - only show if not the last item */}
                     {index < items.length - 1 && (
-                      <View className="w-0.5 h-16 bg-accentFont/20 mt-2" />
+                      <View className="w-0.5 h-16 bg-[#311010] mt-2" />
                     )}
                   </View>
                   
