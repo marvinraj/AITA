@@ -187,11 +187,11 @@ export default function DailyItinerarySection({
               
               {/* Add Activity Button - Always visible when expanded */}
               <TouchableOpacity 
-                className="mt-3 mb-1 px-4 py-3 bg-accentFont/20 rounded-lg border border-accentFont/30 flex-row items-center justify-center"
+                className="mt-3 mb-1 px-4 py-3 bg-transparent rounded-lg border border-border flex-row items-center justify-center"
                 onPress={handleAddActivity}
                 activeOpacity={0.7}
               >
-                <Text className="text-accentFont text-sm font-UrbanistSemiBold">
+                <Text className="text-primaryFont text-sm font-UrbanistSemiBold">
                   + Add Activity
                 </Text>
               </TouchableOpacity>
@@ -202,11 +202,11 @@ export default function DailyItinerarySection({
                 No activities planned for this day
               </Text>
               <TouchableOpacity 
-                className="mt-3 px-4 py-3 bg-accentFont/20 rounded-lg"
+                className="mt-3 px-4 py-3 bg-transparent border border-border rounded-lg"
                 onPress={handleAddActivity}
                 activeOpacity={0.7}
               >
-                <Text className="text-accentFont text-sm font-UrbanistSemiBold">
+                <Text className="text-primaryFont text-sm font-UrbanistSemiBold">
                   + Add Activity
                 </Text>
               </TouchableOpacity>
