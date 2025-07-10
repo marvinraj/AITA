@@ -5,6 +5,7 @@ import ItineraryTab from '../../../components/ItineraryTab';
 import LiveTripHeader from '../../../components/LiveTripHeader';
 import SavesTab from '../../../components/SavesTab';
 import TravelHubTab from '../../../components/TravelHubTab';
+import { Place, placesService } from '../../../lib/services/placesService';
 import { tripsService } from '../../../lib/services/tripsService';
 import { Trip } from '../../../types/database';
 
@@ -35,6 +36,12 @@ export default function TripDetailsPage() {
     destination: '',
     status: 'planning' as 'planning' | 'active' | 'completed'
   });
+  
+  // Destination search state for edit modal
+  const [destinationQuery, setDestinationQuery] = useState('');
+  const [destinationSuggestions, setDestinationSuggestions] = useState<Place[]>([]);
+  const [showDestinationSuggestions, setShowDestinationSuggestions] = useState(false);
+  const [searchingDestinations, setSearchingDestinations] = useState(false);
 
   // Load specific trip on component mount
   useEffect(() => {
@@ -45,6 +52,43 @@ export default function TripDetailsPage() {
       setLoading(false);
     }
   }, [tripId]);
+
+  // Handle destination search for edit modal
+  const handleDestinationSearch = async (query: string) => {
+    setDestinationQuery(query);
+    
+    if (query.length < 2) {
+      setDestinationSuggestions([]);
+      setShowDestinationSuggestions(false);
+      return;
+    }
+
+    setSearchingDestinations(true);
+    try {
+      const results = await placesService.searchPlaces(query);
+      setDestinationSuggestions(results.slice(0, 8));
+      setShowDestinationSuggestions(results.length > 0);
+    } catch (error) {
+      console.error('Error searching destinations:', error);
+      setDestinationSuggestions([]);
+      setShowDestinationSuggestions(false);
+    } finally {
+      setSearchingDestinations(false);
+    }
+  };
+
+  // Handle destination selection for edit modal
+  const handleDestinationSelect = (place: Place) => {
+    setEditForm(prev => ({ ...prev, destination: place.name }));
+    setDestinationQuery(place.name);
+    setShowDestinationSuggestions(false);
+    setDestinationSuggestions([]);
+  };
+
+  // Hide destination suggestions when tapping outside
+  const handleHideDestinationSuggestions = () => {
+    setShowDestinationSuggestions(false);
+  };
 
   const loadTrip = async () => {
     try {
@@ -71,6 +115,9 @@ export default function TripDetailsPage() {
         destination: tripData.destination || '',
         status: (tripData.status as 'planning' | 'active' | 'completed') || 'planning'
       });
+      
+      // Initialize destination query for search
+      setDestinationQuery(tripData.destination || '');
     } catch (err) {
       console.error('Error loading trip:', err);
       setError('Failed to load trip details');
@@ -89,6 +136,9 @@ export default function TripDetailsPage() {
 
   // Handle edit trip
   const handleEditTrip = () => {
+    if (trip) {
+      setDestinationQuery(trip.destination || '');
+    }
     setShowEditModal(true);
   };
 
@@ -274,7 +324,11 @@ export default function TripDetailsPage() {
           </View>
 
           {/* Edit Form */}
-          <ScrollView className="flex-1 px-4 pt-8">
+          <ScrollView 
+            className="flex-1 px-4 pt-8"
+            showsVerticalScrollIndicator={false}
+            onScrollBeginDrag={handleHideDestinationSuggestions}
+          >
             {/* Trip Name */}
             <Text className="text-primaryFont font-UrbanistSemiBold mb-2">Trip Name</Text>
             <TextInput
@@ -287,13 +341,67 @@ export default function TripDetailsPage() {
 
             {/* Destination */}
             <Text className="text-primaryFont font-UrbanistSemiBold mb-2">Destination</Text>
-            <TextInput
-              className="bg-secondaryBG text-primaryFont rounded-xl px-4 py-3 mb-8 border border-border"
-              placeholder="Enter destination"
-              placeholderTextColor="#888"
-              value={editForm.destination}
-              onChangeText={(text) => setEditForm(prev => ({ ...prev, destination: text }))}
-            />
+            <View className="mb-8">
+              <TextInput
+                className="bg-secondaryBG text-primaryFont rounded-xl px-4 py-3 border border-border"
+                placeholder="Search for cities, countries, or attractions"
+                placeholderTextColor="#888"
+                value={destinationQuery}
+                onChangeText={handleDestinationSearch}
+                onFocus={() => {
+                  if (destinationSuggestions.length > 0) {
+                    setShowDestinationSuggestions(true);
+                  }
+                }}
+              />
+              
+              {/* Destination Suggestions */}
+              {showDestinationSuggestions && (
+                <View className="bg-secondaryBG border border-border rounded-xl mt-2 max-h-64">
+                  <ScrollView showsVerticalScrollIndicator={false}>
+                    {searchingDestinations ? (
+                      <View className="px-4 py-3">
+                        <Text className="text-secondaryFont text-sm">Searching destinations...</Text>
+                      </View>
+                    ) : destinationSuggestions.length > 0 ? (
+                      destinationSuggestions.map((place) => (
+                        <TouchableOpacity
+                          key={place.id}
+                          className="px-4 py-3 border-b border-border/30 last:border-b-0"
+                          onPress={() => handleDestinationSelect(place)}
+                          activeOpacity={0.7}
+                        >
+                          <View className="flex-row items-start">
+                            <View className="w-8 h-8 rounded-full bg-accentFont/20 items-center justify-center mr-3 mt-0.5">
+                              <Text className="text-sm">🌍</Text>
+                            </View>
+                            <View className="flex-1">
+                              <Text className="text-primaryFont font-UrbanistSemiBold text-base">
+                                {place.name || 'Unknown Place'}
+                              </Text>
+                              {place.address && (
+                                <Text className="text-secondaryFont text-sm mt-0.5" numberOfLines={2}>
+                                  {place.address}
+                                </Text>
+                              )}
+                              {place.type && (
+                                <Text className="text-secondaryFont/70 text-xs mt-1 capitalize">
+                                  {place.type.replace(/_/g, ' ')}
+                                </Text>
+                              )}
+                            </View>
+                          </View>
+                        </TouchableOpacity>
+                      ))
+                    ) : (
+                      <View className="px-4 py-3">
+                        <Text className="text-secondaryFont text-sm">No destinations found. Try searching for cities, countries, or attractions.</Text>
+                      </View>
+                    )}
+                  </ScrollView>
+                </View>
+              )}
+            </View>
 
             {/* Trip Status */}
             <Text className="text-primaryFont font-UrbanistSemiBold mb-2">Trip Status</Text>
