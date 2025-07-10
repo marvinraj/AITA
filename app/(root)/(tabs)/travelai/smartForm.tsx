@@ -29,6 +29,8 @@ const activityOptions = [
 const SmartForm = () => {
     // useRouter hook to navigate between screens
     const router = useRouter();
+    // state variable for trip name
+    const [tripName, setTripName] = useState('');
     // state variable for destination
     const [destination, setDestination] = useState('');
     const [destinationQuery, setDestinationQuery] = useState('');
@@ -70,13 +72,18 @@ const SmartForm = () => {
 
         setSearchingDestinations(true);
         try {
+            console.log('Searching for destinations with query:', query);
             const results = await placesService.searchPlaces(query);
+            console.log('Search results received:', results.length, 'places');
             // For destinations, we want cities, countries, and tourist attractions
             // The placesService already filters appropriately, so we can use all results
             setDestinationSuggestions(results.slice(0, 8)); // Show more options for destinations
             setShowDestinationSuggestions(results.length > 0);
         } catch (error) {
             console.error('Error searching destinations:', error);
+            console.log('Error type:', typeof error);
+            console.log('Error message:', error instanceof Error ? error.message : String(error));
+            // Still show suggestions from mock data on error
             setDestinationSuggestions([]);
             setShowDestinationSuggestions(false);
         } finally {
@@ -127,7 +134,7 @@ const SmartForm = () => {
             
             // Create trip in database
             const tripData = await tripsService.createTrip({
-                name: `${destination} Trip`,
+                name: tripName || `${destination} Trip`,
                 destination: destination,
                 start_date: range.start,
                 end_date: range.end,
@@ -158,6 +165,19 @@ const SmartForm = () => {
         } finally {
             setIsCreatingTrip(false);
         }
+    };
+
+    // Calculate form completion progress
+    const getFormProgress = () => {
+        let completed = 0;
+        const total = 4; // destination, dates, companions, activities
+        
+        if (destination) completed++;
+        if (range.start && range.end) completed++;
+        if (companions) completed++; // companions always has a default value
+        if (activities.length > 0) completed++;
+        
+        return (completed / total) * 100;
     };
 
     // helper to get month name from date string
@@ -228,6 +248,24 @@ const SmartForm = () => {
                         <Text className="text-2xl text-secondaryFont">✕</Text>
                     </TouchableOpacity>
                 </View>
+                
+                {/* Progress Indicator */}
+                <View className="mt-4">
+                    <View className="flex-row items-center justify-between mb-2">
+                        <Text className="text-sm text-secondaryFont font-UrbanistSemiBold">
+                            Progress: {Math.round(getFormProgress())}%
+                        </Text>
+                        <Text className="text-xs text-secondaryFont/70">
+                            {Math.round(getFormProgress() / 25)} of 4 completed
+                        </Text>
+                    </View>
+                    <View className="w-full bg-secondaryBG rounded-full h-2">
+                        <View 
+                            className="bg-accentFont/70 h-2 rounded-full"
+                            style={{ width: `${getFormProgress()}%` }}
+                        />
+                    </View>
+                </View>
             </View>
 
             <ScrollView 
@@ -235,6 +273,19 @@ const SmartForm = () => {
                 showsVerticalScrollIndicator={false}
                 onScrollBeginDrag={handleHideDestinationSuggestions}
             >
+                {/* trip name */}
+                <Text className="text-primaryFont font-UrbanistSemiBold mb-2">What would you like to call your trip?</Text>
+                <View className="mb-8">
+                    <TextInput
+                        className="bg-secondaryBG text-primaryFont rounded-xl px-4 py-3 border border-border"
+                        placeholder={destination ? `${destination} Trip` : "My Amazing Trip"}
+                        placeholderTextColor="#888"
+                        value={tripName}
+                        onChangeText={setTripName}
+                        maxLength={50}
+                    />
+                </View>
+
                 {/* destination */}
                 <Text className="text-primaryFont font-UrbanistSemiBold mb-2">Where do you want to go?</Text>
                 <View className="mb-8">
@@ -259,7 +310,7 @@ const SmartForm = () => {
                                     <View className="px-4 py-3">
                                         <Text className="text-secondaryFont text-sm">Searching destinations...</Text>
                                     </View>
-                                ) : (
+                                ) : destinationSuggestions.length > 0 ? (
                                     destinationSuggestions.map((place) => (
                                         <TouchableOpacity
                                             key={place.id}
@@ -289,6 +340,10 @@ const SmartForm = () => {
                                             </View>
                                         </TouchableOpacity>
                                     ))
+                                ) : (
+                                    <View className="px-4 py-3">
+                                        <Text className="text-secondaryFont text-sm">No destinations found. Try searching for cities, countries, or attractions.</Text>
+                                    </View>
                                 )}
                             </ScrollView>
                         </View>
