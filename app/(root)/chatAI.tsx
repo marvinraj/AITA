@@ -2,13 +2,13 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Dimensions, Image, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { GestureHandlerRootView, PanGestureHandler, State } from 'react-native-gesture-handler';
-import DynamicItinerary from '../../components/DynamicItinerary';
+import ItineraryWrapper from '../../components/ItineraryWrapper'; // New wrapper component
 import { TripContext, useAIChat } from '../../hooks/useAIChat';
 import { TripsService } from '../../lib/services/tripsService';
 import { Trip } from '../../types/database';
 
-// Interface for trip context passed from smart form
-// Re-exporting from hook for consistency
+// interface for trip context passed from smart form
+// re-exporting from hook for consistency
 
 //  constants
 const HEADER_HEIGHT = 45;
@@ -37,13 +37,10 @@ const chatAI = () => {
   
   console.log('ChatAI screen mounted with tripId:', tripId);
   
-  // Use router from expo-router to handle navigation
   const router = useRouter();
   
-  // Initialize services
   const tripsService = new TripsService();
   
-  // State for trip data
   const [trip, setTrip] = useState<Trip | null>(null);
   const [tripLoading, setTripLoading] = useState(true);
   
@@ -76,16 +73,16 @@ const chatAI = () => {
     tripContext
   });
   
-  // State to manage the height of the top panel
+  // state to manage the height of the top panel
   const [topHeight, setTopHeight] = useState((SCREEN_HEIGHT - HEADER_HEIGHT) * 0.4);
-  // Ref to store the initial height during gesture
+  // ref to store the initial height during gesture
   const initialTopHeight = useRef(topHeight);
-  // State to manage the input text
+  // state to manage the input text
   const [input, setInput] = useState("");
-  // Ref for scrollview
+  // ref for scrollview
   const scrollViewRef = useRef<ScrollView>(null);
 
-  // Load trip data when component mounts
+  // load trip data when component mounts
   useEffect(() => {
     const loadTrip = async () => {
       if (!tripId) return;
@@ -103,6 +100,17 @@ const chatAI = () => {
 
     loadTrip();
   }, [tripId]);
+
+  // Handle trip updates from ItineraryWrapper (e.g., when dates are edited)
+  const handleTripUpdate = (updatedTrip: Trip) => {
+    console.log('ChatAI: Trip updated from itinerary', updatedTrip);
+    
+    // Update local trip state
+    setTrip(updatedTrip);
+    
+    // TODO: Could also update AI chat context if trip context changes
+    // This would refresh the AI with new trip information
+  };
 
   // only update height during gesture
   const onGestureEvent = (event: any) => {
@@ -161,7 +169,15 @@ const chatAI = () => {
           className="bg-slate-100 overflow-hidden mb-3 rounded-b-2xl border-b border-[#520a0a]"
           style={{ height: topHeight }}
         >
-          <DynamicItinerary trip={trip} height={topHeight} />
+          {/* NEW: Using ItineraryWrapper with real ItineraryTab functionality */}
+          <ItineraryWrapper 
+            trip={trip} 
+            height={topHeight} 
+            onTripUpdate={handleTripUpdate}
+          />
+          
+          {/* OLD: DynamicItinerary - kept for rollback */}
+          {/* <DynamicItinerary trip={trip} height={topHeight} /> */}
         </View>
         
         {/* divider */}
