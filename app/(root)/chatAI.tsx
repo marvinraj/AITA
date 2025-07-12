@@ -2,6 +2,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Dimensions, Image, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { GestureHandlerRootView, PanGestureHandler, State } from 'react-native-gesture-handler';
+import DynamicItinerary from '../../components/DynamicItinerary';
 import { TripContext, useAIChat } from '../../hooks/useAIChat';
 import { TripsService } from '../../lib/services/tripsService';
 import { Trip } from '../../types/database';
@@ -141,9 +142,9 @@ const chatAI = () => {
 
   return (
     <GestureHandlerRootView className="flex-1 bg-primaryBG">
-      <View className="flex-1 bg-primaryBG">
+      <View className="flex-1 bg-[#1c0202]">
         {/* header */}
-        <View className="flex-row justify-between px-4 bg-primaryBG" style={{ height: HEADER_HEIGHT }}>
+        <View className="flex-row justify-between px-4 bg-primaryBG border-b border-border pt-4" style={{ height: HEADER_HEIGHT }}>
           <TouchableOpacity onPress={() => router.back()}>
             <Image source={require('../../assets/icons/back-arrow.png')} style={{ width: 24, height: 24 }} />
           </TouchableOpacity>
@@ -157,16 +158,16 @@ const chatAI = () => {
         
         {/* panels */}
         <View
-          className="bg-slate-100 overflow-hidden mt-2 mb-3 rounded-2xl"
+          className="bg-slate-100 overflow-hidden mb-3 rounded-b-2xl border-b border-[#520a0a]"
           style={{ height: topHeight }}
         >
-          {/* dynamic Itinerary (empty for now) */}
+          <DynamicItinerary trip={trip} height={topHeight} />
         </View>
         
         {/* divider */}
         <PanGestureHandler onGestureEvent={onGestureEvent} onHandlerStateChange={onHandlerStateChange}>
           <View className="h-4 bg-transparent items-center justify-center">
-            <View className="w-16 h-2.5 rounded-full" style={{ backgroundColor: 'rgba(124, 58, 237, 0.18)', borderWidth: 1, borderColor: '#7C3AED', shadowColor: '#7C3AED', shadowOpacity: 0.25, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 4 }} />
+            <View className="w-16 h-2.5 rounded-full" style={{ backgroundColor: '#520a0a', borderWidth: 1, borderColor: '#520a0a', shadowColor: '#7C3AED', shadowOpacity: 0.25, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 4 }} />
           </View>
         </PanGestureHandler>
 
@@ -176,11 +177,11 @@ const chatAI = () => {
           keyboardVerticalOffset={HEADER_HEIGHT}
           className="flex-1 w-full"
         >
-          <View className="flex-1 bg-slate-100 overflow-hidden justify-end mt-3 rounded-2xl"> 
+          <View className="flex-1 bg-primaryBG overflow-hidden justify-end mt-3 rounded-2xl border-t border-[#520a0a]"> 
             {/* chat messages area */}
             <ScrollView
               ref={scrollViewRef}
-              className="flex-1 px-2 pb-2 w-full"
+              className="flex-1 px-4 pb-4 w-full"
               contentContainerStyle={{ justifyContent: 'flex-end', flexGrow: 1 }}
               onContentSizeChange={() => scrollViewRef.current?.scrollToEnd({ animated: true })}
             >
@@ -196,9 +197,9 @@ const chatAI = () => {
                 messages
                   .filter((msg) => msg.role !== 'system')
                   .map((msg) => (
-                  <View key={msg.id} className={`w-full items-${msg.role === 'user' ? 'end' : 'start'} mb-2`}>
-                    <View className={`rounded-2xl px-4 py-2 max-w-[80%] ${msg.role === 'user' ? 'bg-accentFont' : 'bg-primaryFont'}` }>
-                      <Text className={`text-base ${msg.role === 'user' ? 'text-primaryBG' : 'text-primaryBG/80'}`}>
+                  <View key={msg.id} className={`w-full items-${msg.role === 'user' ? 'end' : 'start'} mb-4`}>
+                    <View className={`rounded-2xl px-4 py-3 max-w-[80%] ${msg.role === 'user' ? 'bg-accentFont' : 'bg-secondaryBG'}` }>
+                      <Text className={`text-base ${msg.role === 'user' ? 'text-primaryBG' : 'text-primaryFont'}`}>
                         {msg.content || ''}
                       </Text>
                     </View>
@@ -210,9 +211,9 @@ const chatAI = () => {
               )}
             </ScrollView>
             {/* input area */}
-            <View className="flex-row items-center p-3 bg-secondaryBG border-t border-border mb-2">
+            <View className="flex-row items-center p-4 bg-secondaryBG border-t border-border mb-2">
               <TextInput
-                className="flex-1 bg-inputBG rounded-2xl px-4 py-3 mr-2 text-base text-primaryFont"
+                className="flex-1 bg-inputBG rounded-2xl px-4 py-3 mr-3 text-base text-primaryFont"
                 placeholder={trip?.destination ? `Ask about your trip to ${trip.destination}...` : "Ask AITA anything about your trip..."}
                 placeholderTextColor="#828282"
                 returnKeyType="send"
