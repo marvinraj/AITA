@@ -148,6 +148,7 @@ const SmartForm = () => {
                 pathname: '/chatAI',
                 params: {
                     tripId: tripData.id,
+                    tripName: tripName || `${destination} Trip`,
                     destination,
                     startDate: range.start,
                     endDate: range.end,

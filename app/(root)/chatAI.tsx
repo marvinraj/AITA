@@ -1,10 +1,13 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Dimensions, Image, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { GestureHandlerRootView, PanGestureHandler, State } from 'react-native-gesture-handler';
-import { useAIChat } from '../../hooks/useAIChat';
+import { TripContext, useAIChat } from '../../hooks/useAIChat';
 import { TripsService } from '../../lib/services/tripsService';
 import { Trip } from '../../types/database';
+
+// Interface for trip context passed from smart form
+// Re-exporting from hook for consistency
 
 //  constants
 const HEADER_HEIGHT = 45;
@@ -12,8 +15,24 @@ const DIVIDER_HEIGHT = 4;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 
 const chatAI = () => {
-  // Get tripId from navigation parameters (passed when navigating to this screen)
-  const { tripId } = useLocalSearchParams<{ tripId: string }>();
+  // get all trip context from navigation parameters (passed when navigating to this screen)
+  const { 
+    tripId, 
+    tripName, 
+    destination, 
+    startDate, 
+    endDate, 
+    companions, 
+    activities 
+  } = useLocalSearchParams<{ 
+    tripId: string;
+    tripName?: string;
+    destination?: string;
+    startDate?: string;
+    endDate?: string;
+    companions?: string;
+    activities?: string;
+  }>();
   
   console.log('ChatAI screen mounted with tripId:', tripId);
   
@@ -27,7 +46,22 @@ const chatAI = () => {
   const [trip, setTrip] = useState<Trip | null>(null);
   const [tripLoading, setTripLoading] = useState(true);
   
-  // Use persistent AI chat hook - automatically loads/creates chat for this trip
+  // memoize trip context to prevent unnecessary re-creation and re-renders
+  const tripContext: TripContext | undefined = useMemo(() => {
+    if (tripName && destination && startDate && endDate && companions && activities) {
+      return {
+        tripName,
+        destination,
+        startDate,
+        endDate,
+        companions,
+        activities
+      };
+    }
+    return undefined;
+  }, [tripName, destination, startDate, endDate, companions, activities]);
+
+  // use persistent AI chat hook - automatically loads/creates chat for this trip
   const {
     chat,
     messages,
@@ -37,7 +71,8 @@ const chatAI = () => {
     isReady
   } = useAIChat({
     tripId: tripId || '',
-    autoLoad: true
+    autoLoad: true,
+    tripContext
   });
   
   // State to manage the height of the top panel
@@ -158,7 +193,9 @@ const chatAI = () => {
                   <Text className="text-red-400 text-center">{error}</Text>
                 </View>
               ) : (
-                messages.map((msg) => (
+                messages
+                  .filter((msg) => msg.role !== 'system')
+                  .map((msg) => (
                   <View key={msg.id} className={`w-full items-${msg.role === 'user' ? 'end' : 'start'} mb-2`}>
                     <View className={`rounded-2xl px-4 py-2 max-w-[80%] ${msg.role === 'user' ? 'bg-accentFont' : 'bg-primaryFont'}` }>
                       <Text className={`text-base ${msg.role === 'user' ? 'text-primaryBG' : 'text-primaryBG/80'}`}>

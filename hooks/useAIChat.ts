@@ -1,12 +1,23 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert } from 'react-native';
 import { aitaApi } from '../lib/api';
 import { aiChatService } from '../lib/services/aiChatService';
 import { AIChat, AIMessage } from '../types/database';
 
+// trip context interface
+export interface TripContext {
+  tripName: string;
+  destination: string;
+  startDate: string;
+  endDate: string;
+  companions: string;
+  activities: string;
+}
+
 interface UseAIChatOptions {
   tripId: string;
   autoLoad?: boolean;
+  tripContext?: TripContext;
 }
 
 interface UseAIChatReturn {
@@ -31,7 +42,8 @@ interface UseAIChatReturn {
 
 export function useAIChat({
   tripId,
-  autoLoad = true
+  autoLoad = true,
+  tripContext
 }: UseAIChatOptions): UseAIChatReturn {
   
   // State
@@ -39,6 +51,85 @@ export function useAIChat({
   const [messages, setMessages] = useState<AIMessage[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // Track if we've already initialized this chat with context
+  const initializedWithContext = useRef<string | null>(null);
+
+  // Helper function to format dates
+  const formatDate = useCallback((dateStr: string) => {
+    return new Date(dateStr).toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  }, []);
+
+  // Helper function to format companion type
+  const formatCompanions = useCallback((companions: string) => {
+    const companionMap: { [key: string]: string } = {
+      'solo': 'solo',
+      'partner': 'with your partner',
+      'friends': 'with friends',
+      'family': 'with family'
+    };
+    return companionMap[companions] || companions;
+  }, []);
+
+  // Function to initialize chat with trip context
+  const initializeChatWithContext = useCallback(async (chatId: string, context: TripContext) => {
+    try {
+      // Create system message with trip context
+      const systemMessage = `You are AITA, a helpful AI travel assistant. The user is planning a trip with the following details:
+
+🌍 **Destination:** ${context.destination}
+📅 **Travel Dates:** ${formatDate(context.startDate)} to ${formatDate(context.endDate)}
+👥 **Companions:** ${formatCompanions(context.companions)}
+🎯 **Preferred Activities:** ${context.activities.split(',').join(', ')}
+✈️ **Trip Name:** ${context.tripName}
+
+Please provide personalized travel advice and recommendations based on this information. Be proactive in suggesting activities, places to visit, and practical travel tips for their specific trip. Keep responses helpful, friendly, and tailored to their preferences.`;
+
+      // Add system message
+      await aiChatService.addMessage({
+        chat_id: chatId,
+        role: 'system',
+        content: systemMessage,
+        message_order: 0
+      });
+
+      // Create welcome message
+      const activitiesList = context.activities.split(',');
+      const activityText = activitiesList.length > 3 
+        ? `${activitiesList.slice(0, 3).join(', ')} and more`
+        : activitiesList.join(', ');
+
+      const welcomeMessage = `Welcome to your ${context.destination} trip planning! 🎉
+
+I see you're planning a ${formatCompanions(context.companions)} trip from ${formatDate(context.startDate)} to ${formatDate(context.endDate)}, with interest in ${activityText}.
+
+I'm here to help you create an amazing itinerary! What would you like to know about ${context.destination}? I can help with:
+• Specific attractions and activities
+• Local food recommendations  
+• Transportation tips
+• Day-by-day planning
+• Budget-friendly options
+
+What interests you most about your upcoming trip?`;
+
+      // Add welcome message
+      await aiChatService.addMessage({
+        chat_id: chatId,
+        role: 'assistant',
+        content: welcomeMessage,
+        message_order: 1
+      });
+
+    } catch (error) {
+      console.error('Error initializing chat with context:', error);
+      throw error;
+    }
+  }, [formatDate, formatCompanions]);
 
   // Load chat and messages
   const loadChat = useCallback(async () => {
@@ -58,11 +149,50 @@ export function useAIChat({
       
     } catch (err) {
       console.error('Error loading chat:', err);
-      setError('Failed to load chat');
+      // Handle duplicate chat creation error specifically
+      if (err && typeof err === 'object' && 'code' in err && err.code === '23505') {
+        console.log('Chat already exists, retrying...');
+        // Retry once if it's a duplicate key error
+        try {
+          const chatData = await aiChatService.getChatByTripId(tripId);
+          setChat(chatData);
+          const messageHistory = await aiChatService.getMessageHistory(chatData.id);
+          setMessages(messageHistory);
+        } catch (retryErr) {
+          console.error('Retry failed:', retryErr);
+          setError('Failed to load chat');
+        }
+      } else {
+        setError('Failed to load chat');
+      }
     } finally {
       setLoading(false);
     }
   }, [tripId]);
+
+  // Separate effect to handle context initialization
+  useEffect(() => {
+    const initializeWithContext = async () => {
+      if (chat && tripContext && messages.length === 0 && initializedWithContext.current !== chat.id) {
+        try {
+          console.log('Initializing chat with trip context');
+          setLoading(true);
+          await initializeChatWithContext(chat.id, tripContext);
+          initializedWithContext.current = chat.id;
+          // Reload messages after adding context
+          const updatedHistory = await aiChatService.getMessageHistory(chat.id);
+          setMessages(updatedHistory);
+        } catch (error) {
+          console.error('Error initializing chat with context:', error);
+          setError('Failed to initialize chat with context');
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+    
+    initializeWithContext();
+  }, [chat, tripContext, messages.length, initializeChatWithContext]);
 
   // Send a message
   const sendMessage = useCallback(async (content: string) => {
