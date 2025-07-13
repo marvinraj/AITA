@@ -2,6 +2,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Dimensions, Image, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { GestureHandlerRootView, PanGestureHandler, State } from 'react-native-gesture-handler';
+import Markdown from 'react-native-markdown-display';
 import ItineraryWrapper from '../../components/ItineraryWrapper'; // New wrapper component
 import { TripContext, useAIChat } from '../../hooks/useAIChat';
 import { TripsService } from '../../lib/services/tripsService';
@@ -66,7 +67,9 @@ const chatAI = () => {
     loading,
     error,
     sendMessage,
-    isReady
+    isReady,
+    generateSuggestions,
+    isTyping
   } = useAIChat({
     tripId: tripId || '',
     autoLoad: true,
@@ -81,6 +84,9 @@ const chatAI = () => {
   const [input, setInput] = useState("");
   // ref for scrollview
   const scrollViewRef = useRef<ScrollView>(null);
+  // state for smart suggestions
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
   // load trip data when component mounts
   useEffect(() => {
@@ -142,11 +148,35 @@ const chatAI = () => {
     try {
       await sendMessage(input);
       setInput(""); // Clear input after successful send
+      setShowSuggestions(false); // Hide suggestions
+      
+      // Generate new suggestions after AI responds
+      setTimeout(async () => {
+        const newSuggestions = await generateSuggestions();
+        setSuggestions(newSuggestions);
+        setShowSuggestions(newSuggestions.length > 0);
+      }, 2000);
     } catch (error) {
       console.error('Error sending message:', error);
       // Error handling is already done in the hook
     }
   };
+
+  // Handle suggestion tap
+  const handleSuggestionTap = (suggestion: string) => {
+    setInput(suggestion);
+    setShowSuggestions(false);
+  };
+
+  // Load initial suggestions when chat is ready
+  React.useEffect(() => {
+    if (isReady && messages.length > 0 && !showSuggestions) {
+      generateSuggestions().then(newSuggestions => {
+        setSuggestions(newSuggestions);
+        setShowSuggestions(newSuggestions.length > 0);
+      });
+    }
+  }, [isReady, messages.length]);
 
   return (
     <GestureHandlerRootView className="flex-1 bg-primaryBG">
@@ -215,15 +245,59 @@ const chatAI = () => {
                   .map((msg) => (
                   <View key={msg.id} className={`w-full items-${msg.role === 'user' ? 'end' : 'start'} mb-4`}>
                     <View className={`rounded-2xl px-4 py-3 max-w-[80%] ${msg.role === 'user' ? 'bg-accentFont' : 'bg-secondaryBG'}` }>
-                      <Text className={`text-base ${msg.role === 'user' ? 'text-primaryBG' : 'text-primaryFont'}`}>
-                        {msg.content || ''}
-                      </Text>
+                      {msg.role === 'assistant' ? (
+                        <Markdown
+                          style={{
+                            body: { color: '#FFFFFF', fontSize: 16 },
+                            strong: { color: '#FFFFFF', fontWeight: 'bold' },
+                            em: { color: '#FFFFFF', fontStyle: 'italic' },
+                            text: { color: '#FFFFFF' },
+                            paragraph: { marginBottom: 8 },
+                            list: { color: '#FFFFFF' },
+                            listItem: { color: '#FFFFFF' },
+                            bullet: { color: '#FFFFFF' }
+                          }}
+                        >
+                          {msg.content || ''}
+                        </Markdown>
+                      ) : (
+                        <Text className={`text-base ${msg.role === 'user' ? 'text-primaryBG' : 'text-primaryFont'}`}>
+                          {msg.content || ''}
+                        </Text>
+                      )}
                     </View>
                     <Text className="text-xs text-secondaryFont mt-1 ml-2 mr-2">
                       {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </Text>
                   </View>
                 ))
+              )}
+              
+              {/* Typing indicator */}
+              {isTyping && (
+                <View className="w-full items-start mb-4">
+                  <View className="rounded-2xl px-4 py-3 bg-secondaryBG">
+                    <Text className="text-base text-primaryFont">
+                      AITA is typing...
+                    </Text>
+                  </View>
+                </View>
+              )}
+              
+              {/* Smart suggestions */}
+              {showSuggestions && suggestions.length > 0 && !loading && (
+                <View className="w-full mb-4">
+                  <Text className="text-sm text-secondaryFont mb-2 ml-2">💡 Suggested questions:</Text>
+                  {suggestions.map((suggestion, index) => (
+                    <TouchableOpacity 
+                      key={index}
+                      className="bg-inputBG rounded-xl px-3 py-2 mb-2 mr-2"
+                      onPress={() => handleSuggestionTap(suggestion)}
+                    >
+                      <Text className="text-primaryFont text-sm">{suggestion}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
               )}
             </ScrollView>
             {/* input area */}

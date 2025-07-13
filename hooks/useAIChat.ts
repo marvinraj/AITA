@@ -35,6 +35,10 @@ interface UseAIChatReturn {
   clearHistory: () => Promise<void>;
   refreshMessages: () => Promise<void>;
   
+  // New AI Features
+  generateSuggestions: () => Promise<string[]>;
+  isTyping: boolean;
+  
   // Utility
   clearError: () => void;
   isReady: boolean;
@@ -51,6 +55,7 @@ export function useAIChat({
   const [messages, setMessages] = useState<AIMessage[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isTyping, setIsTyping] = useState(false);
   
   // Track if we've already initialized this chat with context
   const initializedWithContext = useRef<string | null>(null);
@@ -82,11 +87,11 @@ export function useAIChat({
       // Create system message with trip context
       const systemMessage = `You are AITA, a helpful AI travel assistant. The user is planning a trip with the following details:
 
-🌍 **Destination:** ${context.destination}
-📅 **Travel Dates:** ${formatDate(context.startDate)} to ${formatDate(context.endDate)}
-👥 **Companions:** ${formatCompanions(context.companions)}
-🎯 **Preferred Activities:** ${context.activities.split(',').join(', ')}
-✈️ **Trip Name:** ${context.tripName}
+🌍 Destination: ${context.destination}
+📅 Travel Dates: ${formatDate(context.startDate)} to ${formatDate(context.endDate)}
+👥 Companions: ${formatCompanions(context.companions)}
+🎯 Preferred Activities: ${context.activities.split(',').join(', ')}
+✈️ Trip Name: ${context.tripName}
 
 Please provide personalized travel advice and recommendations based on this information. Be proactive in suggesting activities, places to visit, and practical travel tips for their specific trip. Keep responses helpful, friendly, and tailored to their preferences.`;
 
@@ -200,6 +205,7 @@ What interests you most about your upcoming trip?`;
     
     try {
       setLoading(true);
+      setIsTyping(true);
       setError(null);
       
       // Get next message order
@@ -228,9 +234,21 @@ What interests you most about your upcoming trip?`;
           })
         }));
       
-      // Get AI response
+      // Enhanced context for AI
+      const conversationContext = {
+        tripDetails: tripContext ? {
+          destination: tripContext.destination,
+          startDate: tripContext.startDate,
+          endDate: tripContext.endDate,
+          companions: tripContext.companions,
+          activities: tripContext.activities
+        } : undefined,
+        currentFocus: 'planning' as const
+      };
+      
+      // Get AI response with enhanced context
       const startTime = Date.now();
-      const aiResponse = await aitaApi.createChatCompletion(messagesForAI);
+      const aiResponse = await aitaApi.createChatCompletion(messagesForAI, conversationContext);
       const responseTime = Date.now() - startTime;
       
       // Add AI message to database
@@ -240,7 +258,7 @@ What interests you most about your upcoming trip?`;
         content: aiResponse,
         message_order: nextOrder + 1,
         response_time_ms: responseTime,
-        model_used: 'gemini-pro'
+        model_used: 'gemini-1.5-flash'
       });
       
       // Update local state
@@ -252,8 +270,32 @@ What interests you most about your upcoming trip?`;
       Alert.alert('Error', 'Failed to send message. Please try again.');
     } finally {
       setLoading(false);
+      setIsTyping(false);
     }
-  }, [chat, messages, loading]);
+  }, [chat, messages, loading, tripContext]);
+
+  // Generate smart suggestions
+  const generateSuggestions = useCallback(async (): Promise<string[]> => {
+    if (!chat || messages.length === 0) return [];
+    
+    try {
+      const messagesForAI = messages
+        .filter(msg => msg.role !== 'system')
+        .map(msg => ({
+          role: msg.role as 'user' | 'assistant',
+          text: msg.content,
+          time: new Date(msg.created_at).toLocaleTimeString([], { 
+            hour: '2-digit', 
+            minute: '2-digit' 
+          })
+        }));
+      
+      return await aitaApi.generateSmartSuggestions(messagesForAI, tripContext);
+    } catch (error) {
+      console.error('Error generating suggestions:', error);
+      return [];
+    }
+  }, [chat, messages, tripContext]);
 
   // Refresh messages from database
   const refreshMessages = useCallback(async () => {
@@ -307,12 +349,14 @@ What interests you most about your upcoming trip?`;
     // State
     loading,
     error,
+    isTyping,
     
     // Actions
     sendMessage,
     loadChat,
     clearHistory,
     refreshMessages,
+    generateSuggestions,
     
     // Utility
     clearError,
