@@ -1,8 +1,9 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Dimensions, Image, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { GestureHandlerRootView, PanGestureHandler, State } from 'react-native-gesture-handler';
+import { GestureHandlerRootView, PanGestureHandler } from 'react-native-gesture-handler';
 import Markdown from 'react-native-markdown-display';
+import Animated, { runOnJS, useAnimatedGestureHandler, useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import { AddToItineraryModal } from '../../components/AddToItineraryModal';
 import ItineraryWrapper, { ItineraryWrapperRef } from '../../components/ItineraryWrapper'; // New wrapper component
 import { StructuredResponse } from '../../components/StructuredResponse';
@@ -85,9 +86,15 @@ const chatAI = () => {
   });
   
   // state to manage the height of the top panel
-  const [topHeight, setTopHeight] = useState((SCREEN_HEIGHT - HEADER_HEIGHT) * 0.4);
+  const initialTopHeight = (SCREEN_HEIGHT - HEADER_HEIGHT) * 0.4;
+  const [topHeight, setTopHeight] = useState(initialTopHeight);
+  
+  // Animated values for smooth gesture handling
+  const topHeightAnimated = useSharedValue(initialTopHeight);
+  const gestureStartHeight = useSharedValue(0);
+  
   // ref to store the initial height during gesture
-  const initialTopHeight = useRef(topHeight);
+  const initialTopHeightRef = useRef(initialTopHeight);
   // state to manage the input text
   const [input, setInput] = useState("");
   // ref for scrollview
@@ -128,26 +135,40 @@ const chatAI = () => {
     // This would refresh the AI with new trip information
   };
 
-  // only update height during gesture
-  const onGestureEvent = (event: any) => {
-    // get the translationY value from the gesture event
-    const { translationY } = event.nativeEvent;
-    // calculate the new height based on the initial height and translation
-    let newTopHeight = initialTopHeight.current + translationY;
-    // constrain the height to a minimum of 100 and a maximum of SCREEN_HEIGHT - HEADER_HEIGHT - 100 - DIVIDER_HEIGHT
-    newTopHeight = Math.max(100, Math.min(newTopHeight, SCREEN_HEIGHT - HEADER_HEIGHT - 100 - DIVIDER_HEIGHT));
-    setTopHeight(newTopHeight);
+  // Function to update React state from animated value
+  const updateTopHeight = (newHeight: number) => {
+    setTopHeight(newHeight);
   };
 
-  // set initial height on gesture begin
-  const onHandlerStateChange = (event: any) => {
-    // check if the gesture state is BEGAN
-    const { state } = event.nativeEvent;
-    // if it is, store the current topHeight as the initial height
-    if (state === State.BEGAN) {
-      initialTopHeight.current = topHeight;
-    }
-  };
+  // Smooth gesture handler using reanimated
+  const gestureHandler = useAnimatedGestureHandler({
+    onStart: (_, context: { startHeight: number }) => {
+      context.startHeight = topHeightAnimated.value;
+      gestureStartHeight.value = topHeightAnimated.value;
+    },
+    onActive: (event, context: { startHeight: number }) => {
+      const newHeight = context.startHeight + event.translationY;
+      const constrainedHeight = Math.max(100, Math.min(newHeight, SCREEN_HEIGHT - HEADER_HEIGHT - 100 - DIVIDER_HEIGHT));
+      topHeightAnimated.value = constrainedHeight;
+    },
+    onEnd: (event) => {
+      const finalHeight = topHeightAnimated.value;
+      // Use spring animation for smooth finish
+      topHeightAnimated.value = withSpring(finalHeight, {
+        damping: 20,
+        stiffness: 90,
+      });
+      // Update React state for layout calculations
+      runOnJS(updateTopHeight)(finalHeight);
+    },
+  });
+
+  // Animated style for the top panel
+  const animatedTopPanelStyle = useAnimatedStyle(() => {
+    return {
+      height: topHeightAnimated.value,
+    };
+  });
 
   // ----- MESSAGE HANDLING -----
 
@@ -290,9 +311,9 @@ const chatAI = () => {
         </View>
         
         {/* panels */}
-        <View
+        <Animated.View
           className="bg-slate-100 overflow-hidden mb-3 rounded-b-2xl border-b border-[#520a0a]"
-          style={{ height: topHeight }}
+          style={[animatedTopPanelStyle]}
         >
           {/* NEW: Using ItineraryWrapper with real ItineraryTab functionality */}
           <ItineraryWrapper 
@@ -304,13 +325,13 @@ const chatAI = () => {
           
           {/* OLD: DynamicItinerary - kept for rollback */}
           {/* <DynamicItinerary trip={trip} height={topHeight} /> */}
-        </View>
+        </Animated.View>
         
         {/* divider */}
-        <PanGestureHandler onGestureEvent={onGestureEvent} onHandlerStateChange={onHandlerStateChange}>
-          <View className="h-4 bg-transparent items-center justify-center">
+        <PanGestureHandler onGestureEvent={gestureHandler}>
+          <Animated.View className="h-4 bg-transparent items-center justify-center">
             <View className="w-16 h-2.5 rounded-full" style={{ backgroundColor: '#520a0a', borderWidth: 1, borderColor: '#520a0a', shadowColor: '#7C3AED', shadowOpacity: 0.25, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 4 }} />
-          </View>
+          </Animated.View>
         </PanGestureHandler>
 
         {/* chat interface */}
