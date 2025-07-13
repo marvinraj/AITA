@@ -246,9 +246,22 @@ What interests you most about your upcoming trip?`;
         currentFocus: 'planning' as const
       };
       
-      // Get AI response with enhanced context
+      // First, check if this should be a structured response
+      const structuredData = await aitaApi.generateStructuredRecommendations(messagesForAI, tripContext);
+      
+      let aiResponse: string;
+      let structuredContent: string | undefined = undefined;
       const startTime = Date.now();
-      const aiResponse = await aitaApi.createChatCompletion(messagesForAI, conversationContext);
+      
+      if (structuredData && structuredData.type === 'recommendations') {
+        // Store structured data separately and use the response text
+        aiResponse = structuredData.responseText;
+        structuredContent = JSON.stringify(structuredData);
+      } else {
+        // Get regular AI response with enhanced context
+        aiResponse = await aitaApi.createChatCompletion(messagesForAI, conversationContext);
+      }
+      
       const responseTime = Date.now() - startTime;
       
       // Add AI message to database
@@ -258,7 +271,8 @@ What interests you most about your upcoming trip?`;
         content: aiResponse,
         message_order: nextOrder + 1,
         response_time_ms: responseTime,
-        model_used: 'gemini-1.5-flash'
+        model_used: 'gemini-1.5-flash',
+        structured_data: structuredContent // Store structured data if available
       });
       
       // Update local state

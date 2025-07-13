@@ -1,10 +1,13 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Dimensions, Image, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Dimensions, Image, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { GestureHandlerRootView, PanGestureHandler, State } from 'react-native-gesture-handler';
 import Markdown from 'react-native-markdown-display';
-import ItineraryWrapper from '../../components/ItineraryWrapper'; // New wrapper component
+import { AddToItineraryModal } from '../../components/AddToItineraryModal';
+import ItineraryWrapper, { ItineraryWrapperRef } from '../../components/ItineraryWrapper'; // New wrapper component
+import { StructuredResponse } from '../../components/StructuredResponse';
 import { TripContext, useAIChat } from '../../hooks/useAIChat';
+import { ItineraryService } from '../../lib/services/itineraryService';
 import { TripsService } from '../../lib/services/tripsService';
 import { Trip } from '../../types/database';
 
@@ -41,9 +44,14 @@ const chatAI = () => {
   const router = useRouter();
   
   const tripsService = new TripsService();
+  const itineraryService = new ItineraryService();
   
   const [trip, setTrip] = useState<Trip | null>(null);
   const [tripLoading, setTripLoading] = useState(true);
+  
+  // Modal state for adding to itinerary
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [selectedRecommendation, setSelectedRecommendation] = useState<any>(null);
   
   // memoize trip context to prevent unnecessary re-creation and re-renders
   const tripContext: TripContext | undefined = useMemo(() => {
@@ -84,6 +92,8 @@ const chatAI = () => {
   const [input, setInput] = useState("");
   // ref for scrollview
   const scrollViewRef = useRef<ScrollView>(null);
+  // ref for itinerary wrapper to trigger refresh
+  const itineraryWrapperRef = useRef<ItineraryWrapperRef>(null);
   // state for smart suggestions
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -148,14 +158,7 @@ const chatAI = () => {
     try {
       await sendMessage(input);
       setInput(""); // Clear input after successful send
-      setShowSuggestions(false); // Hide suggestions
-      
-      // Generate new suggestions after AI responds
-      setTimeout(async () => {
-        const newSuggestions = await generateSuggestions();
-        setSuggestions(newSuggestions);
-        setShowSuggestions(newSuggestions.length > 0);
-      }, 2000);
+      setShowSuggestions(false); // Hide suggestions after sending
     } catch (error) {
       console.error('Error sending message:', error);
       // Error handling is already done in the hook
@@ -168,15 +171,107 @@ const chatAI = () => {
     setShowSuggestions(false);
   };
 
-  // Load initial suggestions when chat is ready
-  React.useEffect(() => {
-    if (isReady && messages.length > 0 && !showSuggestions) {
-      generateSuggestions().then(newSuggestions => {
-        setSuggestions(newSuggestions);
-        setShowSuggestions(newSuggestions.length > 0);
-      });
+  // Handle adding recommendation to itinerary
+  const handleAddToItinerary = async (item: any) => {
+    console.log('Opening add to itinerary modal for:', item);
+    setSelectedRecommendation(item);
+    setShowAddModal(true);
+  };
+
+  // Handle the actual addition to itinerary after date selection
+  const handleAddToItineraryConfirm = async (
+    item: any, 
+    selectedDate: string, 
+    time?: string, 
+    notes?: string
+  ) => {
+    try {
+      if (!tripId) {
+        Alert.alert('Error', 'Trip information not available');
+        return;
+      }
+
+      // Map recommendation category to itinerary category
+      const getCategoryFromItem = (item: any): 'activity' | 'restaurant' | 'attraction' | 'shopping' | 'nightlife' => {
+        const description = item.description.toLowerCase();
+        
+        if (description.includes('restaurant') || description.includes('dining') || description.includes('food') || description.includes('cafe') || description.includes('coffee')) {
+          return 'restaurant';
+        }
+        if (description.includes('museum') || description.includes('gallery') || description.includes('attraction')) {
+          return 'attraction';
+        }
+        if (description.includes('shopping') || description.includes('market') || description.includes('store')) {
+          return 'shopping';
+        }
+        if (description.includes('bar') || description.includes('club') || description.includes('nightlife')) {
+          return 'nightlife';
+        }
+        
+        return 'activity'; // Default category
+      };
+
+      const itineraryItem = {
+        trip_id: tripId,
+        title: item.name,
+        description: item.description,
+        date: selectedDate,
+        time: time,
+        location: item.location,
+        category: getCategoryFromItem(item),
+        priority: 'medium' as const,
+        notes: notes
+      };
+
+      console.log('Adding to itinerary:', itineraryItem);
+      
+      await itineraryService.createItineraryItem(itineraryItem);
+      
+      // Refresh the itinerary display to show the new item immediately
+      console.log('Refreshing itinerary after adding item...');
+      await itineraryWrapperRef.current?.refreshItinerary();
+      
+      Alert.alert(
+        'Added to Itinerary! 🎉',
+        `"${item.name}" has been added to your ${selectedDate} itinerary.`,
+        [{ text: 'OK' }]
+      );
+      
+    } catch (error) {
+      console.error('Error adding to itinerary:', error);
+      Alert.alert('Error', 'Failed to add to itinerary. Please try again.');
     }
-  }, [isReady, messages.length]);
+  };
+
+  // Generate trip dates array for the modal
+  const getTripDates = (): string[] => {
+    if (!trip?.start_date || !trip?.end_date) return [];
+    
+    const startDate = new Date(trip.start_date);
+    const endDate = new Date(trip.end_date);
+    const dates: string[] = [];
+    
+    const currentDate = new Date(startDate);
+    while (currentDate <= endDate) {
+      dates.push(currentDate.toISOString().split('T')[0]); // YYYY-MM-DD format
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+    
+    return dates;
+  };
+
+  // Manual suggestion generation function
+  const handleGenerateSuggestions = async () => {
+    if (loading) return;
+    
+    try {
+      const newSuggestions = await generateSuggestions();
+      setSuggestions(newSuggestions);
+      setShowSuggestions(newSuggestions.length > 0);
+    } catch (error) {
+      console.error('Error generating suggestions:', error);
+    }
+  };
 
   return (
     <GestureHandlerRootView className="flex-1 bg-primaryBG">
@@ -201,6 +296,7 @@ const chatAI = () => {
         >
           {/* NEW: Using ItineraryWrapper with real ItineraryTab functionality */}
           <ItineraryWrapper 
+            ref={itineraryWrapperRef}
             trip={trip} 
             height={topHeight} 
             onTripUpdate={handleTripUpdate}
@@ -244,22 +340,32 @@ const chatAI = () => {
                   .filter((msg) => msg.role !== 'system')
                   .map((msg) => (
                   <View key={msg.id} className={`w-full items-${msg.role === 'user' ? 'end' : 'start'} mb-4`}>
-                    <View className={`rounded-2xl px-4 py-3 max-w-[80%] ${msg.role === 'user' ? 'bg-accentFont' : 'bg-secondaryBG'}` }>
+                    <View className={`rounded-2xl px-4 py-3 max-w-[90%] ${msg.role === 'user' ? 'bg-accentFont' : 'bg-secondaryBG'}` }>
                       {msg.role === 'assistant' ? (
-                        <Markdown
-                          style={{
-                            body: { color: '#FFFFFF', fontSize: 16 },
-                            strong: { color: '#FFFFFF', fontWeight: 'bold' },
-                            em: { color: '#FFFFFF', fontStyle: 'italic' },
-                            text: { color: '#FFFFFF' },
-                            paragraph: { marginBottom: 8 },
-                            list: { color: '#FFFFFF' },
-                            listItem: { color: '#FFFFFF' },
-                            bullet: { color: '#FFFFFF' }
-                          }}
-                        >
-                          {msg.content || ''}
-                        </Markdown>
+                        <>
+                          {/* Check if message has structured data */}
+                          {msg.structured_data ? (
+                            <StructuredResponse
+                              data={JSON.parse(msg.structured_data)}
+                              onAddToItinerary={handleAddToItinerary}
+                            />
+                          ) : (
+                            <Markdown
+                              style={{
+                                body: { color: '#FFFFFF', fontSize: 16 },
+                                strong: { color: '#FFFFFF', fontWeight: 'bold' },
+                                em: { color: '#FFFFFF', fontStyle: 'italic' },
+                                text: { color: '#FFFFFF' },
+                                paragraph: { marginBottom: 8 },
+                                list: { color: '#FFFFFF' },
+                                listItem: { color: '#FFFFFF' },
+                                bullet: { color: '#FFFFFF' }
+                              }}
+                            >
+                              {msg.content || ''}
+                            </Markdown>
+                          )}
+                        </>
                       ) : (
                         <Text className={`text-base ${msg.role === 'user' ? 'text-primaryBG' : 'text-primaryFont'}`}>
                           {msg.content || ''}
@@ -301,18 +407,50 @@ const chatAI = () => {
               )}
             </ScrollView>
             {/* input area */}
-            <View className="flex-row items-center p-4 bg-secondaryBG border-t border-border mb-2">
-              <TextInput
-                className="flex-1 bg-inputBG rounded-2xl px-4 py-3 mr-3 text-base text-primaryFont"
-                placeholder={trip?.destination ? `Ask about your trip to ${trip.destination}...` : "Ask AITA anything about your trip..."}
-                placeholderTextColor="#828282"
-                returnKeyType="send"
-                value={input}
-                onChangeText={setInput}
-                onSubmitEditing={handleSend}
-                editable={!loading && isReady}
-              />
-              {/* send message button */}
+            <View className="bg-secondaryBG border-t border-border mb-2">
+              {/* Suggestions button row */}
+              <View className="flex-row items-center justify-between px-4 py-2">
+                <TouchableOpacity
+                  onPress={handleGenerateSuggestions}
+                  disabled={loading || !isReady || messages.length === 0}
+                  className={`flex-row items-center px-3 py-2 rounded-xl ${
+                    loading || !isReady || messages.length === 0 
+                      ? 'bg-gray-600' 
+                      : 'bg-accentFont'
+                  }`}
+                >
+                  <Text className={`text-sm font-medium ${
+                    loading || !isReady || messages.length === 0 
+                      ? 'text-gray-400' 
+                      : 'text-primaryBG'
+                  }`}>
+                    💡 Get Suggestions
+                  </Text>
+                </TouchableOpacity>
+                
+                {showSuggestions && suggestions.length > 0 && (
+                  <TouchableOpacity
+                    onPress={() => setShowSuggestions(false)}
+                    className="px-3 py-2 rounded-xl bg-gray-600"
+                  >
+                    <Text className="text-gray-300 text-sm">Hide</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+
+              {/* Input row */}
+              <View className="flex-row items-center px-4 pb-4">
+                <TextInput
+                  className="flex-1 bg-inputBG rounded-2xl px-4 py-3 mr-3 text-base text-primaryFont"
+                  placeholder={trip?.destination ? `Ask about your trip to ${trip.destination}...` : "Ask AITA anything about your trip..."}
+                  placeholderTextColor="#828282"
+                  returnKeyType="send"
+                  value={input}
+                  onChangeText={setInput}
+                  onSubmitEditing={handleSend}
+                  editable={!loading && isReady}
+                />
+                {/* send message button */}
               <TouchableOpacity 
                 className={`rounded-2xl px-4 py-3 justify-center items-center ${loading || !isReady ? 'bg-gray-400' : 'bg-accentFont'}`} 
                 onPress={handleSend}
@@ -320,10 +458,23 @@ const chatAI = () => {
               >
                 <Text className="text-primaryBG text-lg font-bold">{loading ? '...' : '↑'}</Text>
               </TouchableOpacity>
+              </View>
             </View>
           </View>
         </KeyboardAvoidingView>
       </View>
+
+      {/* Add to Itinerary Modal */}
+      <AddToItineraryModal
+        visible={showAddModal}
+        item={selectedRecommendation}
+        tripDates={getTripDates()}
+        onClose={() => {
+          setShowAddModal(false);
+          setSelectedRecommendation(null);
+        }}
+        onAdd={handleAddToItineraryConfirm}
+      />
     </GestureHandlerRootView>
   );
 };

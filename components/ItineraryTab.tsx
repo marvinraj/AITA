@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
 import { ActivityIndicator, Alert, Modal, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import { itineraryService } from '../lib/services/itineraryService';
@@ -13,7 +13,11 @@ interface ItineraryTabProps {
   onTripUpdate?: (updatedTrip: Trip) => void; // Callback for when trip is updated
 }
 
-export default function ItineraryTab({ trip, onTripUpdate }: ItineraryTabProps) {
+export interface ItineraryTabRef {
+  refreshItinerary: () => Promise<void>;
+}
+
+export default forwardRef<ItineraryTabRef, ItineraryTabProps>(function ItineraryTab({ trip, onTripUpdate }, ref) {
   const [selectedDate, setSelectedDate] = useState<string | undefined>(undefined);
   const [expandedDays, setExpandedDays] = useState<Set<string>>(new Set());
   const [dailyItineraries, setDailyItineraries] = useState<DailyItinerary[]>([]);
@@ -23,6 +27,7 @@ export default function ItineraryTab({ trip, onTripUpdate }: ItineraryTabProps) 
   const [showDateEditModal, setShowDateEditModal] = useState(false);
   const [editingDateRange, setEditingDateRange] = useState<{start: string, end: string}>({ start: '', end: '' });
   const [isUpdatingTrip, setIsUpdatingTrip] = useState(false);
+  
   // Load itinerary data from database
   const loadItineraryData = async () => {
     if (!trip.start_date || !trip.end_date) return;
@@ -50,6 +55,7 @@ export default function ItineraryTab({ trip, onTripUpdate }: ItineraryTabProps) 
       });
       
       setDailyItineraries(dailies);
+      console.log('ItineraryTab: Loaded itinerary data, total items:', items.length);
     } catch (error) {
       console.error('Error loading itinerary data:', error);
       // Fallback to empty structure
@@ -67,6 +73,11 @@ export default function ItineraryTab({ trip, onTripUpdate }: ItineraryTabProps) 
       setLoadingItinerary(false);
     }
   };
+
+  // Expose refresh function to parent components
+  useImperativeHandle(ref, () => ({
+    refreshItinerary: loadItineraryData
+  }), [trip.id, trip.start_date, trip.end_date, expandedDays]);
 
   // Load itinerary data when trip dates change
   useEffect(() => {
@@ -379,4 +390,4 @@ export default function ItineraryTab({ trip, onTripUpdate }: ItineraryTabProps) 
       </Modal>
     </View>
   );
-}
+});

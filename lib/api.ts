@@ -52,6 +52,13 @@ class AITAApiService {
     constructor() {
         // Get API key from environment variables
         const apiKey = process.env.EXPO_PUBLIC_GEMINI_API_KEY;
+        
+        // DEBUG: Log API key info (remove after testing)
+        console.log('🔑 API Key Status:');
+        console.log('- Exists:', !!apiKey);
+        console.log('- Format:', apiKey ? `${apiKey.substring(0, 10)}...${apiKey.substring(apiKey.length - 4)}` : 'N/A');
+        console.log('- Length:', apiKey?.length || 0);
+        
         if (!apiKey) {
             throw new Error('EXPO_PUBLIC_GEMINI_API_KEY is not set in environment variables');
         }
@@ -149,6 +156,66 @@ Provide exactly 3 short, actionable suggestions (max 8 words each) that would be
         } catch (error) {
             console.error('Error generating suggestions:', error);
             return [];
+        }
+    }
+
+    // New method: Generate structured recommendations
+    async generateStructuredRecommendations(messages: Message[], tripContext?: any): Promise<any> {
+        try {
+            const model = this.genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+            
+            const latestMessage = messages[messages.length - 1]?.text || '';
+            
+            // Check if the message is asking for specific recommendations
+            const isAskingForRecommendations = /\b(cafes?|restaurants?|hotels?|attractions?|places?|spots?)\b/i.test(latestMessage);
+            const isAskingForNumber = /\b(\d+)\b/.test(latestMessage);
+            
+            if (!isAskingForRecommendations) {
+                return null; // Regular response, no structured data needed
+            }
+
+            const prompt = `You are a travel assistant. The user is asking for recommendations in ${tripContext?.destination || 'their destination'}.
+
+User's request: "${latestMessage}"
+
+If this is a request for specific places (cafes, restaurants, attractions, etc.), respond with a JSON object in this EXACT format:
+{
+  "type": "recommendations",
+  "category": "cafes|restaurants|attractions|hotels|activities",
+  "items": [
+    {
+      "name": "Place Name",
+      "description": "Brief description (max 100 chars)",
+      "rating": 4.5,
+      "priceLevel": "$|$$|$$$|$$$$",
+      "location": "Area/District",
+      "highlights": ["feature1", "feature2", "feature3"],
+      "googleMapsQuery": "Place Name + ${tripContext?.destination || 'location'}"
+    }
+  ],
+  "responseText": "Here are some great cafes I found for you! Each one offers something unique:"
+}
+
+Provide 3-5 realistic recommendations based on the user's request. Make sure the JSON is valid and the googleMapsQuery can be used to search on Google Maps.
+
+If this is NOT a request for specific places, just respond with: {"type": "regular"}`;
+
+            const result = await model.generateContent(prompt);
+            let responseText = result.response.text().trim();
+            
+            // Clean up the response to extract JSON
+            responseText = responseText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+            
+            try {
+                const parsedResponse = JSON.parse(responseText);
+                return parsedResponse.type === 'recommendations' ? parsedResponse : null;
+            } catch (parseError) {
+                console.log('Could not parse structured response, treating as regular message');
+                return null;
+            }
+        } catch (error) {
+            console.error('Error generating structured recommendations:', error);
+            return null;
         }
     }
 

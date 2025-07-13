@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { forwardRef, useImperativeHandle, useRef } from 'react';
 import { Text, View } from 'react-native';
 import { Trip } from '../types/database';
-import ItineraryTab from './ItineraryTab';
+import ItineraryTab, { ItineraryTabRef } from './ItineraryTab';
 
 interface ItineraryWrapperProps {
   trip: Trip | null;                    // from chatAI (can be null)
@@ -9,11 +9,24 @@ interface ItineraryWrapperProps {
   onTripUpdate?: (updatedTrip: Trip) => void; // optional callback to update chatAI state
 }
 
-export default function ItineraryWrapper({ 
+export interface ItineraryWrapperRef {
+  refreshItinerary: () => Promise<void>;
+}
+
+export default forwardRef<ItineraryWrapperRef, ItineraryWrapperProps>(function ItineraryWrapper({ 
   trip, 
   height, 
   onTripUpdate 
-}: ItineraryWrapperProps) {
+}, ref) {
+  
+  const itineraryTabRef = useRef<ItineraryTabRef>(null);
+
+  // Expose refresh function to parent components
+  useImperativeHandle(ref, () => ({
+    refreshItinerary: async () => {
+      await itineraryTabRef.current?.refreshItinerary();
+    }
+  }), []);
   
   // handle trip updates from ItineraryTab
   const handleTripUpdate = (updatedTrip: Trip) => {
@@ -58,9 +71,10 @@ export default function ItineraryWrapper({
       style={{ height }}
     >
       <ItineraryTab 
+        ref={itineraryTabRef}
         trip={trip}
         onTripUpdate={handleTripUpdate}
       />
     </View>
   );
-}
+});

@@ -58,6 +58,7 @@ export interface AIMessage {
   token_count?: number;
   model_used?: string;
   response_time_ms?: number;
+  structured_data?: string; // JSON string for structured responses like recommendations
 }
 
 // Itinerary System Types
@@ -166,6 +167,7 @@ export interface CreateAIMessageInput {
   token_count?: number;
   model_used?: string;
   response_time_ms?: number;
+  structured_data?: string; // JSON string for structured responses
 }
 
 export interface UpdateAIMessageInput {
@@ -173,6 +175,7 @@ export interface UpdateAIMessageInput {
   token_count?: number;
   model_used?: string;
   response_time_ms?: number;
+  structured_data?: string;
 }
 
 // Itinerary input types
