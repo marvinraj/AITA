@@ -102,7 +102,7 @@ export default function SavesTab({ trip }: SavesTabProps) {
 
   if (savedPlaces.length === 0) {
     return (
-      <View className="flex-1 px-4 justify-center items-center">
+      <View className="flex-1 justify-center items-center">
         <Ionicons name="heart-outline" size={64} color={colors.secondaryFont} />
         <Text className="text-primaryFont text-xl font-semibold mt-4 text-center">No Saved Places</Text>
         <Text className="text-secondaryFont text-center mt-2">Start exploring and save places you love in the Discover tab</Text>
@@ -111,8 +111,8 @@ export default function SavesTab({ trip }: SavesTabProps) {
   }
 
   return (
-    <View className="flex-1 px-2 pt-4">
-      <Text className="text-primaryFont text-lg font-semibold mb-4 px-2">Saves for {trip.name}</Text>
+    <View className="flex-1 pt-4">
+      <Text className="text-primaryFont text-lg font-semibold mb-4">Saves for {trip.name}</Text>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ flexDirection: 'row', flexWrap: 'wrap', paddingBottom: 100 }}
