@@ -2,6 +2,7 @@ import { Entypo } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { FlatList, Text, TouchableOpacity, View } from 'react-native';
+import SavedPlacesTab from '../../../components/SavedPlacesTab';
 import { supabase } from '../../../lib/supabase';
 
 const profileData = {
@@ -75,16 +76,20 @@ const ProfileScreen = () => {
           </TouchableOpacity>
         ))}
       </View>
-      {/* grid of travels -> dummy data */}
-      <FlatList
-        data={activeTab === 'Travels' ? travels : saves}
-        keyExtractor={item => item.id}
-        numColumns={2}
-        contentContainerStyle={{ padding: 12, paddingBottom: 32 }}
-        renderItem={renderCard}
-        ListEmptyComponent={<Text className="text-secondaryFont text-center mt-8">No items yet.</Text>}
-        showsVerticalScrollIndicator={false}
-      />
+      {/* grid of travels or saved places */}
+      {activeTab === 'Travels' ? (
+        <FlatList
+          data={travels}
+          keyExtractor={item => item.id}
+          numColumns={2}
+          contentContainerStyle={{ padding: 12, paddingBottom: 32 }}
+          renderItem={renderCard}
+          ListEmptyComponent={<Text className="text-secondaryFont text-center mt-8">No travels yet.</Text>}
+          showsVerticalScrollIndicator={false}
+        />
+      ) : (
+        <SavedPlacesTab />
+      )}
       {/* 3-dots settings button */}
       <TouchableOpacity
         onPress={() => router.push('/settings')}

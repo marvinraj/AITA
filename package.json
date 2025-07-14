@@ -40,11 +40,13 @@
     "react-native-calendars": "^1.1260.0",
     "react-native-gesture-handler": "~2.24.0",
     "react-native-linear-gradient": "^2.8.3",
+    "react-native-maps": "^1.24.5",
     "react-native-markdown-display": "^7.0.2",
     "react-native-reanimated": "~3.17.4",
     "react-native-safe-area-context": "^5.4.0",
     "react-native-screens": "~4.10.0",
     "react-native-url-polyfill": "^2.0.0",
+    "react-native-vector-icons": "^10.2.0",
     "react-native-web": "~0.20.0",
     "react-native-webview": "13.13.5",
     "tailwindcss": "^3.4.17"
