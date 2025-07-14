@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons'
 import React, { useEffect, useState } from 'react'
 import { ActivityIndicator, Alert, FlatList, Image, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import PlaceDetailModal from '../../../components/PlaceDetailModal'
 import SearchCategories from '../../../components/SearchCategories'
 import TripSelectModal from '../../../components/TripSelectModal'
 import { colors } from '../../../constants/colors'
@@ -10,6 +11,9 @@ import { CreateSavedPlaceInput, SavedPlace, savedPlacesService } from '../../../
 import { supabase } from '../../../lib/supabase'
 
 const DiscoverScreen = () => {
+  // PlaceDetailModal state
+  const [placeDetailModalVisible, setPlaceDetailModalVisible] = useState(false);
+  const [selectedPlaceDetail, setSelectedPlaceDetail] = useState<GooglePlace | null>(null);
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState<GooglePlace[]>([])
   const [isLoading, setIsLoading] = useState(false)
@@ -150,17 +154,8 @@ const DiscoverScreen = () => {
       <TouchableOpacity 
         className="bg-secondaryBG rounded-lg p-4 mb-3 border border-border"
         onPress={() => {
-          Alert.alert(
-            item.name,
-            `${item.formatted_address}\n\n${item.types[0]?.replace(/_/g, ' ')}\n\nRating: ${item.rating || 'No rating'}/5`,
-            [
-              { text: 'Close', style: 'cancel' },
-              { 
-                text: isPlaceSaved ? 'Remove from Saved' : 'Save Place', 
-                onPress: () => handleSavePlace(item)
-              }
-            ]
-          )
+          setSelectedPlaceDetail(item);
+          setPlaceDetailModalVisible(true);
         }}
       >
         <View className="flex-row items-start">
@@ -233,6 +228,16 @@ const DiscoverScreen = () => {
   return (
     <SafeAreaView className="flex-1 bg-primaryBG">
       <View className="flex-1 px-4">
+        {/* PlaceDetailModal Integration (moved to top level) */}
+        <PlaceDetailModal
+          visible={placeDetailModalVisible}
+          place={selectedPlaceDetail}
+          onClose={() => {
+            setPlaceDetailModalVisible(false);
+            setSelectedPlaceDetail(null);
+          }}
+          getPhotoUrl={getPhotoUrl}
+        />
         {/* Header */}
         <View className="flex-row justify-between items-center py-4">
           <Text className="text-primaryFont text-2xl font-bold">Discover</Text>
