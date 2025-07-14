@@ -13,7 +13,7 @@ const DiscoverScreen = () => {
   const [searchResults, setSearchResults] = useState<GooglePlace[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [savedPlaces, setSavedPlaces] = useState<string[]>([]) // Store saved place IDs
-  const [folders, setFolders] = useState<any[]>([])
+  const [trips, setTrips] = useState<any[]>([])
   const [user, setUser] = useState<any>(null)
   const [recentSearches, setRecentSearches] = useState<string[]>([])
 
@@ -21,13 +21,13 @@ const DiscoverScreen = () => {
     getCurrentUser()
     loadSavedPlaces()
     loadRecentSearches()
-    loadFolders()
+    loadTrips()
   }, [])
 
-  const loadFolders = async () => {
+  const loadTrips = async () => {
     if (!user) return;
-    const fetchedFolders = await require('../../../lib/services/savedFoldersService').savedFoldersService.getFolders(user.id);
-    setFolders(fetchedFolders);
+    const fetchedTrips = await require('../../../lib/services/tripsService').tripsService.getUserTrips();
+    setTrips(fetchedTrips);
   }
   const getCurrentUser = async () => {
     const { data: { user } } = await supabase.auth.getUser()
@@ -99,16 +99,15 @@ const DiscoverScreen = () => {
         {
           text: 'Next',
           onPress: async (notes) => {
-            // Prompt for folder selection
-            if (!folders || folders.length === 0) {
-              await loadFolders();
+            // Prompt for trip selection
+            if (!trips || trips.length === 0) {
+              await loadTrips();
             }
-            // Build folder options (ensure all folders are included)
-            const folderOptions = folders.map((folder: any) => ({
-              text: folder.name,
+            // Build trip options
+            const tripOptions = trips.map((trip: any) => ({
+              text: trip.name,
               onPress: async () => {
-                const selectedFolder = folder;
-                // Save with folder_id null for 'All Saves', or selectedFolder.id for custom folder
+                const selectedTrip = trip;
                 const savedPlace: CreateSavedPlaceInput = {
                   place_id: place.place_id,
                   name: place.name,
@@ -121,18 +120,18 @@ const DiscoverScreen = () => {
                   image_url: place.photos?.[0] ? getPhotoUrl(place.photos[0].photo_reference) : undefined,
                   photos: place.photos?.map(photo => getPhotoUrl(photo.photo_reference)) || [],
                   notes: notes || undefined,
-                  folder_id: selectedFolder.id === 'all' ? null : selectedFolder.id,
+                  trip_id: selectedTrip.id,
                 };
                 await savedPlacesService.savePlace(user.id, savedPlace);
                 setSavedPlaces(prev => [...prev, place.place_id]);
-                Alert.alert('Success', 'Place saved successfully!');
+                Alert.alert('Success', 'Place saved to trip successfully!');
               }
             }));
             Alert.alert(
-              'Select Folder',
-              'Choose a folder to save this place in:',
+              'Select Trip',
+              'Choose a trip to save this place in:',
               [
-                ...folderOptions,
+                ...tripOptions,
                 { text: 'Cancel', style: 'cancel' }
               ]
             );

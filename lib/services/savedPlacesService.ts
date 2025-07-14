@@ -5,7 +5,7 @@ export interface SavedPlace {
   id: string;
   user_id: string;
   place_id: string; // Google Places ID
-  folder_id?: string | null;
+  trip_id?: string | null;
   name: string;
   address: string;
   rating?: number;
@@ -35,10 +35,22 @@ export interface CreateSavedPlaceInput {
   longitude?: number;
   notes?: string;
   tags?: string[];
-  folder_id?: string | null;
+  trip_id?: string | null;
 }
 
 class SavedPlacesService {
+  async getSavedPlacesForTrip(tripId: string): Promise<{ data: SavedPlace[] | null, error: any }> {
+    try {
+      const { data, error } = await supabase
+        .from('saved_places')
+        .select('*')
+        .eq('trip_id', tripId)
+        .order('saved_at', { ascending: false });
+      return { data, error };
+    } catch (error) {
+      return { data: null, error };
+    }
+  }
   
   async getSavedPlaces(userId: string): Promise<SavedPlace[]> {
     try {
