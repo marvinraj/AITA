@@ -87,58 +87,39 @@ const DiscoverScreen = () => {
       return;
     }
 
-    // Prompt for notes first
-    Alert.prompt(
-      'Save Place',
-      'Add a personal note (optional):',
+    // Directly prompt for trip selection (no notes)
+    if (!trips || trips.length === 0) {
+      await loadTrips();
+    }
+    const tripOptions = trips.map((trip: any) => ({
+      text: trip.name,
+      onPress: async () => {
+        const selectedTrip = trip;
+        const savedPlace: CreateSavedPlaceInput = {
+          place_id: place.place_id,
+          name: place.name,
+          address: place.formatted_address,
+          rating: place.rating,
+          type: place.types[0] || 'place',
+          category: getCategoryFromTypes(place.types),
+          latitude: place.geometry.location.lat,
+          longitude: place.geometry.location.lng,
+          image_url: place.photos?.[0] ? getPhotoUrl(place.photos[0].photo_reference) : undefined,
+          photos: place.photos?.map(photo => getPhotoUrl(photo.photo_reference)) || [],
+          trip_id: selectedTrip.id,
+        };
+        await savedPlacesService.savePlace(user.id, savedPlace);
+        setSavedPlaces(prev => [...prev, place.place_id]);
+        Alert.alert('Success', 'Place saved to trip successfully!');
+      }
+    }));
+    Alert.alert(
+      'Select Trip',
+      'Choose a trip to save this place in:',
       [
-        {
-          text: 'Cancel',
-          style: 'cancel'
-        },
-        {
-          text: 'Next',
-          onPress: async (notes) => {
-            // Prompt for trip selection
-            if (!trips || trips.length === 0) {
-              await loadTrips();
-            }
-            // Build trip options
-            const tripOptions = trips.map((trip: any) => ({
-              text: trip.name,
-              onPress: async () => {
-                const selectedTrip = trip;
-                const savedPlace: CreateSavedPlaceInput = {
-                  place_id: place.place_id,
-                  name: place.name,
-                  address: place.formatted_address,
-                  rating: place.rating,
-                  type: place.types[0] || 'place',
-                  category: getCategoryFromTypes(place.types),
-                  latitude: place.geometry.location.lat,
-                  longitude: place.geometry.location.lng,
-                  image_url: place.photos?.[0] ? getPhotoUrl(place.photos[0].photo_reference) : undefined,
-                  photos: place.photos?.map(photo => getPhotoUrl(photo.photo_reference)) || [],
-                  notes: notes || undefined,
-                  trip_id: selectedTrip.id,
-                };
-                await savedPlacesService.savePlace(user.id, savedPlace);
-                setSavedPlaces(prev => [...prev, place.place_id]);
-                Alert.alert('Success', 'Place saved to trip successfully!');
-              }
-            }));
-            Alert.alert(
-              'Select Trip',
-              'Choose a trip to save this place in:',
-              [
-                ...tripOptions,
-                { text: 'Cancel', style: 'cancel' }
-              ]
-            );
-          }
-        }
-      ],
-      'plain-text'
+        ...tripOptions,
+        { text: 'Cancel', style: 'cancel' }
+      ]
     );
   }
 
