@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, FlatList, Image, Text, View } from 'react-native';
+import { ActivityIndicator, FlatList, ScrollView, Image, Text, View } from 'react-native';
 import { colors } from '../constants/colors';
 import { SavedPlace, savedPlacesService } from '../lib/services/savedPlacesService';
 import { Trip } from '../types/database';
@@ -113,14 +113,16 @@ export default function SavesTab({ trip }: SavesTabProps) {
   return (
     <View className="flex-1 px-2 pt-4">
       <Text className="text-primaryFont text-lg font-semibold mb-4 px-2">Saves for {trip.name}</Text>
-      <FlatList
-        data={savedPlaces}
-        renderItem={renderSavedPlace}
-        keyExtractor={(item) => item.id}
-        numColumns={2}
+      <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 100 }}
-      />
+        contentContainerStyle={{ flexDirection: 'row', flexWrap: 'wrap', paddingBottom: 100 }}
+      >
+        {savedPlaces.map((item) => (
+          <View key={item.id} style={{ width: '50%' }}>
+            {renderSavedPlace({ item })}
+          </View>
+        ))}
+      </ScrollView>
     </View>
   );
 }
