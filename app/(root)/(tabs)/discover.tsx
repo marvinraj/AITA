@@ -163,7 +163,7 @@ const DiscoverScreen = () => {
           )
         }}
       >
-        <View className="flex-row">
+        <View className="flex-row items-start">
           {/* Place Image */}
           <View className="w-20 h-20 rounded-lg mr-3 bg-inputBG justify-center items-center">
             {item.photos && item.photos.length > 0 ? (
@@ -185,7 +185,6 @@ const DiscoverScreen = () => {
             <Text className="text-secondaryFont text-sm mb-2" numberOfLines={2}>
               {item.formatted_address}
             </Text>
-            
             {/* Rating */}
             {item.rating && (
               <View className="flex-row items-center mb-2">
@@ -197,7 +196,6 @@ const DiscoverScreen = () => {
                 </Text>
               </View>
             )}
-
             {/* Place Type */}
             <Text className="text-accentFont text-sm capitalize">
               {item.types[0]?.replace(/_/g, ' ')}
@@ -207,7 +205,7 @@ const DiscoverScreen = () => {
           {/* Save Button */}
           <TouchableOpacity
             onPress={() => handleSavePlace(item)}
-            className={`p-2 rounded-lg ${isPlaceSaved ? 'bg-accentFont' : 'bg-inputBG'}`}
+            className={`p-2 rounded-lg ${isPlaceSaved ? 'bg-accentFont' : 'bg-inputBG'} self-start`}
           >
             <Ionicons
               name={isPlaceSaved ? "heart" : "heart-outline"}
