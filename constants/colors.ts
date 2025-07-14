@@ -5,7 +5,7 @@ export const colors = {
   // fonts
   primaryFont: '#FFFFFF',
   secondaryFont: '#828282',
-  accentFont: '#7C3AED', // this color looks good too -> f48080
+  accentFont: '#f48080', // this color looks good too -> f48080
   // buttons
   buttonPrimary: '#FFFFFF',
   buttonSecondary: '#FFFFFF',

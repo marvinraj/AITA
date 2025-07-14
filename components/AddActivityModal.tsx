@@ -244,21 +244,23 @@ export default function AddActivityModal({
 
         {/* Tab Bar */}
         {!selectedPlace && (
-          <View className="flex-row mb-4">
-            <TouchableOpacity
-              className={`flex-1 py-3 rounded-t-xl items-center border-b-2 ${activeTab === 'search' ? 'border-accentFont bg-primaryBG' : 'border-transparent bg-secondaryBG'}`}
-              onPress={() => setActiveTab('search')}
-              activeOpacity={0.8}
-            >
-              <Text className={`font-UrbanistSemiBold text-lg ${activeTab === 'search' ? 'text-accentFont' : 'text-secondaryFont'}`}>Search</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              className={`flex-1 py-3 rounded-t-xl items-center border-b-2 ${activeTab === 'saves' ? 'border-accentFont bg-primaryBG' : 'border-transparent bg-secondaryBG'}`}
-              onPress={() => setActiveTab('saves')}
-              activeOpacity={0.8}
-            >
-              <Text className={`font-UrbanistSemiBold text-lg ${activeTab === 'saves' ? 'text-accentFont' : 'text-secondaryFont'}`}>Saves</Text>
-            </TouchableOpacity>
+          <View className="flex-row items-end mb-4 mt-6 ml-2">
+            <View className="flex-row space-x-4">
+              <TouchableOpacity
+                className={`py-2 px-4 border-b-2 ${activeTab === 'search' ? 'border-[#f48080] bg-primaryBG' : ''}`}
+                onPress={() => setActiveTab('search')}
+                activeOpacity={0.8}
+              >
+                <Text className={`font-UrbanistSemiBold text-lg ${activeTab === 'search' ? 'text-[#f48080]' : 'text-secondaryFont'}`}>Search</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                className={`py-2 px-4 border-b-2 ${activeTab === 'saves' ? 'border-[#f48080] bg-primaryBG' : ''}`}
+                onPress={() => setActiveTab('saves')}
+                activeOpacity={0.8}
+              >
+                <Text className={`font-UrbanistSemiBold text-lg ${activeTab === 'saves' ? 'text-[#f48080]' : 'text-secondaryFont'}`}>Saves</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         )}
         <ScrollView className="flex-1 px-4 pt-2">
