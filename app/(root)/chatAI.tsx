@@ -16,7 +16,7 @@ import { Trip } from '../../types/database';
 // re-exporting from hook for consistency
 
 //  constants
-const HEADER_HEIGHT = 45;
+const HEADER_HEIGHT = 55;
 const DIVIDER_HEIGHT = 4;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 

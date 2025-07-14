@@ -46,7 +46,7 @@ export default function TravelHubTab({ trip }: TravelHubTabProps) {
                     color={item.color} 
                   />
                 </View>
-                <Text className="text-primaryFont text-xs text-center font-medium">
+                <Text className="text-primaryFont/50 text-xs text-center font-medium">
                   {item.name}
                 </Text>
               </View>
