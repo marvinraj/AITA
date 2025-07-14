@@ -45,7 +45,7 @@ const TripSelectModal: React.FC<TripSelectModalProps> = ({ visible, trips, onSel
             className="mt-4 py-2 px-4 bg-border rounded-lg"
             onPress={onCancel}
           >
-            <Text className="text-secondaryFont text-center">Cancel</Text>
+            <Text className="text-buttonPrimary text-center">Cancel</Text>
           </TouchableOpacity>
         </View>
       </View>
