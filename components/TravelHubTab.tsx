@@ -39,7 +39,7 @@ export default function TravelHubTab({ trip }: TravelHubTabProps) {
               { id: 'luggage', name: 'Luggage', icon: 'briefcase', color: colors.secondaryBG },
             ].map((item) => (
               <View key={item.id} className="items-center mr-2 bg-secondaryBG rounded-3xl p-3 min-w-[80px]">
-                <View className="w-10 h-10 rounded-3xl bg-primaryFont/50 items-center justify-center mb-2">
+                <View className="w-10 h-10 rounded-3xl bg-primaryFont/30 items-center justify-center mb-2">
                   <Ionicons 
                     name={item.icon as keyof typeof Ionicons.glyphMap} 
                     size={18} 
