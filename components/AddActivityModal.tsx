@@ -13,6 +13,7 @@ import {
 import { ACTIVITY_CATEGORIES, Category, getSuggestedCategories } from '../constants/categories';
 import { itineraryService } from '../lib/services/itineraryService';
 import { Place, placesService } from '../lib/services/placesService';
+import { savedPlacesService } from '../lib/services/savedPlacesService';
 
 interface AddActivityModalProps {
   visible: boolean;
@@ -32,6 +33,22 @@ export default function AddActivityModal({
   tripId, 
   onActivityAdded 
 }: AddActivityModalProps) {
+  // Tab state and saved places state
+  const [savedPlaces, setSavedPlaces] = useState<Place[]>([]);
+  const [activeTab, setActiveTab] = useState<'search' | 'saves'>('search');
+  // Fetch saved places for this trip
+  const fetchSavedPlaces = async () => {
+    try {
+      const { data, error } = await savedPlacesService.getSavedPlacesForTrip(tripId);
+      if (!error) {
+        setSavedPlaces(data || []);
+      } else {
+        setSavedPlaces([]);
+      }
+    } catch (error) {
+      setSavedPlaces([]);
+    }
+  };
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<Place[]>([]);
   const [popularPlaces, setPopularPlaces] = useState<Place[]>([]);
@@ -60,6 +77,8 @@ export default function AddActivityModal({
       setSelectedPeriod('AM');
       setTimeEnabled(false);
       loadInitialData();
+      // Fetch saved places for this trip
+      fetchSavedPlaces();
     }
   }, [visible]);
 
@@ -108,16 +127,19 @@ export default function AddActivityModal({
     setSelectedPlace(place);
     setSearchQuery('');
     setSearchResults([]);
-    
+
     // Get suggested categories for this place
     const suggested = getSuggestedCategories(place.type);
     setSuggestedCategories(suggested);
-    
-    // Auto-select if there's a clear suggestion
-    if (place.category) {
+
+    // Only auto-select if the category is valid (exists in ACTIVITY_CATEGORIES)
+    const validCategory = ACTIVITY_CATEGORIES.find(cat => cat.id === place.category);
+    if (place.category && validCategory) {
       setSelectedCategory(place.category);
     } else if (suggested.length === 1) {
       setSelectedCategory(suggested[0].id);
+    } else {
+      setSelectedCategory(''); // Force user to pick a category
     }
   };
 
@@ -128,6 +150,12 @@ export default function AddActivityModal({
   const handleAddActivity = async () => {
     if (!selectedPlace || !selectedCategory) {
       Alert.alert('Error', 'Please select a place and category');
+      return;
+    }
+    // Validate category against ACTIVITY_CATEGORIES
+    const validCategory = ACTIVITY_CATEGORIES.find(cat => cat.id === selectedCategory);
+    if (!validCategory) {
+      Alert.alert('Error', 'Please select a valid category for this place');
       return;
     }
 
@@ -174,6 +202,7 @@ export default function AddActivityModal({
       console.error('Error adding activity:', error);
       Alert.alert('Error', 'Failed to add activity. Please try again.');
     } finally {
+      fetchSavedPlaces();
       setLoading(false);
     }
   };
@@ -213,150 +242,243 @@ export default function AddActivityModal({
           </Text>
         </View>
 
-        <ScrollView className="flex-1 px-4 pt-6">
+        {/* Tab Bar */}
+        {!selectedPlace && (
+          <View className="flex-row mb-4">
+            <TouchableOpacity
+              className={`flex-1 py-3 rounded-t-xl items-center border-b-2 ${activeTab === 'search' ? 'border-accentFont bg-primaryBG' : 'border-transparent bg-secondaryBG'}`}
+              onPress={() => setActiveTab('search')}
+              activeOpacity={0.8}
+            >
+              <Text className={`font-UrbanistSemiBold text-lg ${activeTab === 'search' ? 'text-accentFont' : 'text-secondaryFont'}`}>Search</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              className={`flex-1 py-3 rounded-t-xl items-center border-b-2 ${activeTab === 'saves' ? 'border-accentFont bg-primaryBG' : 'border-transparent bg-secondaryBG'}`}
+              onPress={() => setActiveTab('saves')}
+              activeOpacity={0.8}
+            >
+              <Text className={`font-UrbanistSemiBold text-lg ${activeTab === 'saves' ? 'text-accentFont' : 'text-secondaryFont'}`}>Saves</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+        <ScrollView className="flex-1 px-4 pt-2">
           {!selectedPlace ? (
-            // Search Phase
             <>
-              <Text className="text-primaryFont font-UrbanistSemiBold mb-3">
-                Search for a place
-              </Text>
-              
-              {/* Search Input */}
-              <View className="mb-4">
-                <TextInput
-                  className="bg-secondaryBG text-primaryFont rounded-xl px-4 py-3 border border-border"
-                  placeholder="Search places..."
-                  placeholderTextColor="#888"
-                  value={searchQuery}
-                  onChangeText={setSearchQuery}
-                  autoFocus
-                />
-              </View>
-
-              {/* Search Results */}
-              {searchLoading && (
-                <View className="items-center py-4">
-                  <ActivityIndicator color="#f48080" />
-                  <Text className="text-secondaryFont text-sm mt-2">Searching...</Text>
-                </View>
-              )}
-              
-              {searchResults.length > 0 && !searchLoading && (
-                <View className="mb-4">
-                  <Text className="text-primaryFont font-UrbanistSemiBold mb-2">
-                    Search Results
+              {activeTab === 'search' && (
+                // ...existing search feature code...
+                <>
+                  <Text className="text-primaryFont font-UrbanistSemiBold mb-3">
+                    Search for a place
                   </Text>
-                  {searchResults.map((place) => (
-                    <TouchableOpacity
-                      key={place.id}
-                      className="bg-secondaryBG/50 rounded-lg p-3 mb-2 border border-border/30"
-                      onPress={() => handlePlaceSelect(place)}
-                      activeOpacity={0.8}
-                    >
-                      <View className="flex-row">
-                        {/* Place Image */}
-                        {place.imageUrl && (
-                          <Image
-                            source={{ uri: place.imageUrl }}
-                            className="w-16 h-16 rounded-lg mr-3"
-                            resizeMode="cover"
-                          />
-                        )}
-                        
-                        {/* Place Info */}
-                        <View className="flex-1">
-                          <Text className="text-primaryFont font-UrbanistSemiBold">
-                            {place.name || 'Unknown Place'}
-                          </Text>
-                          <Text className="text-secondaryFont text-sm">
-                            📍 {place.address || 'Address not available'}
-                          </Text>
-                          {(place.rating && place.rating > 0) && (
-                            <Text className="text-secondaryFont text-xs mt-1">
-                              ⭐ {place.rating} • {place.type || 'Place'}
-                            </Text>
-                          )}
-                          {place.description && (
-                            <Text className="text-secondaryFont text-xs mt-1" numberOfLines={1}>
-                              {place.description}
-                            </Text>
-                          )}
-                        </View>
-                      </View>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              )}
-
-              {/* Recent Searches */}
-              {!searchQuery && recentSearches.length > 0 && (
-                <View className="mb-4">
-                  <Text className="text-primaryFont font-UrbanistSemiBold mb-2">
-                    Recent Searches
-                  </Text>
-                  <View className="flex-row flex-wrap gap-2">
-                    {recentSearches.map((search, index) => (
-                      <TouchableOpacity
-                        key={index}
-                        className="bg-secondaryBG/30 rounded-full px-3 py-1 border border-border/30"
-                        onPress={() => setSearchQuery(search)}
-                        activeOpacity={0.8}
-                      >
-                        <Text className="text-primaryFont text-sm">
-                          {search}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
+                  {/* Search Input */}
+                  <View className="mb-4">
+                    <TextInput
+                      className="bg-secondaryBG text-primaryFont rounded-xl px-4 py-3 border border-border"
+                      placeholder="Search places..."
+                      placeholderTextColor="#888"
+                      value={searchQuery}
+                      onChangeText={setSearchQuery}
+                      autoFocus
+                    />
                   </View>
-                </View>
-              )}
-
-              {/* Popular Places */}
-              {!searchQuery && popularPlaces.length > 0 && (
-                <View className="mb-4">
-                  <Text className="text-primaryFont font-UrbanistSemiBold mb-2">
-                    Popular Places
-                  </Text>
-                  {popularPlaces.map((place) => (
-                    <TouchableOpacity
-                      key={place.id}
-                      className="bg-secondaryBG/50 rounded-lg p-3 mb-2 border border-border/30"
-                      onPress={() => handlePlaceSelect(place)}
-                      activeOpacity={0.8}
-                    >
-                      <View className="flex-row">
-                        {/* Place Image */}
-                        {place.imageUrl && (
-                          <Image
-                            source={{ uri: place.imageUrl }}
-                            className="w-16 h-16 rounded-lg mr-3"
-                            resizeMode="cover"
-                          />
-                        )}
-                        
-                        {/* Place Info */}
-                        <View className="flex-1">
-                          <Text className="text-primaryFont font-UrbanistSemiBold">
-                            {place.name || 'Unknown Place'}
-                          </Text>
-                          <Text className="text-secondaryFont text-sm">
-                            📍 {place.address || 'Address not available'}
-                          </Text>
-                          {(place.rating && place.rating > 0) && (
-                            <Text className="text-secondaryFont text-xs mt-1">
-                              ⭐ {place.rating} • {place.type || 'Place'}
+                  {/* Search Results */}
+                  {searchLoading && (
+                    <View className="items-center py-4">
+                      <ActivityIndicator color="#f48080" />
+                      <Text className="text-secondaryFont text-sm mt-2">Searching...</Text>
+                    </View>
+                  )}
+                  {searchResults.length > 0 && !searchLoading && (
+                    <View className="mb-4">
+                      <Text className="text-primaryFont font-UrbanistSemiBold mb-2">
+                        Search Results
+                      </Text>
+                      {searchResults.map((place) => (
+                        <TouchableOpacity
+                          key={place.id}
+                          className="bg-secondaryBG/50 rounded-lg p-3 mb-2 border border-border/30"
+                          onPress={() => handlePlaceSelect(place)}
+                          activeOpacity={0.8}
+                        >
+                          <View className="flex-row">
+                            {/* Place Image */}
+                            {place.imageUrl && (
+                              <Image
+                                source={{ uri: place.imageUrl }}
+                                className="w-16 h-16 rounded-lg mr-3"
+                                resizeMode="cover"
+                              />
+                            )}
+                            {/* Place Info */}
+                            <View className="flex-1">
+                              <Text className="text-primaryFont font-UrbanistSemiBold">
+                                {place.name || 'Unknown Place'}
+                              </Text>
+                              <Text className="text-secondaryFont text-sm">
+                                📍 {place.address || 'Address not available'}
+                              </Text>
+                              {(place.rating && place.rating > 0) && (
+                                <Text className="text-secondaryFont text-xs mt-1">
+                                  ⭐ {place.rating} • {place.type || 'Place'}
+                                </Text>
+                              )}
+                              {place.description && (
+                                <Text className="text-secondaryFont text-xs mt-1" numberOfLines={1}>
+                                  {place.description}
+                                </Text>
+                              )}
+                            </View>
+                          </View>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  )}
+                  {/* Recent Searches */}
+                  {!searchQuery && recentSearches.length > 0 && (
+                    <View className="mb-4">
+                      <Text className="text-primaryFont font-UrbanistSemiBold mb-2">
+                        Recent Searches
+                      </Text>
+                      <View className="flex-row flex-wrap gap-2">
+                        {recentSearches.map((search, index) => (
+                          <TouchableOpacity
+                            key={index}
+                            className="bg-secondaryBG/30 rounded-full px-3 py-1 border border-border/30"
+                            onPress={() => setSearchQuery(search)}
+                            activeOpacity={0.8}
+                          >
+                            <Text className="text-primaryFont text-sm">
+                              {search}
                             </Text>
-                          )}
-                          {place.description && (
-                            <Text className="text-secondaryFont text-xs mt-1" numberOfLines={1}>
-                              {place.description}
-                            </Text>
-                          )}
-                        </View>
+                          </TouchableOpacity>
+                        ))}
                       </View>
-                    </TouchableOpacity>
-                  ))}
-                </View>
+                    </View>
+                  )}
+                  {/* Popular Places */}
+                  {!searchQuery && popularPlaces.length > 0 && (
+                    <View className="mb-4">
+                      <Text className="text-primaryFont font-UrbanistSemiBold mb-2">
+                        Popular Places
+                      </Text>
+                      {popularPlaces.map((place) => (
+                        <TouchableOpacity
+                          key={place.id}
+                          className="bg-secondaryBG/50 rounded-lg p-3 mb-2 border border-border/30"
+                          onPress={() => handlePlaceSelect(place)}
+                          activeOpacity={0.8}
+                        >
+                          <View className="flex-row">
+                            {/* Place Image */}
+                            {place.imageUrl && (
+                              <Image
+                                source={{ uri: place.imageUrl }}
+                                className="w-16 h-16 rounded-lg mr-3"
+                                resizeMode="cover"
+                              />
+                            )}
+                            {/* Place Info */}
+                            <View className="flex-1">
+                              <Text className="text-primaryFont font-UrbanistSemiBold">
+                                {place.name || 'Unknown Place'}
+                              </Text>
+                              <Text className="text-secondaryFont text-sm">
+                                📍 {place.address || 'Address not available'}
+                              </Text>
+                              {(place.rating && place.rating > 0) && (
+                                <Text className="text-secondaryFont text-xs mt-1">
+                                  ⭐ {place.rating} • {place.type || 'Place'}
+                                </Text>
+                              )}
+                              {place.description && (
+                                <Text className="text-secondaryFont text-xs mt-1" numberOfLines={1}>
+                                  {place.description}
+                                </Text>
+                              )}
+                            </View>
+                          </View>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  )}
+                </>
+              )}
+              {activeTab === 'saves' && (
+                <>
+                  <Text className="text-primaryFont font-UrbanistSemiBold mb-3">Saved Places</Text>
+                  {savedPlaces.length > 0 ? (
+                    <ScrollView
+                      showsVerticalScrollIndicator={false}
+                      contentContainerStyle={{ flexDirection: 'row', flexWrap: 'wrap', paddingBottom: 100 }}
+                    >
+                      {savedPlaces.map((place: Place) => (
+                        <View key={place.id} style={{ width: '50%' }}>
+                          <TouchableOpacity
+                            className="bg-secondaryBG rounded-lg p-3 m-2 border border-border flex-1"
+                            onPress={() => handlePlaceSelect(place)}
+                            activeOpacity={0.8}
+                          >
+                            <View className="w-full h-32 rounded-lg mb-3 bg-inputBG justify-center items-center">
+                              {(place as any).image_url || place.imageUrl ? (
+                                <Image
+                                  source={{ uri: (place as any).image_url || place.imageUrl }}
+                                  className="w-full h-full rounded-lg"
+                                  resizeMode="cover"
+                                />
+                              ) : (
+                                <View className="w-full h-full justify-center items-center">
+                                  <Text className="text-secondaryFont text-4xl">🖼️</Text>
+                                </View>
+                              )}
+                            </View>
+                            <View className="flex-1">
+                              <View className="flex-row justify-between items-start mb-2">
+                                <Text className="text-primaryFont font-semibold text-sm flex-1 mr-2" numberOfLines={2}>
+                                  {place.name}
+                                </Text>
+                              </View>
+                              <Text className="text-secondaryFont text-xs mb-2" numberOfLines={2}>
+                                {place.address}
+                              </Text>
+                              {place.rating !== undefined && place.rating !== null && (
+                                <View className="flex-row items-center mb-2">
+                                  {/* Star rating logic from SavesTab.tsx */}
+                                  {(() => {
+                                    const fullStars = Math.floor(place.rating);
+                                    const halfStar = place.rating % 1 >= 0.5;
+                                    const emptyStars = 5 - fullStars - (halfStar ? 1 : 0);
+                                    return (
+                                      <View className="flex-row mr-2">
+                                        {Array.from({ length: fullStars }).map((_, i) => (
+                                          <Text key={`full-${i}`} className="text-accentFont text-xs">★</Text>
+                                        ))}
+                                        {halfStar && (
+                                          <Text key="half" className="text-accentFont text-xs">☆</Text>
+                                        )}
+                                        {Array.from({ length: emptyStars }).map((_, i) => (
+                                          <Text key={`empty-${i}`} className="text-secondaryFont text-xs">☆</Text>
+                                        ))}
+                                      </View>
+                                    );
+                                  })()}
+                                  <Text className="text-secondaryFont text-xs ml-1">{place.rating.toFixed(1)}</Text>
+                                </View>
+                              )}
+                              <Text className="text-accentFont text-xs capitalize mb-2">{place.category}</Text>
+                              {(place as any).notes && (
+                                <Text className="text-secondaryFont text-xs italic" numberOfLines={2}>
+                                  {`"${(place as any).notes}"`}
+                                </Text>
+                              )}
+                            </View>
+                          </TouchableOpacity>
+                        </View>
+                      ))}
+                    </ScrollView>
+                  ) : (
+                    <Text className="text-secondaryFont text-sm">No saved places found for this trip.</Text>
+                  )}
+                </>
               )}
             </>
           ) : (
