@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react'
 import { ActivityIndicator, Alert, FlatList, Image, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import SearchCategories from '../../../components/SearchCategories'
+import TripSelectModal from '../../../components/TripSelectModal'
 import { colors } from '../../../constants/colors'
 import { GooglePlace, googlePlacesService } from '../../../lib/services/googlePlacesService'
 import { CreateSavedPlaceInput, SavedPlace, savedPlacesService } from '../../../lib/services/savedPlacesService'
@@ -12,10 +13,13 @@ const DiscoverScreen = () => {
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState<GooglePlace[]>([])
   const [isLoading, setIsLoading] = useState(false)
-  const [savedPlaces, setSavedPlaces] = useState<string[]>([]) // Store saved place IDs
+  const [savedPlaces, setSavedPlaces] = useState<string[]>([])
   const [trips, setTrips] = useState<any[]>([])
   const [user, setUser] = useState<any>(null)
   const [recentSearches, setRecentSearches] = useState<string[]>([])
+  // Modal state for trip selection
+  const [tripModalVisible, setTripModalVisible] = useState(false)
+  const [placeToSave, setPlaceToSave] = useState<GooglePlace | null>(null)
 
   useEffect(() => {
     getCurrentUser()
@@ -87,40 +91,12 @@ const DiscoverScreen = () => {
       return;
     }
 
-    // Directly prompt for trip selection (no notes)
+    // Show TripSelectModal for trip selection
     if (!trips || trips.length === 0) {
       await loadTrips();
     }
-    const tripOptions = trips.map((trip: any) => ({
-      text: trip.name,
-      onPress: async () => {
-        const selectedTrip = trip;
-        const savedPlace: CreateSavedPlaceInput = {
-          place_id: place.place_id,
-          name: place.name,
-          address: place.formatted_address,
-          rating: place.rating,
-          type: place.types[0] || 'place',
-          category: getCategoryFromTypes(place.types),
-          latitude: place.geometry.location.lat,
-          longitude: place.geometry.location.lng,
-          image_url: place.photos?.[0] ? getPhotoUrl(place.photos[0].photo_reference) : undefined,
-          photos: place.photos?.map(photo => getPhotoUrl(photo.photo_reference)) || [],
-          trip_id: selectedTrip.id,
-        };
-        await savedPlacesService.savePlace(user.id, savedPlace);
-        setSavedPlaces(prev => [...prev, place.place_id]);
-        Alert.alert('Success', 'Place saved to trip successfully!');
-      }
-    }));
-    Alert.alert(
-      'Select Trip',
-      'Choose a trip to save this place in:',
-      [
-        ...tripOptions,
-        { text: 'Cancel', style: 'cancel' }
-      ]
-    );
+    setPlaceToSave(place);
+    setTripModalVisible(true);
   }
 
   const getCategoryFromTypes = (types: string[]): string => {
@@ -359,6 +335,36 @@ const DiscoverScreen = () => {
             </Text>
           </View>
         )}
+        {/* TripSelectModal Integration */}
+        <TripSelectModal
+          visible={tripModalVisible}
+          trips={trips}
+          onSelect={async (selectedTrip) => {
+            if (!user || !placeToSave) return;
+            const savedPlace: CreateSavedPlaceInput = {
+              place_id: placeToSave.place_id,
+              name: placeToSave.name,
+              address: placeToSave.formatted_address,
+              rating: placeToSave.rating,
+              type: placeToSave.types[0] || 'place',
+              category: getCategoryFromTypes(placeToSave.types),
+              latitude: placeToSave.geometry.location.lat,
+              longitude: placeToSave.geometry.location.lng,
+              image_url: placeToSave.photos?.[0] ? getPhotoUrl(placeToSave.photos[0].photo_reference) : undefined,
+              photos: placeToSave.photos?.map(photo => getPhotoUrl(photo.photo_reference)) || [],
+              trip_id: selectedTrip.id,
+            };
+            await savedPlacesService.savePlace(user.id, savedPlace);
+            setSavedPlaces(prev => [...prev, placeToSave.place_id]);
+            setTripModalVisible(false);
+            setPlaceToSave(null);
+            Alert.alert('Success', 'Place saved to trip successfully!');
+          }}
+          onCancel={() => {
+            setTripModalVisible(false);
+            setPlaceToSave(null);
+          }}
+        />
       </View>
     </SafeAreaView>
   )

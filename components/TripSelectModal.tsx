@@ -23,14 +23,14 @@ const TripSelectModal: React.FC<TripSelectModalProps> = ({ visible, trips, onSel
       onRequestClose={onCancel}
     >
       <View className="flex-1 justify-center items-center bg-black/40">
-        <View className="bg-white rounded-xl p-6 w-80 max-h-96">
-          <Text className="text-primaryFont text-lg font-semibold mb-4 text-center">Select a Trip</Text>
+        <View className="bg-secondaryBG rounded-xl p-6 w-80 max-h-100">
+          <Text className="text-primaryFont text-xl font-semibold mb-4 text-center">Select a Trip</Text>
           <FlatList
             data={trips}
             keyExtractor={(item) => item.id}
             renderItem={({ item }) => (
               <TouchableOpacity
-                className="py-3 px-4 mb-2 bg-inputBG rounded-lg"
+                className="py-3 px-4 mb-2 bg-primaryBG/50 rounded-lg"
                 onPress={() => onSelect(item)}
               >
                 <Text className="text-primaryFont text-base">{item.name}</Text>
