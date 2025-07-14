@@ -1,3 +1,5 @@
+import { Ionicons } from '@expo/vector-icons';
+import * as Linking from 'expo-linking';
 import React, { useState } from 'react';
 import {
   Alert,
@@ -10,6 +12,7 @@ import {
   View
 } from 'react-native';
 import { getCategoryById, getCategoryIcon } from '../constants/categories';
+import { colors } from '../constants/colors';
 import { itineraryService } from '../lib/services/itineraryService';
 import { ItineraryItem } from '../types/database';
 
@@ -230,7 +233,7 @@ export default function ActivityDetailModal({
           {/* Details Section */}
           <View className="space-y-4">
             {/* Date & Time */}
-            <View className="bg-primaryBG/50 rounded-lg p-4 border border-border/30">
+            <View className="flex flex-row items-center justify-between bg-primaryBG/50 rounded-lg p-4 border border-border/30">
               <Text className="text-primaryFont font-UrbanistSemiBold text-base mb-2">
                 📅 When
               </Text>
@@ -239,7 +242,7 @@ export default function ActivityDetailModal({
               </Text>
               {activity.time && (
                 <Text className="text-secondaryFont">
-                  at {formatTime(activity.time)}
+                  {formatTime(activity.time)}
                 </Text>
               )}
             </View>
@@ -247,12 +250,66 @@ export default function ActivityDetailModal({
             {/* Location */}
             {activity.location && (
               <View className="bg-primaryBG/50 rounded-lg p-4 border border-border/30">
-                <Text className="text-primaryFont font-UrbanistSemiBold text-base mb-2">
-                  📍 Location
-                </Text>
-                <Text className="text-secondaryFont">
-                  {activity.location}
-                </Text>
+                <View className="flex flex-row items-center justify-between">
+                  <Text className="text-primaryFont font-UrbanistSemiBold text-base mb-2 mr-2">
+                    📍 Location
+                  </Text>
+                  <View style={{ flex: 1, minWidth: 0 }}>
+                    <Text
+                      className="text-secondaryFont"
+                      // numberOfLines={4}
+                      // ellipsizeMode="tail"
+                      style={{ maxWidth: '100%' }}
+                    >
+                      {activity.location}
+                    </Text>
+                  </View>
+                  <View className="flex-row flex-shrink-0 ml-2">
+                    {/* Waze Icon Button */}
+                    <TouchableOpacity
+                      onPress={() => {
+                        const query = encodeURIComponent(activity.location ?? '');
+                        const wazeUrl = `https://waze.com/ul?q=${query}`;
+                        Alert.alert(
+                          'Open Waze',
+                          'Do you want to open this location in Waze?',
+                          [
+                            { text: 'Cancel', style: 'cancel' },
+                            { text: 'Open', onPress: () => Linking.openURL(wazeUrl) }
+                          ]
+                        );
+                      }}
+                      activeOpacity={0.8}
+                      accessibilityLabel="Open in Waze"
+                      style={{ marginRight: 8 }}
+                    >
+                      <View className="w-12 h-12 rounded-3xl bg-secondaryBG items-center justify-center">
+                        <Ionicons name="navigate" size={18} color={colors.accentFont} />
+                      </View>
+                    </TouchableOpacity>
+                    {/* Google Maps Icon Button */}
+                    <TouchableOpacity
+                      onPress={() => {
+                        const query = encodeURIComponent(activity.location ?? '');
+                        const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${query}`;
+                        Alert.alert(
+                          'Open Google Maps',
+                          'Do you want to open this location in Google Maps?',
+                          [
+                            { text: 'Cancel', style: 'cancel' },
+                            { text: 'Open', onPress: () => Linking.openURL(mapsUrl) }
+                          ]
+                        );
+                      }}
+                      activeOpacity={0.8}
+                      accessibilityLabel="Open in Google Maps"
+                    >
+                      <View className="w-12 h-12 rounded-3xl bg-secondaryBG items-center justify-center">
+                        <Ionicons name="map" size={18} color={colors.accentFont} />
+                      </View>
+                    </TouchableOpacity>
+                  </View>
+                </View>
               </View>
             )}
 
@@ -308,14 +365,14 @@ export default function ActivityDetailModal({
           {/* Action Buttons */}
           <View className="mt-8 mb-6 space-y-3">
             <TouchableOpacity 
-              className="bg-accentFont rounded-xl py-3 items-center"
+              className="bg-transparent rounded-xl py-3 items-center border border-blue-300/20"
               activeOpacity={0.8}
               onPress={() => {
                 // TODO: Implement edit functionality
                 console.log('Edit activity:', activity.id);
               }}
             >
-              <Text className="text-primaryBG font-UrbanistSemiBold">
+              <Text className="text-blue-300 font-UrbanistSemiBold">
                 Edit Activity
               </Text>
             </TouchableOpacity>
