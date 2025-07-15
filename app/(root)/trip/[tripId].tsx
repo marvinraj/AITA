@@ -492,7 +492,7 @@ export default function TripDetailsPage() {
         {/* Map button */}
         <TouchableOpacity onPress={handleMapPress}>
           <LinearGradient
-            colors={['#2563eb', '#1d4ed8', '#1e40af', '#1e3a8a']}
+            colors={['#4B70F5', '#1D267D', '#03346E', '#021526']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={{
@@ -527,7 +527,7 @@ export default function TripDetailsPage() {
               elevation: 15,
             }}>
               <LinearGradient
-                colors={['#e55555', '#cc1e1e', '#a01a1a', '#801515']}
+                colors={['#22092C', '#321E1E', '#a01a1a', '#09122C']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 style={{
