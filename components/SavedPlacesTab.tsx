@@ -85,7 +85,7 @@ export default function SavedPlacesTab() {
       title: place.name,
       description: place.description || '',
       date: new Date().toISOString().split('T')[0], // Use current date as placeholder
-      time: undefined,
+      time: '09:00', // Default time since it's now required
       duration: undefined,
       location: place.address,
       latitude: place.latitude,

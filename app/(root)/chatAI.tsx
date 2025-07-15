@@ -203,7 +203,7 @@ const chatAI = () => {
   const handleAddToItineraryConfirm = async (
     item: any, 
     selectedDate: string, 
-    time?: string, 
+    time: string, // Now required
     notes?: string
   ) => {
     try {

@@ -102,7 +102,7 @@ export const RecommendationCard: React.FC<RecommendationCardProps> = ({
       <View className="flex-row space-x-2">
         <TouchableOpacity
           onPress={handleViewOnMaps}
-          className="flex-1 bg-accentFont rounded-lg py-2 px-3"
+          className="flex-1 bg-blue-500 rounded-lg py-2 px-3"
         >
           <Text className="text-primaryBG text-center font-medium text-sm">
             🗺️ View on Maps

@@ -458,10 +458,27 @@ export default function MapScreen() {
       >
         {/* Markers for activities */}
         {filteredItems
-          .sort((a, b) => a.item_order - b.item_order)
+          .sort((a, b) => {
+            // Sort by time within the same date
+            if (a.time && b.time) {
+              return a.time.localeCompare(b.time);
+            }
+            // Fallback to item_order if time is not available
+            return a.item_order - b.item_order;
+          })
           .map((item, index) => {
             // Create a numbered marker for clear ordering
             const orderNumber = index + 1;
+            
+            // Format time for display
+            const formatTime = (time?: string) => {
+              if (!time) return '';
+              const [hours, minutes] = time.split(':');
+              const hour = parseInt(hours);
+              const ampm = hour >= 12 ? 'PM' : 'AM';
+              const displayHour = hour % 12 || 12;
+              return `${displayHour}:${minutes} ${ampm}`;
+            };
             
             return (
               <Marker
@@ -471,9 +488,10 @@ export default function MapScreen() {
                   longitude: item.longitude!,
                 }}
                 title={`${orderNumber}. ${item.title}`}
-                description={item.description ? 
-                  `${item.description} • ${new Date(item.date).toLocaleDateString()}` : 
-                  `${new Date(item.date).toLocaleDateString()}`
+                description={
+                  item.time 
+                    ? `${formatTime(item.time)} • ${item.description || ''} • ${new Date(item.date).toLocaleDateString()}`
+                    : `${item.description || ''} • ${new Date(item.date).toLocaleDateString()}`
                 }
               >
                 <View className="w-8 h-8 rounded-full items-center justify-center border-2 shadow-lg" style={{ backgroundColor: colors.accentFont, borderColor: colors.primaryFont }}>

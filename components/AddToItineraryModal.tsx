@@ -16,7 +16,7 @@ interface AddToItineraryModalProps {
   item: RecommendationItem | null;
   tripDates: string[]; // Array of date strings in YYYY-MM-DD format
   onClose: () => void;
-  onAdd: (item: RecommendationItem, selectedDate: string, time?: string, notes?: string) => void;
+  onAdd: (item: RecommendationItem, selectedDate: string, time: string, notes?: string) => void;
 }
 
 export const AddToItineraryModal: React.FC<AddToItineraryModalProps> = ({
@@ -36,9 +36,14 @@ export const AddToItineraryModal: React.FC<AddToItineraryModalProps> = ({
       return;
     }
 
+    if (!selectedTime) {
+      Alert.alert('Time Required', 'Please set a time for this activity.');
+      return;
+    }
+
     if (!item) return;
 
-    onAdd(item, selectedDate, selectedTime || undefined, notes || undefined);
+    onAdd(item, selectedDate, selectedTime, notes || undefined);
     
     // Reset form
     setSelectedDate('');
@@ -136,11 +141,11 @@ export const AddToItineraryModal: React.FC<AddToItineraryModalProps> = ({
               ))}
             </View>
 
-            {/* Time Selection (Optional) */}
-            <Text className="text-primaryFont font-semibold text-lg mb-3">🕐 Time (Optional)</Text>
+            {/* Time Selection (Required) */}
+            <Text className="text-primaryFont font-semibold text-lg mb-3">🕐 Time (Required)</Text>
             <TextInput
               className="bg-inputBG rounded-xl px-4 py-3 text-primaryFont mb-4"
-              placeholder="e.g., 09:00, 14:30, or leave blank"
+              placeholder="e.g., 09:00, 14:30"
               placeholderTextColor="#828282"
               value={selectedTime}
               onChangeText={setSelectedTime}

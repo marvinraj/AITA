@@ -10,15 +10,34 @@ export class ItineraryService {
         .from('itinerary_items')
         .select('*')
         .eq('trip_id', tripId)
-        .order('date', { ascending: true })
-        .order('item_order', { ascending: true });
+        .order('date', { ascending: true });
 
       if (error) {
         console.error('Error fetching itinerary:', error);
         throw error;
       }
 
-      return data || [];
+      const items = data || [];
+      
+      // Sort by time within each date
+      return items.sort((a, b) => {
+        // First sort by date
+        if (a.date !== b.date) {
+          return a.date.localeCompare(b.date);
+        }
+        
+        // Then sort by time within the same date
+        if (a.time && b.time) {
+          return a.time.localeCompare(b.time);
+        }
+        
+        // If one has time and other doesn't, prioritize the one with time
+        if (a.time && !b.time) return -1;
+        if (!a.time && b.time) return 1;
+        
+        // If neither has time, sort by item_order as fallback
+        return a.item_order - b.item_order;
+      });
     } catch (error) {
       console.error('Failed to fetch itinerary:', error);
       throw error;
@@ -32,15 +51,28 @@ export class ItineraryService {
         .from('itinerary_items')
         .select('*')
         .eq('trip_id', tripId)
-        .eq('date', date)
-        .order('item_order', { ascending: true });
+        .eq('date', date);
 
       if (error) {
         console.error('Error fetching itinerary for date:', error);
         throw error;
       }
 
-      return data || [];
+      const items = data || [];
+      
+      // Sort by time within the date
+      return items.sort((a, b) => {
+        if (a.time && b.time) {
+          return a.time.localeCompare(b.time);
+        }
+        
+        // If one has time and other doesn't, prioritize the one with time
+        if (a.time && !b.time) return -1;
+        if (!a.time && b.time) return 1;
+        
+        // If neither has time, sort by item_order as fallback
+        return a.item_order - b.item_order;
+      });
     } catch (error) {
       console.error('Failed to fetch itinerary for date:', error);
       throw error;

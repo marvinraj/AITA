@@ -75,7 +75,7 @@ export default function AddActivityModal({
       setSelectedHour(9);
       setSelectedMinute(0);
       setSelectedPeriod('AM');
-      setTimeEnabled(false);
+      setTimeEnabled(true); // Enable time by default since it's required
       loadInitialData();
       // Fetch saved places for this trip
       fetchSavedPlaces();
@@ -152,6 +152,13 @@ export default function AddActivityModal({
       Alert.alert('Error', 'Please select a place and category');
       return;
     }
+
+    // Make time compulsory
+    if (!timeEnabled) {
+      Alert.alert('Time Required', 'Please set a time for this activity');
+      return;
+    }
+
     // Validate category against ACTIVITY_CATEGORIES
     const validCategory = ACTIVITY_CATEGORIES.find(cat => cat.id === selectedCategory);
     if (!validCategory) {
@@ -184,7 +191,7 @@ export default function AddActivityModal({
         title: selectedPlace.name,
         description: selectedPlace.description,
         date: date,
-        time: timeFormatted || undefined,
+        time: timeFormatted, // Now always required
         location: selectedPlace.address,
         category: selectedCategory as any, // Type assertion for now
         priority: 'medium',
@@ -576,23 +583,17 @@ export default function AddActivityModal({
                 ))}
               </View>
 
-              {/* Time Picker (Optional) */}
+              {/* Time Picker (Required) */}
               <View className="mb-6">
                 <View className="flex-row items-center justify-between mb-3">
                   <Text className="text-primaryFont font-UrbanistSemiBold">
-                    Set time (optional)
+                    Set time (required)
                   </Text>
-                  <TouchableOpacity
-                    onPress={() => setTimeEnabled(!timeEnabled)}
-                    className={`w-12 h-6 rounded-full ${timeEnabled ? 'bg-accentFont' : 'bg-secondaryBG border border-border'} items-center justify-center`}
-                    activeOpacity={0.8}
-                  >
-                    <View className={`w-4 h-4 rounded-full bg-primaryBG ${timeEnabled ? 'translate-x-3' : '-translate-x-3'}`} />
-                  </TouchableOpacity>
+                  <Text className="text-red-400 text-sm">*</Text>
                 </View>
                 
-                {timeEnabled && (
-                  <View className="bg-secondaryBG rounded-xl p-4 border border-border">
+                {/* Since time is required, always show the time picker */}
+                <View className="bg-secondaryBG rounded-xl p-4 border border-border">
                     <View className="flex-row items-center justify-center">
                       {/* Hour Picker */}
                       <View className="items-center">
@@ -675,7 +676,6 @@ export default function AddActivityModal({
                       Selected: {selectedHour}:{selectedMinute.toString().padStart(2, '0')} {selectedPeriod}
                     </Text>
                   </View>
-                )}
               </View>
 
               {/* Add Button */}

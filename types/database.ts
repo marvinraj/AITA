@@ -69,7 +69,7 @@ export interface ItineraryItem {
   title: string;
   description?: string;
   date: string; // ISO date string (YYYY-MM-DD)
-  time?: string; // Time in HH:MM format
+  time: string; // Time in HH:MM format - now required
   duration?: number; // Duration in minutes
   location?: string;
   latitude?: number; // Latitude coordinate for map display
@@ -186,7 +186,7 @@ export interface CreateItineraryItemInput {
   title: string;
   description?: string;
   date: string; // ISO date string (YYYY-MM-DD)
-  time?: string; // Time in HH:MM format
+  time: string; // Time in HH:MM format - now required
   duration?: number;
   location?: string;
   category?: 'activity' | 'restaurant' | 'hotel' | 'transport' | 'flight' | 'attraction' | 'shopping' | 'nightlife' | 'other';
