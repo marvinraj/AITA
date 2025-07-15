@@ -21,9 +21,10 @@ const TABS = [
 
 export default function TripDetailsPage() {
   const router = useRouter();
-  const { tripId, activeTab: initialActiveTab } = useLocalSearchParams<{ 
+  const { tripId, activeTab: initialActiveTab, source } = useLocalSearchParams<{ 
     tripId: string; 
     activeTab?: string; 
+    source?: string;
   }>();
   
   // state to manage active tab - use initial tab from params if provided
@@ -136,7 +137,25 @@ export default function TripDetailsPage() {
 
   // Handle back navigation
   const handleBack = () => {
-    router.back();
+    // If user came from manual creation, navigate to profile/travels
+    if (source === 'manual_creation') {
+      router.push('/(root)/(tabs)/profile');
+      return;
+    }
+    
+    // Try to go back in history first
+    try {
+      if (router.canGoBack && router.canGoBack()) {
+        router.back();
+      } else {
+        // If there's no back history, navigate to the main trips page
+        router.push('/(root)/(tabs)/profile');
+      }
+    } catch (error) {
+      // If canGoBack doesn't exist or fails, just navigate to profile
+      console.log('Back navigation fallback - going to profile');
+      router.push('/(root)/(tabs)/profile');
+    }
   };
 
   // Handle edit trip

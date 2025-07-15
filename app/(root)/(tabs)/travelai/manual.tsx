@@ -120,7 +120,8 @@ const ManualTripCreation = () => {
         pathname: '/(root)/trip/[tripId]' as any,
         params: { 
           tripId: tripData.id,
-          activeTab: 'Itinerary' // Direct user to itinerary tab for manual building
+          activeTab: 'Itinerary', // Direct user to itinerary tab for manual building
+          source: 'manual_creation' // Track where user came from
         }
       };
       
