@@ -1,9 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, FlatList, ScrollView, Image, Text, View } from 'react-native';
+import { ActivityIndicator, Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { colors } from '../constants/colors';
 import { SavedPlace, savedPlacesService } from '../lib/services/savedPlacesService';
-import { Trip } from '../types/database';
+import { ItineraryItem, Trip } from '../types/database';
+import ActivityDetailModal from './ActivityDetailModal';
 
 interface SavesTabProps {
   trip: Trip;
@@ -12,6 +13,8 @@ interface SavesTabProps {
 export default function SavesTab({ trip }: SavesTabProps) {
   const [savedPlaces, setSavedPlaces] = useState<SavedPlace[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedPlace, setSelectedPlace] = useState<SavedPlace | null>(null);
+  const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
     if (trip?.id) {
@@ -36,6 +39,43 @@ export default function SavesTab({ trip }: SavesTabProps) {
     }
   };
 
+  // Convert SavedPlace to ItineraryItem format for the modal
+  const convertSavedPlaceToItineraryItem = (place: SavedPlace): ItineraryItem => {
+    return {
+      id: place.id,
+      trip_id: place.trip_id || '',
+      user_id: place.user_id,
+      title: place.name,
+      description: place.description || '',
+      date: new Date().toISOString().split('T')[0], // Use current date as placeholder
+      time: undefined,
+      duration: undefined,
+      location: place.address,
+      latitude: place.latitude,
+      longitude: place.longitude,
+      category: place.category as 'activity' | 'restaurant' | 'hotel' | 'transport' | 'flight' | 'attraction' | 'shopping' | 'nightlife' | 'other',
+      priority: 'medium' as const,
+      item_order: 0,
+      notes: place.notes || '',
+      cost: undefined,
+      currency: undefined,
+      image_url: place.image_url,
+      photos: place.photos || [],
+      created_at: place.saved_at,
+      updated_at: place.saved_at,
+    };
+  };
+
+  const handlePlacePress = (place: SavedPlace) => {
+    setSelectedPlace(place);
+    setShowModal(true);
+  };
+
+  const handleModalClose = () => {
+    setShowModal(false);
+    setSelectedPlace(null);
+  };
+
   const getRatingStars = (rating?: number) => {
     if (!rating) return null;
     const stars = [];
@@ -54,41 +94,46 @@ export default function SavesTab({ trip }: SavesTabProps) {
   };
 
   const renderSavedPlace = ({ item }: { item: SavedPlace }) => (
-    <View className="bg-secondaryBG rounded-lg p-3 m-2 border border-border flex-1">
-      <View className="w-full h-32 rounded-lg mb-3 bg-inputBG justify-center items-center">
-        {item.image_url ? (
-          <Image
-            source={{ uri: item.image_url }}
-            className="w-full h-full rounded-lg"
-            resizeMode="cover"
-          />
-        ) : (
-          <Ionicons name="image-outline" size={32} color={colors.secondaryFont} />
-        )}
-      </View>
-      <View className="flex-1">
-        <View className="flex-row justify-between items-start mb-2">
-          <Text className="text-primaryFont font-semibold text-sm flex-1 mr-2" numberOfLines={2}>
-            {item.name}
-          </Text>
+    <TouchableOpacity 
+      onPress={() => handlePlacePress(item)}
+      activeOpacity={0.7}
+    >
+      <View className="bg-secondaryBG rounded-lg p-3 m-2 border border-border flex-1">
+        <View className="w-full h-32 rounded-lg mb-3 bg-inputBG justify-center items-center">
+          {item.image_url ? (
+            <Image
+              source={{ uri: item.image_url }}
+              className="w-full h-full rounded-lg"
+              resizeMode="cover"
+            />
+          ) : (
+            <Ionicons name="image-outline" size={32} color={colors.secondaryFont} />
+          )}
         </View>
-        <Text className="text-secondaryFont text-xs mb-2" numberOfLines={2}>
-          {item.address}
-        </Text>
-        {item.rating && (
-          <View className="flex-row items-center mb-2">
-            <View className="flex-row mr-2">{getRatingStars(item.rating)}</View>
-            <Text className="text-secondaryFont text-xs">{item.rating}</Text>
+        <View className="flex-1">
+          <View className="flex-row justify-between items-start mb-2">
+            <Text className="text-primaryFont font-semibold text-sm flex-1 mr-2" numberOfLines={2}>
+              {item.name}
+            </Text>
           </View>
-        )}
-        <Text className="text-accentFont text-xs capitalize mb-2">{item.category}</Text>
-        {item.notes && (
-          <Text className="text-secondaryFont text-xs italic" numberOfLines={2}>
-            "{item.notes}"
+          <Text className="text-secondaryFont text-xs mb-2" numberOfLines={2}>
+            {item.address}
           </Text>
-        )}
+          {item.rating && (
+            <View className="flex-row items-center mb-2">
+              <View className="flex-row mr-2">{getRatingStars(item.rating)}</View>
+              <Text className="text-secondaryFont text-xs">{item.rating}</Text>
+            </View>
+          )}
+          <Text className="text-accentFont text-xs capitalize mb-2">{item.category}</Text>
+          {item.notes && (
+            <Text className="text-secondaryFont text-xs italic" numberOfLines={2}>
+              "{item.notes}"
+            </Text>
+          )}
+        </View>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 
   if (isLoading) {
@@ -123,6 +168,18 @@ export default function SavesTab({ trip }: SavesTabProps) {
           </View>
         ))}
       </ScrollView>
+
+      {/* Activity Detail Modal */}
+      <ActivityDetailModal
+        visible={showModal}
+        onClose={handleModalClose}
+        activity={selectedPlace ? convertSavedPlaceToItineraryItem(selectedPlace) : null}
+        isSavedPlace={true}
+        onActivityDeleted={() => {
+          // Refresh the saved places list after deletion
+          loadSavedPlaces();
+        }}
+      />
     </View>
   );
 }

@@ -14,6 +14,7 @@ import {
 import { getCategoryById, getCategoryIcon } from '../constants/categories';
 import { colors } from '../constants/colors';
 import { itineraryService } from '../lib/services/itineraryService';
+import { savedPlacesService } from '../lib/services/savedPlacesService';
 import { ItineraryItem } from '../types/database';
 
 // Get screen width for gallery
@@ -90,13 +91,15 @@ interface ActivityDetailModalProps {
   onClose: () => void;
   activity: ItineraryItem | null;
   onActivityDeleted?: () => void;
+  isSavedPlace?: boolean; // New prop to indicate if this is a saved place
 }
 
 export default function ActivityDetailModal({ 
   visible, 
   onClose, 
   activity,
-  onActivityDeleted 
+  onActivityDeleted,
+  isSavedPlace = false
 }: ActivityDetailModalProps) {
   
   const [isDeleting, setIsDeleting] = useState(false);
@@ -129,13 +132,18 @@ export default function ActivityDetailModal({
 
   // Handle delete activity
   const handleDeleteActivity = () => {
+    const actionType = isSavedPlace ? 'Remove from Saved Places' : 'Delete Activity';
+    const message = isSavedPlace 
+      ? `Are you sure you want to remove "${activity.title}" from your saved places?`
+      : `Are you sure you want to delete "${activity.title}"? This action cannot be undone.`;
+    
     Alert.alert(
-      'Delete Activity',
-      `Are you sure you want to delete "${activity.title}"? This action cannot be undone.`,
+      actionType,
+      message,
       [
         { text: 'Cancel', style: 'cancel' },
         { 
-          text: 'Delete', 
+          text: isSavedPlace ? 'Remove' : 'Delete', 
           style: 'destructive',
           onPress: confirmDeleteActivity 
         }
@@ -148,7 +156,16 @@ export default function ActivityDetailModal({
 
     setIsDeleting(true);
     try {
-      await itineraryService.deleteItineraryItem(activity.id);
+      if (isSavedPlace) {
+        // Create a method to delete saved place by ID
+        const { error } = await savedPlacesService.deleteSavedPlaceById(activity.id);
+        if (error) {
+          throw error;
+        }
+      } else {
+        // Delete itinerary item
+        await itineraryService.deleteItineraryItem(activity.id);
+      }
       
       // Close modal and trigger refresh
       onClose();
@@ -156,10 +173,16 @@ export default function ActivityDetailModal({
         onActivityDeleted();
       }
       
-      Alert.alert('Success', 'Activity deleted successfully');
+      const successMessage = isSavedPlace 
+        ? 'Place removed from saved places successfully'
+        : 'Activity deleted successfully';
+      Alert.alert('Success', successMessage);
     } catch (error) {
       console.error('Error deleting activity:', error);
-      Alert.alert('Error', 'Failed to delete activity. Please try again.');
+      const errorMessage = isSavedPlace 
+        ? 'Failed to remove place from saved places. Please try again.'
+        : 'Failed to delete activity. Please try again.';
+      Alert.alert('Error', errorMessage);
     } finally {
       setIsDeleting(false);
     }
@@ -177,7 +200,7 @@ export default function ActivityDetailModal({
         <View className="pt-12 px-4 pb-4 border-b border-border">
           <View className="flex-row items-center justify-between">
             <Text className="text-xl font-UrbanistSemiBold text-primaryFont">
-              Activity Details
+              {isSavedPlace ? 'Saved Place Details' : 'Activity Details'}
             </Text>
             <TouchableOpacity
               onPress={onClose}
@@ -232,20 +255,22 @@ export default function ActivityDetailModal({
 
           {/* Details Section */}
           <View className="space-y-4">
-            {/* Date & Time */}
-            <View className="flex flex-row items-center justify-between bg-primaryBG/50 rounded-lg p-4 border border-border/30">
-              <Text className="text-primaryFont font-UrbanistSemiBold text-base mb-2">
-                📅 When
-              </Text>
-              <Text className="text-secondaryFont">
-                {formatDate(activity.date)}
-              </Text>
-              {activity.time && (
-                <Text className="text-secondaryFont">
-                  {formatTime(activity.time)}
+            {/* Date & Time - Only show for itinerary items */}
+            {!isSavedPlace && (
+              <View className="flex flex-row items-center justify-between bg-primaryBG/50 rounded-lg p-4 border border-border/30">
+                <Text className="text-primaryFont font-UrbanistSemiBold text-base mb-2">
+                  📅 When
                 </Text>
-              )}
-            </View>
+                <Text className="text-secondaryFont">
+                  {formatDate(activity.date)}
+                </Text>
+                {activity.time && (
+                  <Text className="text-secondaryFont">
+                    {formatTime(activity.time)}
+                  </Text>
+                )}
+              </View>
+            )}
 
             {/* Location */}
             {activity.location && (
@@ -325,8 +350,8 @@ export default function ActivityDetailModal({
               </View>
             )}
 
-            {/* Duration */}
-            {activity.duration && (
+            {/* Duration - Only show for itinerary items */}
+            {!isSavedPlace && activity.duration && (
               <View className="bg-primaryBG/50 rounded-lg p-4 border border-border/30">
                 <Text className="text-primaryFont font-UrbanistSemiBold text-base mb-2">
                   ⏱️ Duration
@@ -337,8 +362,8 @@ export default function ActivityDetailModal({
               </View>
             )}
 
-            {/* Cost */}
-            {activity.cost && (
+            {/* Cost - Only show for itinerary items */}
+            {!isSavedPlace && activity.cost && (
               <View className="bg-primaryBG/50 rounded-lg p-4 border border-border/30">
                 <Text className="text-primaryFont font-UrbanistSemiBold text-base mb-2">
                   💰 Cost
@@ -386,7 +411,10 @@ export default function ActivityDetailModal({
               disabled={isDeleting}
             >
               <Text className="text-red-500 font-UrbanistSemiBold">
-                {isDeleting ? 'Deleting...' : 'Delete Activity'}
+                {isDeleting 
+                  ? (isSavedPlace ? 'Removing...' : 'Deleting...') 
+                  : (isSavedPlace ? 'Remove from Saved Places' : 'Delete Activity')
+                }
               </Text>
             </TouchableOpacity>
           </View>

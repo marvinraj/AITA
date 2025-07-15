@@ -218,6 +218,21 @@ class SavedPlacesService {
     }
   }
 
+  // Delete saved place by ID
+  async deleteSavedPlaceById(savedPlaceId: string): Promise<{ error: any }> {
+    try {
+      const { error } = await supabase
+        .from('saved_places')
+        .delete()
+        .eq('id', savedPlaceId);
+
+      return { error };
+    } catch (error) {
+      console.error('Error deleting saved place:', error);
+      return { error };
+    }
+  }
+
   // Convert Place to CreateSavedPlaceInput
   placeToSavedPlace(place: Place, notes?: string, tags?: string[]): CreateSavedPlaceInput {
     return {
