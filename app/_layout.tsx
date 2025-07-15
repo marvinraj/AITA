@@ -32,6 +32,14 @@ export default function RootLayout() {
         name="(auth)"
         options={{ headerShown: false }}
       />
+      <Stack.Screen
+        name="map"
+        options={{ 
+          headerShown: false,
+          presentation: 'modal',
+          gestureEnabled: true 
+        }}
+      />
     </Stack>
   </SafeScreen>;
 }

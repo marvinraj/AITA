@@ -13,6 +13,13 @@ export default function RootLayout() {
           gestureEnabled: false 
         }} 
       />
+      <Stack.Screen 
+        name="map" 
+        options={{ 
+          presentation: 'modal',
+          gestureEnabled: true 
+        }} 
+      />
     </Stack>
   );
 }

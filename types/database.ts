@@ -72,6 +72,8 @@ export interface ItineraryItem {
   time?: string; // Time in HH:MM format
   duration?: number; // Duration in minutes
   location?: string;
+  latitude?: number; // Latitude coordinate for map display
+  longitude?: number; // Longitude coordinate for map display
   category: 'activity' | 'restaurant' | 'hotel' | 'transport' | 'flight' | 'attraction' | 'shopping' | 'nightlife' | 'other';
   priority: 'low' | 'medium' | 'high';
   item_order: number; // Order within the day
