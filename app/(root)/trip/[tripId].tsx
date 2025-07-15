@@ -508,31 +508,39 @@ export default function TripDetailsPage() {
                 alignItems: 'center',
             }}
           >
-            <Ionicons name="map" size={24} color="white" />
+            <Ionicons name="map" size={21} color="white" />
           </LinearGradient>
         </TouchableOpacity>
         
         {/* AI Chat button */}
         <TouchableOpacity onPress={handleChatPress}>
-          <LinearGradient
-            colors={['#e55555', '#cc1e1e', '#a01a1a', '#801515']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={{
-                width: 60,
-                height: 60,
-                borderRadius: 30,
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.3,
-                shadowRadius: 4,
-                elevation: 6,
-                justifyContent: 'center',
-                alignItems: 'center',
-            }}
-          >
+          <View style={{
+              width: 70,
+              height: 70,
+              borderRadius: 35,
+              justifyContent: 'center',
+              alignItems: 'center',
+              shadowColor: '#a01a1a', // reddish glow
+              shadowOffset: { width: 0, height: 0 },
+              shadowOpacity: 0.8,
+              shadowRadius: 10,
+              elevation: 15,
+            }}>
+              <LinearGradient
+                colors={['#e55555', '#cc1e1e', '#a01a1a', '#801515']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={{
+                    width: 60,
+                    height: 60,
+                    borderRadius: 30,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                }}
+              ></LinearGradient>
+            </View>
+          
             <Text className="text-sm text-white font-UrbanistSemiBold">AITA</Text>
-          </LinearGradient>
         </TouchableOpacity>
       </View>
     </View>

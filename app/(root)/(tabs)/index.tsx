@@ -81,7 +81,7 @@ export default function HomeScreen() {
           {/* Map button */}
           <TouchableOpacity onPress={handleMapPress}>
             <LinearGradient
-              colors={['#2563eb', '#1d4ed8', '#1e40af', '#1e3a8a']}
+              colors={['#4B70F5', '#1D267D', '#03346E', '#021526']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={{
@@ -97,31 +97,39 @@ export default function HomeScreen() {
                   alignItems: 'center',
               }}
             >
-              <Ionicons name="map" size={24} color="white" />
+              <Ionicons name="map" size={21} color="white" />
             </LinearGradient>
           </TouchableOpacity>
           
           {/* AI Chat button */}
           <TouchableOpacity onPress={handleChatPress}>
-            <LinearGradient
-              colors={['#e55555', '#cc1e1e', '#a01a1a', '#801515']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={{
+            <View style={{
+              width: 70,
+              height: 70,
+              borderRadius: 35,
+              justifyContent: 'center',
+              alignItems: 'center',
+              shadowColor: '#a01a1a', // F7374F,
+              shadowOffset: { width: 0, height: 0 },
+              shadowOpacity: 0.8,
+              shadowRadius: 8,
+              elevation: 15,
+            }}>
+              <LinearGradient
+                colors={['#22092C', '#321E1E', '#a01a1a', '#09122C']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={{
                   width: 60,
                   height: 60,
                   borderRadius: 30,
-                  shadowColor: '#000',
-                  shadowOffset: { width: 0, height: 2 },
-                  shadowOpacity: 0.3,
-                  shadowRadius: 4,
-                  elevation: 6,
                   justifyContent: 'center',
                   alignItems: 'center',
-              }}
-            >
-              <Text className="text-sm text-white font-UrbanistSemiBold">AITA</Text>
-            </LinearGradient>
+                }}
+              >
+                <Text className="text-sm text-white font-UrbanistSemiBold">AITA</Text>
+              </LinearGradient>
+            </View>
           </TouchableOpacity>
         </View>
       )}
