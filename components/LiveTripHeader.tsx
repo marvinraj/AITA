@@ -1,13 +1,43 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { Text, View } from 'react-native';
+import { useWeather } from '../hooks/useWeather';
+import { weatherService } from '../lib/services/weatherService';
 import { Trip } from '../types/database';
 
 interface LiveTripHeaderProps {
   trip: Trip;
-  weather?: string; // Optional weather override
+  weather?: string; // Optional weather override (for backward compatibility)
 }
 
-export default function LiveTripHeader({ trip, weather = "Sunny, 25°C" }: LiveTripHeaderProps) {
+export default function LiveTripHeader({ trip, weather: weatherOverride }: LiveTripHeaderProps) {
+  const { weatherData, isLoading: isLoadingWeather } = useWeather(
+    weatherOverride ? undefined : trip.destination
+  );
+  
+  // Get weather icon
+  const getWeatherIcon = () => {
+    if (weatherData) {
+      return weatherService.getWeatherEmoji(weatherData.icon);
+    }
+    return "🌤️"; // Default icon
+  };
+
+  // Get weather display string
+  const getWeatherDisplay = () => {
+    if (weatherOverride) {
+      return weatherOverride;
+    }
+    
+    if (isLoadingWeather) {
+      return "Loading weather...";
+    }
+    
+    if (weatherData) {
+      return `${weatherData.temperature}°C, ${weatherData.description}`;
+    }
+    
+    return "Weather unavailable";
+  };
   
   // Format trip dates for display
   const formatTripDates = () => {
@@ -68,8 +98,8 @@ export default function LiveTripHeader({ trip, weather = "Sunny, 25°C" }: LiveT
               {/* weather, location */}
               <View className="flex-row items-center">
                   <View className="flex-row items-center mr-2 bg-white/10 rounded-lg px-2 py-1 border-[0.5px] border-white/20">
-                      <Text className="text-xs">☀️</Text>
-                      <Text className="text-sm ml-1 font-UrbanistRegular text-white">{weather}</Text>
+                      <Text className="text-xs">{getWeatherIcon()}</Text>
+                      <Text className="text-sm ml-1 font-UrbanistRegular text-white">{getWeatherDisplay()}</Text>
                   </View>
                   {trip.destination && (
                     <View className="flex-row items-center bg-white/10 rounded-lg px-2 py-1 border-[0.5px] border-white/20">
