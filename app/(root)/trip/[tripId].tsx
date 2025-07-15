@@ -1,13 +1,12 @@
+import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Alert, Image, Modal, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import ItineraryTab from '../../../components/ItineraryTab';
 import LiveTripHeader from '../../../components/LiveTripHeader';
 import SavesTab from '../../../components/SavesTab';
 import TravelHubTab from '../../../components/TravelHubTab';
-import { colors } from '../../../constants/colors';
 import { Place, placesService } from '../../../lib/services/placesService';
 import { tripsService } from '../../../lib/services/tripsService';
 import { Trip } from '../../../types/database';
@@ -22,10 +21,13 @@ const TABS = [
 
 export default function TripDetailsPage() {
   const router = useRouter();
-  const { tripId } = useLocalSearchParams<{ tripId: string }>();
+  const { tripId, activeTab: initialActiveTab } = useLocalSearchParams<{ 
+    tripId: string; 
+    activeTab?: string; 
+  }>();
   
-  // state to manage active tab
-  const [activeTab, setActiveTab] = useState('Travel Hub');
+  // state to manage active tab - use initial tab from params if provided
+  const [activeTab, setActiveTab] = useState(initialActiveTab || 'Travel Hub');
   // trip state
   const [trip, setTrip] = useState<Trip | null>(null);
   const [loading, setLoading] = useState(true);
