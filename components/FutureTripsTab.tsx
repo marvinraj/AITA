@@ -97,7 +97,7 @@ export default function FutureTripsTab() {
 
   return (
     <View className="flex-1 bg-primaryBG px-4 pt-6">
-      {/* Header */}
+      {/* Header
       <View className="flex-row items-center justify-between mb-6">
         <Text className="text-2xl font-BellezaRegular text-primaryFont">My Travels</Text>
         <TouchableOpacity
@@ -114,7 +114,7 @@ export default function FutureTripsTab() {
             }}  
          />
         </TouchableOpacity>
-      </View>
+      </View> */}
 
       {/* Error handling */}
       {error && (
