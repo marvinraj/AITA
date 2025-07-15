@@ -5,6 +5,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useState } from "react";
 import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { Ionicons } from '@expo/vector-icons';
 import { Trip } from '../../../types/database';
 
 export default function HomeScreen() {
@@ -96,7 +97,7 @@ export default function HomeScreen() {
                   alignItems: 'center',
               }}
             >
-              <Text className="text-2xl">🗺️</Text>
+              <Ionicons name="map" size={24} color="white" />
             </LinearGradient>
           </TouchableOpacity>
           

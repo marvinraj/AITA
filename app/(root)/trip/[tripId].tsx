@@ -2,10 +2,12 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Alert, Image, Modal, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import ItineraryTab from '../../../components/ItineraryTab';
 import LiveTripHeader from '../../../components/LiveTripHeader';
 import SavesTab from '../../../components/SavesTab';
 import TravelHubTab from '../../../components/TravelHubTab';
+import { colors } from '../../../constants/colors';
 import { Place, placesService } from '../../../lib/services/placesService';
 import { tripsService } from '../../../lib/services/tripsService';
 import { Trip } from '../../../types/database';
@@ -506,7 +508,7 @@ export default function TripDetailsPage() {
                 alignItems: 'center',
             }}
           >
-            <Text className="text-2xl">🗺️</Text>
+            <Ionicons name="map" size={24} color="white" />
           </LinearGradient>
         </TouchableOpacity>
         
