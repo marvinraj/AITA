@@ -117,21 +117,21 @@ export default function NotesDropdown({ tripId }: NotesDropdownProps) {
 
   return (
     <View className='w-full'>
-      <View className="flex-row items-center justify-between mb-3">
+      <View className="flex-row items-center mb-3">
         <Text className="text-primaryFont text-xl font-BellezaRegular">
           Notes ({notes.length})
         </Text>
         <Pressable
           onPress={() => openModal(null)}
-          className="bg-transparent px-3 py-2"
+          className="bg-secondaryFont/30 px-1 py-1 mx-4 rounded-full"
           disabled={loading}
         >
           <Image 
             source={require('../assets/icons/add.png')} 
             style={{ 
-              width: 18, 
-              height: 18, 
-              tintColor: loading ? '#888' : 'white' 
+              width: 16, 
+              height: 16, 
+              tintColor: loading ? '#888' : '#f48080' 
             }} 
           />
         </Pressable>

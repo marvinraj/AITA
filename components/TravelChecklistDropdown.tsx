@@ -177,14 +177,14 @@ export default function TravelChecklistDropdown({ tripId }: TravelChecklistDropd
   return (
     <View className="w-full">
       {/* Checklist title and add checklist button */}
-      <View className="flex-row items-center justify-between mb-3">
+      <View className="flex-row items-center mb-3">
         <Text className="text-primaryFont text-xl font-BellezaRegular">Travel Checklist</Text>
         <Pressable
           onPress={() => openModal('addChecklist')}
-          className="bg-transparent px-3 py-2"
+          className="bg-secondaryFont/30 px-1 py-1 mx-4 rounded-full"
           disabled={loading}
         >
-          <Image source={require('../assets/icons/add.png')} style={{ width: 18, height: 18, tintColor: 'white' }} />
+          <Image source={require('../assets/icons/add.png')} style={{ width: 16, height: 16, tintColor: '#f48080' }} />
         </Pressable>
       </View>
 
