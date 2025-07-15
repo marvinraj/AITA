@@ -1,3 +1,4 @@
+import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Alert, Image, Modal, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
@@ -199,6 +200,21 @@ export default function TripDetailsPage() {
     }
   };
 
+  // Handle chat button press
+  const handleChatPress = () => {
+    if (trip) {
+      router.push(`/chatAI?tripId=${trip.id}`);
+    }
+  };
+
+  // Handle map button press
+  const handleMapPress = () => {
+    if (trip) {
+      // @ts-ignore - Router types not updated yet for new map route
+      router.push(`/map?tripId=${trip.id}`);
+    }
+  };
+
   // Show loading state while trip is being loaded
   if (loading) {
     return (
@@ -298,9 +314,9 @@ export default function TripDetailsPage() {
       </View>
 
       {/* Active Tab Content */}
-      <View className="flex-1 px-4">
+      <ScrollView className="flex-1 px-4" showsVerticalScrollIndicator={false}>
         <ActiveComponent trip={trip} onTripUpdate={setTrip} />
-      </View>
+      </ScrollView>
 
       {/* Edit Trip Modal */}
       <Modal
@@ -460,6 +476,63 @@ export default function TripDetailsPage() {
           </ScrollView>
         </View>
       </Modal>
+
+      {/* Floating Action Buttons - Bottom Right */}
+      <View style={{
+        position: 'absolute',
+        bottom: 24,
+        right: 24,
+        zIndex: 1000,
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: 16,
+      }}>
+        {/* Map button */}
+        <TouchableOpacity onPress={handleMapPress}>
+          <LinearGradient
+            colors={['#2563eb', '#1d4ed8', '#1e40af', '#1e3a8a']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={{
+                width: 60,
+                height: 60,
+                borderRadius: 30,
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.3,
+                shadowRadius: 4,
+                elevation: 6,
+                justifyContent: 'center',
+                alignItems: 'center',
+            }}
+          >
+            <Text className="text-2xl">🗺️</Text>
+          </LinearGradient>
+        </TouchableOpacity>
+        
+        {/* AI Chat button */}
+        <TouchableOpacity onPress={handleChatPress}>
+          <LinearGradient
+            colors={['#e55555', '#cc1e1e', '#a01a1a', '#801515']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={{
+                width: 60,
+                height: 60,
+                borderRadius: 30,
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.3,
+                shadowRadius: 4,
+                elevation: 6,
+                justifyContent: 'center',
+                alignItems: 'center',
+            }}
+          >
+            <Text className="text-sm text-white font-UrbanistSemiBold">AITA</Text>
+          </LinearGradient>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }

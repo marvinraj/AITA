@@ -1,5 +1,6 @@
+import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Text, View } from 'react-native';
+import { ScrollView, Text, View } from 'react-native';
 import { tripsService } from '../lib/services/tripsService';
 import { Trip } from '../types/database';
 import ItineraryTab from './ItineraryTab';
@@ -15,7 +16,15 @@ const TABS = [
   // { key: 'Budget', component: BudgetTab },
 ];
 
-export default function LiveTripTab() {
+interface LiveTripTabProps {
+  onTripChange?: (trip: Trip | null) => void;
+  onChatPress?: () => void;
+  onMapPress?: () => void;
+}
+
+export default function LiveTripTab({ onTripChange, onChatPress, onMapPress }: LiveTripTabProps) {
+  const router = useRouter();
+  
   // state to manage active tab
   const [activeTab, setActiveTab] = useState('Travel Hub');
   // trip state
@@ -42,23 +51,46 @@ export default function LiveTripTab() {
           status: 'planning'
         });
         setCurrentTrip(defaultTrip);
+        onTripChange?.(defaultTrip);
       } else {
         setCurrentTrip(trip);
+        onTripChange?.(trip);
       }
     } catch (err) {
       console.error('Error loading current trip:', err);
       // Create a fallback trip if all else fails
-      setCurrentTrip({
+      const fallbackTrip = {
         id: 'fallback',
         user_id: 'fallback',
         name: 'My Travel Plans',
         destination: 'Planning your next adventure',
-        status: 'planning',
+        status: 'planning' as const,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
-      });
+      };
+      setCurrentTrip(fallbackTrip);
+      onTripChange?.(fallbackTrip);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Handle chat button press
+  const handleChatPress = () => {
+    if (onChatPress) {
+      onChatPress();
+    } else if (currentTrip) {
+      router.push(`/chatAI?tripId=${currentTrip.id}`);
+    }
+  };
+
+  // Handle map button press
+  const handleMapPress = () => {
+    if (onMapPress) {
+      onMapPress();
+    } else if (currentTrip) {
+      // @ts-ignore - Router types not updated yet for new map route
+      router.push(`/map?tripId=${currentTrip.id}`);
     }
   };
   
@@ -110,7 +142,9 @@ export default function LiveTripTab() {
         })}
       </View>
       {/* Active Tab Content */}
-      <ActiveComponent trip={currentTrip} onTripUpdate={setCurrentTrip} />
+      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+        <ActiveComponent trip={currentTrip} onTripUpdate={setCurrentTrip} />
+      </ScrollView>
     </View>
   );
 }
