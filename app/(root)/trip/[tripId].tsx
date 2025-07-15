@@ -537,10 +537,10 @@ export default function TripDetailsPage() {
                     justifyContent: 'center',
                     alignItems: 'center',
                 }}
-              ></LinearGradient>
+              >
+                <Text className="text-sm text-white font-UrbanistSemiBold">AITA</Text>
+              </LinearGradient>
             </View>
-          
-            <Text className="text-sm text-white font-UrbanistSemiBold">AITA</Text>
         </TouchableOpacity>
       </View>
     </View>
