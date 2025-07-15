@@ -1,8 +1,9 @@
-import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import { Alert, Platform, SafeAreaView, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
+import { colors } from '../constants/colors';
 import { addLocationDataToTripItems, getDestinationCoordinates } from '../lib/locationUtils';
 import { supabase } from '../lib/supabase';
 import { ItineraryItem } from '../types/database';
@@ -230,8 +231,8 @@ export default function MapScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView className="flex-1 justify-center items-center bg-gray-100">
-        <Text className="text-lg font-UrbanistSemiBold">Loading map...</Text>
+      <SafeAreaView className="flex-1 justify-center items-center" style={{ backgroundColor: colors.primaryBG }}>
+        <Text className="text-lg font-UrbanistSemiBold" style={{ color: colors.primaryFont }}>Loading map...</Text>
       </SafeAreaView>
     );
   }
@@ -239,10 +240,10 @@ export default function MapScreen() {
   // Safety check for tripId
   if (!tripId) {
     return (
-      <SafeAreaView className="flex-1 justify-center items-center bg-gray-100">
-        <Text className="text-lg font-UrbanistSemiBold text-red-600">Invalid trip ID</Text>
-        <TouchableOpacity onPress={() => router.back()} className="mt-4 bg-blue-500 px-4 py-2 rounded">
-          <Text className="text-white">Go Back</Text>
+      <SafeAreaView className="flex-1 justify-center items-center" style={{ backgroundColor: colors.primaryBG }}>
+        <Text className="text-lg font-UrbanistSemiBold" style={{ color: colors.accentFont }}>Invalid trip ID</Text>
+        <TouchableOpacity onPress={() => router.back()} className="mt-4 px-4 py-2 rounded" style={{ backgroundColor: colors.buttonPrimaryBG }}>
+          <Text className="font-UrbanistSemiBold" style={{ color: colors.primaryFont }}>Go Back</Text>
         </TouchableOpacity>
       </SafeAreaView>
     );
@@ -251,38 +252,43 @@ export default function MapScreen() {
   // Wrap the main component in a try-catch
   try {
     return (
-      <SafeAreaView className="flex-1 bg-white">
+      <SafeAreaView className="flex-1" style={{ backgroundColor: colors.primaryBG }}>
         {/* Header */}
-        <View className="flex-row items-center justify-between p-4 bg-white shadow-sm border-b border-gray-200">
-          <TouchableOpacity onPress={() => router.back()}>
-            <Text className="text-lg text-blue-600 font-UrbanistSemiBold">← Back</Text>
+        <View className="flex-row items-center justify-between p-4" style={{ backgroundColor: colors.primaryBG, borderBottomWidth: 1, borderBottomColor: colors.border }}>
+          <TouchableOpacity onPress={() => router.back()} className="flex-row items-center">
+            <Ionicons name="arrow-back" size={24} color={colors.primaryFont} />
           </TouchableOpacity>
           <View className="flex-1 items-center">
-            <Text className="text-lg font-UrbanistSemiBold text-gray-800">
+            <Text className="text-lg font-UrbanistSemiBold" style={{ color: colors.primaryFont }}>
               {tripInfo?.name || 'Trip Map'}
             </Text>
             {tripInfo?.destination && (
-              <Text className="text-sm text-gray-500 font-UrbanistRegular">
+              <Text className="text-sm font-UrbanistRegular" style={{ color: colors.secondaryFont }}>
                 {tripInfo.destination}
               </Text>
             )}
           </View>
-          <View style={{ width: 60 }} />
+          <View style={{ width: 70 }} />
         </View>
 
       {/* Date Filter */}
-      <View className="bg-white p-4 border-b border-gray-200">
-        <Text className="text-sm font-UrbanistSemiBold mb-2 text-gray-700">Filter by Date:</Text>
+      <View className="p-4" style={{ backgroundColor: colors.secondaryBG, borderBottomWidth: 1, borderBottomColor: colors.border }}>
+        <Text className="text-sm font-UrbanistSemiBold mb-3" style={{ color: colors.primaryFont }}>Filter by Date:</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <TouchableOpacity
             onPress={() => handleDateSelection('all')}
-            className={`mr-2 px-3 py-1 rounded-full ${
-              selectedDate === 'all' ? 'bg-blue-500' : 'bg-gray-200'
+            className={`mr-3 px-4 py-2 rounded-full ${
+              selectedDate === 'all' ? '' : ''
             }`}
+            style={{ 
+              backgroundColor: selectedDate === 'all' ? colors.accentFont : colors.inputBG,
+              borderWidth: selectedDate === 'all' ? 0 : 1,
+              borderColor: colors.border
+            }}
           >
-            <Text className={`text-sm font-UrbanistRegular ${
-              selectedDate === 'all' ? 'text-white' : 'text-gray-700'
-            }`}>
+            <Text className="text-sm font-UrbanistSemiBold" style={{ 
+              color: selectedDate === 'all' ? colors.primaryBG : colors.primaryFont 
+            }}>
               All Days
             </Text>
           </TouchableOpacity>
@@ -291,13 +297,18 @@ export default function MapScreen() {
             <TouchableOpacity
               key={date}
               onPress={() => handleDateSelection(date)}
-              className={`mr-2 px-3 py-1 rounded-full ${
-                selectedDate === date ? 'bg-blue-500' : 'bg-gray-200'
+              className={`mr-3 px-4 py-2 rounded-full ${
+                selectedDate === date ? '' : ''
               }`}
+              style={{ 
+                backgroundColor: selectedDate === date ? colors.accentFont : colors.inputBG,
+                borderWidth: selectedDate === date ? 0 : 1,
+                borderColor: colors.border
+              }}
             >
-              <Text className={`text-sm font-UrbanistRegular ${
-                selectedDate === date ? 'text-white' : 'text-gray-700'
-              }`}>
+              <Text className="text-sm font-UrbanistSemiBold" style={{ 
+                color: selectedDate === date ? colors.primaryBG : colors.primaryFont 
+              }}>
                 {new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
               </Text>
             </TouchableOpacity>
@@ -312,6 +323,138 @@ export default function MapScreen() {
         initialRegion={initialRegion}
         showsUserLocation={Platform.OS === 'ios'}
         showsMyLocationButton={Platform.OS === 'ios'}
+        customMapStyle={[
+          {
+            "featureType": "all",
+            "elementType": "geometry",
+            "stylers": [{"color": "#1d2c4d"}]
+          },
+          {
+            "featureType": "all",
+            "elementType": "labels.text.fill",
+            "stylers": [{"color": "#8ec3b9"}]
+          },
+          {
+            "featureType": "all",
+            "elementType": "labels.text.stroke",
+            "stylers": [{"color": "#1a3646"}]
+          },
+          {
+            "featureType": "administrative.country",
+            "elementType": "geometry.stroke",
+            "stylers": [{"color": "#4b6878"}]
+          },
+          {
+            "featureType": "administrative.land_parcel",
+            "elementType": "labels.text.fill",
+            "stylers": [{"color": "#64779e"}]
+          },
+          {
+            "featureType": "administrative.province",
+            "elementType": "geometry.stroke",
+            "stylers": [{"color": "#4b6878"}]
+          },
+          {
+            "featureType": "landscape.man_made",
+            "elementType": "geometry.stroke",
+            "stylers": [{"color": "#334e87"}]
+          },
+          {
+            "featureType": "landscape.natural",
+            "elementType": "geometry",
+            "stylers": [{"color": "#023e58"}]
+          },
+          {
+            "featureType": "poi",
+            "elementType": "geometry",
+            "stylers": [{"color": "#283d6a"}]
+          },
+          {
+            "featureType": "poi",
+            "elementType": "labels.text.fill",
+            "stylers": [{"color": "#6f9ba5"}]
+          },
+          {
+            "featureType": "poi",
+            "elementType": "labels.text.stroke",
+            "stylers": [{"color": "#1d2c4d"}]
+          },
+          {
+            "featureType": "poi.park",
+            "elementType": "geometry.fill",
+            "stylers": [{"color": "#023e58"}]
+          },
+          {
+            "featureType": "poi.park",
+            "elementType": "labels.text.fill",
+            "stylers": [{"color": "#3C7680"}]
+          },
+          {
+            "featureType": "road",
+            "elementType": "geometry",
+            "stylers": [{"color": "#304a7d"}]
+          },
+          {
+            "featureType": "road",
+            "elementType": "labels.text.fill",
+            "stylers": [{"color": "#98a5be"}]
+          },
+          {
+            "featureType": "road",
+            "elementType": "labels.text.stroke",
+            "stylers": [{"color": "#1d2c4d"}]
+          },
+          {
+            "featureType": "road.highway",
+            "elementType": "geometry",
+            "stylers": [{"color": "#2c6675"}]
+          },
+          {
+            "featureType": "road.highway",
+            "elementType": "geometry.stroke",
+            "stylers": [{"color": "#255763"}]
+          },
+          {
+            "featureType": "road.highway",
+            "elementType": "labels.text.fill",
+            "stylers": [{"color": "#b0d5ce"}]
+          },
+          {
+            "featureType": "road.highway",
+            "elementType": "labels.text.stroke",
+            "stylers": [{"color": "#023e58"}]
+          },
+          {
+            "featureType": "transit",
+            "elementType": "labels.text.fill",
+            "stylers": [{"color": "#98a5be"}]
+          },
+          {
+            "featureType": "transit",
+            "elementType": "labels.text.stroke",
+            "stylers": [{"color": "#1d2c4d"}]
+          },
+          {
+            "featureType": "transit.line",
+            "elementType": "geometry.fill",
+            "stylers": [{"color": "#283d6a"}]
+          },
+          {
+            "featureType": "transit.station",
+            "elementType": "geometry",
+            "stylers": [{"color": "#3a4762"}]
+          },
+          {
+            "featureType": "water",
+            "elementType": "geometry",
+            "stylers": [{"color": "#0e1626"}]
+          },
+          {
+            "featureType": "water",
+            "elementType": "labels.text.fill",
+            "stylers": [{"color": "#4e6d70"}]
+          }
+        ]}
       >
         {/* Markers for activities */}
         {filteredItems
@@ -333,8 +476,8 @@ export default function MapScreen() {
                   `${new Date(item.date).toLocaleDateString()}`
                 }
               >
-                <View className="bg-blue-500 w-8 h-8 rounded-full items-center justify-center border-2 border-white shadow-lg">
-                  <Text className="text-white font-bold text-sm">
+                <View className="w-8 h-8 rounded-full items-center justify-center border-2 shadow-lg" style={{ backgroundColor: colors.accentFont, borderColor: colors.primaryFont }}>
+                  <Text className="font-bold text-sm" style={{ color: colors.primaryBG }}>
                     {orderNumber}
                   </Text>
                 </View>
@@ -346,23 +489,26 @@ export default function MapScreen() {
       {/* No Items Message */}
       {filteredItems.length === 0 && (
         <View className="absolute top-1/2 left-4 right-4 transform -translate-y-1/2">
-          <LinearGradient
-            colors={['rgba(255,255,255,0.95)', 'rgba(255,255,255,0.9)']}
+          <View
             style={{
-              padding: 20,
-              borderRadius: 12,
+              backgroundColor: colors.secondaryBG,
+              padding: 24,
+              borderRadius: 16,
               alignItems: 'center',
-              shadowColor: '#000',
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.1,
-              shadowRadius: 4,
-              elevation: 3,
+              borderWidth: 1,
+              borderColor: colors.border,
+              shadowColor: colors.primaryBG,
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.3,
+              shadowRadius: 8,
+              elevation: 5,
             }}
           >
-            <Text className="text-lg font-UrbanistSemiBold text-gray-800 mb-2">
+            <Ionicons name="location-outline" size={48} color={colors.secondaryFont} style={{ marginBottom: 12 }} />
+            <Text className="text-lg font-UrbanistSemiBold mb-2" style={{ color: colors.primaryFont }}>
               No locations found
             </Text>
-            <Text className="text-sm text-gray-600 font-UrbanistRegular text-center mb-4">
+            <Text className="text-sm font-UrbanistRegular text-center mb-4" style={{ color: colors.secondaryFont }}>
               {selectedDate === 'all' 
                 ? 'Add location data to your itinerary items to see them pinned on the map'
                 : `No activities with locations found for ${new Date(selectedDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}`
@@ -372,45 +518,49 @@ export default function MapScreen() {
               <TouchableOpacity 
                 onPress={handleFetchLocationData}
                 disabled={fetchingLocations}
-                className="bg-blue-500 px-4 py-2 rounded-lg"
+                className="px-6 py-3 rounded-lg"
+                style={{ backgroundColor: colors.accentFont }}
               >
-                <Text className="text-white font-UrbanistSemiBold">
+                <Text className="font-UrbanistSemiBold" style={{ color: colors.primaryBG }}>
                   {fetchingLocations ? 'Fetching Locations...' : 'Auto-Add Locations'}
                 </Text>
               </TouchableOpacity>
             )}
-          </LinearGradient>
+          </View>
         </View>
       )}
 
       {/* Activity Count */}
       <View className="absolute bottom-4 left-4 right-4">
-        <LinearGradient
-          colors={['rgba(0,0,0,0.8)', 'rgba(0,0,0,0.6)']}
+        <View
           style={{
-            padding: 12,
-            borderRadius: 8,
+            backgroundColor: `${colors.primaryBG}CC`,
+            padding: 16,
+            borderRadius: 12,
             alignItems: 'center',
+            borderWidth: 1,
+            borderColor: colors.border,
           }}
         >
-          <Text className="text-white text-sm font-UrbanistSemiBold">
+          <Text className="text-sm font-UrbanistSemiBold" style={{ color: colors.primaryFont }}>
             {filteredItems.length} {filteredItems.length === 1 ? 'location' : 'locations'} shown
             {selectedDate !== 'all' && ` for ${new Date(selectedDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`}
           </Text>
-        </LinearGradient>
+        </View>
       </View>
     </SafeAreaView>
   );
   } catch (error) {
     console.error('Map component error:', error);
     return (
-      <SafeAreaView className="flex-1 justify-center items-center bg-gray-100">
-        <Text className="text-lg font-UrbanistSemiBold text-red-600 mb-4">Map Error</Text>
-        <Text className="text-sm text-gray-600 mb-4 text-center px-4">
+      <SafeAreaView className="flex-1 justify-center items-center" style={{ backgroundColor: colors.primaryBG }}>
+        <Ionicons name="alert-circle-outline" size={48} color={colors.accentFont} style={{ marginBottom: 16 }} />
+        <Text className="text-lg font-UrbanistSemiBold mb-4" style={{ color: colors.accentFont }}>Map Error</Text>
+        <Text className="text-sm text-center px-4 mb-4" style={{ color: colors.secondaryFont }}>
           There was an error loading the map. Please try again.
         </Text>
-        <TouchableOpacity onPress={() => router.back()} className="bg-blue-500 px-4 py-2 rounded">
-          <Text className="text-white font-UrbanistSemiBold">Go Back</Text>
+        <TouchableOpacity onPress={() => router.back()} className="px-4 py-2 rounded" style={{ backgroundColor: colors.buttonPrimaryBG }}>
+          <Text className="font-UrbanistSemiBold" style={{ color: colors.primaryFont }}>Go Back</Text>
         </TouchableOpacity>
       </SafeAreaView>
     );
