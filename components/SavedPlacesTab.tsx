@@ -5,6 +5,8 @@ import { colors } from '../constants/colors';
 import { SavedFolder, savedFoldersService } from '../lib/services/savedFoldersService';
 import { SavedPlace, savedPlacesService } from '../lib/services/savedPlacesService';
 import { supabase } from '../lib/supabase';
+import { ItineraryItem } from '../types/database';
+import ActivityDetailModal from './ActivityDetailModal';
 
 export default function SavedPlacesTab() {
   const [savedPlaces, setSavedPlaces] = useState<SavedPlace[]>([]);
@@ -14,6 +16,8 @@ export default function SavedPlacesTab() {
   const [user, setUser] = useState<any>(null);
   const [showingFolders, setShowingFolders] = useState(true);
   const [currentFolderPlaces, setCurrentFolderPlaces] = useState<SavedPlace[]>([]);
+  const [selectedPlace, setSelectedPlace] = useState<SavedPlace | null>(null);
+  const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
     getCurrentUser();
@@ -70,6 +74,43 @@ export default function SavedPlacesTab() {
     } catch (error) {
       console.error('Error loading folders:', error);
     }
+  };
+
+  // Convert SavedPlace to ItineraryItem format for the modal
+  const convertSavedPlaceToItineraryItem = (place: SavedPlace): ItineraryItem => {
+    return {
+      id: place.id,
+      trip_id: place.trip_id || '',
+      user_id: place.user_id,
+      title: place.name,
+      description: place.description || '',
+      date: new Date().toISOString().split('T')[0], // Use current date as placeholder
+      time: undefined,
+      duration: undefined,
+      location: place.address,
+      latitude: place.latitude,
+      longitude: place.longitude,
+      category: place.category as 'activity' | 'restaurant' | 'hotel' | 'transport' | 'flight' | 'attraction' | 'shopping' | 'nightlife' | 'other',
+      priority: 'medium' as const,
+      item_order: 0,
+      notes: place.notes || '',
+      cost: undefined,
+      currency: undefined,
+      image_url: place.image_url,
+      photos: place.photos || [],
+      created_at: place.saved_at,
+      updated_at: place.saved_at,
+    };
+  };
+
+  const handlePlacePress = (place: SavedPlace) => {
+    setSelectedPlace(place);
+    setShowModal(true);
+  };
+
+  const handleModalClose = () => {
+    setShowModal(false);
+    setSelectedPlace(null);
   };
 
   const handleCreateFolder = () => {
@@ -221,64 +262,74 @@ export default function SavedPlacesTab() {
   );
 
   const renderSavedPlace = ({ item }: { item: SavedPlace }) => (
-    <View className="bg-secondaryBG rounded-lg p-3 m-2 border border-border flex-1">
-      {/* Place Image */}
-      <View className="w-full h-32 rounded-lg mb-3 bg-inputBG justify-center items-center">
-        {item.image_url ? (
-          <Image
-            source={{ uri: item.image_url }}
-            className="w-full h-full rounded-lg"
-            resizeMode="cover"
-          />
-        ) : (
-          <Ionicons name="image-outline" size={32} color={colors.secondaryFont} />
-        )}
-      </View>
-
-      {/* Place Details */}
-      <View className="flex-1">
-        <View className="flex-row justify-between items-start mb-2">
-          <Text className="text-primaryFont font-semibold text-sm flex-1 mr-2" numberOfLines={2}>
-            {item.name}
-          </Text>
-          {/* Remove Button */}
-          <TouchableOpacity
-            onPress={() => handleRemovePlace(item.place_id)}
-            className="p-1"
-          >
-            <Ionicons name="heart" size={16} color={colors.accentFont} />
-          </TouchableOpacity>
+    <TouchableOpacity 
+      onPress={() => handlePlacePress(item)}
+      activeOpacity={0.7}
+      className="flex-1"
+      style={{ maxWidth: '50%' }}
+    >
+      <View className="bg-secondaryBG rounded-lg p-3 m-2 border border-border">
+        {/* Place Image */}
+        <View className="w-full h-32 rounded-lg mb-3 bg-inputBG justify-center items-center">
+          {item.image_url ? (
+            <Image
+              source={{ uri: item.image_url }}
+              className="w-full h-full rounded-lg"
+              resizeMode="cover"
+            />
+          ) : (
+            <Ionicons name="image-outline" size={32} color={colors.secondaryFont} />
+          )}
         </View>
 
-        <Text className="text-secondaryFont text-xs mb-2" numberOfLines={2}>
-          {item.address}
-        </Text>
-        
-        {/* Rating */}
-        {item.rating && (
-          <View className="flex-row items-center mb-2">
-            <View className="flex-row mr-2">
-              {getRatingStars(item.rating)}
-            </View>
-            <Text className="text-secondaryFont text-xs">
-              {item.rating}
+        {/* Place Details */}
+        <View className="flex-1">
+          <View className="flex-row justify-between items-start mb-2">
+            <Text className="text-primaryFont font-semibold text-sm flex-1 mr-2" numberOfLines={2}>
+              {item.name}
             </Text>
+            {/* Remove Button */}
+            <TouchableOpacity
+              onPress={(e) => {
+                e.stopPropagation(); // Prevent triggering the parent TouchableOpacity
+                handleRemovePlace(item.place_id);
+              }}
+              className="p-1"
+            >
+              <Ionicons name="heart" size={16} color={colors.accentFont} />
+            </TouchableOpacity>
           </View>
-        )}
 
-        {/* Category */}
-        <Text className="text-accentFont text-xs capitalize mb-2">
-          {item.category}
-        </Text>
-
-        {/* User Notes */}
-        {item.notes && (
-          <Text className="text-secondaryFont text-xs italic" numberOfLines={2}>
-            "{item.notes}"
+          <Text className="text-secondaryFont text-xs mb-2" numberOfLines={2}>
+            {item.address}
           </Text>
-        )}
+          
+          {/* Rating */}
+          {item.rating && (
+            <View className="flex-row items-center mb-2">
+              <View className="flex-row mr-2">
+                {getRatingStars(item.rating)}
+              </View>
+              <Text className="text-secondaryFont text-xs">
+                {item.rating}
+              </Text>
+            </View>
+          )}
+
+          {/* Category */}
+          <Text className="text-accentFont text-xs capitalize mb-2">
+            {item.category}
+          </Text>
+
+          {/* User Notes */}
+          {item.notes && (
+            <Text className="text-secondaryFont text-xs italic" numberOfLines={2}>
+              "{item.notes}"
+            </Text>
+          )}
+        </View>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 
   if (isLoading) {
@@ -308,6 +359,19 @@ export default function SavedPlacesTab() {
           numColumns={2}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingBottom: 100 }}
+        />
+
+        {/* Activity Detail Modal */}
+        <ActivityDetailModal
+          visible={showModal}
+          onClose={handleModalClose}
+          activity={selectedPlace ? convertSavedPlaceToItineraryItem(selectedPlace) : null}
+          isSavedPlace={true}
+          onActivityDeleted={() => {
+            // Refresh the saved places list after deletion
+            loadSavedPlaces();
+            loadFolders();
+          }}
         />
       </View>
     );
@@ -339,6 +403,19 @@ export default function SavedPlacesTab() {
             Start exploring and save places you love in the Discover tab
           </Text>
         </View>
+
+        {/* Activity Detail Modal */}
+        <ActivityDetailModal
+          visible={showModal}
+          onClose={handleModalClose}
+          activity={selectedPlace ? convertSavedPlaceToItineraryItem(selectedPlace) : null}
+          isSavedPlace={true}
+          onActivityDeleted={() => {
+            // Refresh the saved places list after deletion
+            loadSavedPlaces();
+            loadFolders();
+          }}
+        />
       </View>
     );
   }
@@ -362,6 +439,19 @@ export default function SavedPlacesTab() {
         numColumns={2}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 100 }}
+      />
+
+      {/* Activity Detail Modal */}
+      <ActivityDetailModal
+        visible={showModal}
+        onClose={handleModalClose}
+        activity={selectedPlace ? convertSavedPlaceToItineraryItem(selectedPlace) : null}
+        isSavedPlace={true}
+        onActivityDeleted={() => {
+          // Refresh the saved places list after deletion
+          loadSavedPlaces();
+          loadFolders();
+        }}
       />
     </View>
   );
