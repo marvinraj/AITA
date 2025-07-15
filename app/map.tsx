@@ -2,7 +2,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import { Alert, Platform, SafeAreaView, ScrollView, Text, TouchableOpacity, View } from 'react-native';
-import MapView, { Marker, Polyline } from 'react-native-maps';
+import MapView, { Marker } from 'react-native-maps';
 import { addLocationDataToTripItems, getDestinationCoordinates } from '../lib/locationUtils';
 import { supabase } from '../lib/supabase';
 import { ItineraryItem } from '../types/database';
@@ -179,84 +179,6 @@ export default function MapScreen() {
         new Date(item.date).toDateString() === selectedDate
       );
 
-  // Create polylines for connecting activities by date and order
-  const createPolylines = () => {
-    try {
-      if (selectedDate === 'all') {
-        // For "all" view, create separate polylines for each date
-        const polylines: React.ReactElement[] = [];
-        
-        availableDates.forEach((date, dateIndex) => {
-          const dateItems = itineraryItems
-            .filter(item => new Date(item.date).toDateString() === date)
-            .sort((a, b) => a.item_order - b.item_order);
-          
-          if (dateItems.length > 1) {
-            const coordinates = dateItems
-              .map(item => ({
-                latitude: item.latitude!,
-                longitude: item.longitude!,
-              }))
-              .filter(coord => 
-                typeof coord.latitude === 'number' && 
-                typeof coord.longitude === 'number' &&
-                !isNaN(coord.latitude) && !isNaN(coord.longitude)
-              );
-            
-            if (coordinates.length > 1) {
-              // Different colors for different dates
-              const colors = ['#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899'];
-              const color = colors[dateIndex % colors.length];
-              
-              polylines.push(
-                <Polyline
-                  key={`polyline-${date}-${dateIndex}`}
-                  coordinates={coordinates}
-                  strokeColor={color}
-                  strokeWidth={3}
-                  lineDashPattern={[5, 5]}
-                />
-              );
-            }
-          }
-        });
-        
-        return polylines;
-      } else {
-        // For specific date view, create one polyline
-        const dateItems = filteredItems.sort((a, b) => a.item_order - b.item_order);
-        
-        if (dateItems.length > 1) {
-          const coordinates = dateItems
-            .map(item => ({
-              latitude: item.latitude!,
-              longitude: item.longitude!,
-            }))
-            .filter(coord => 
-              typeof coord.latitude === 'number' && 
-              typeof coord.longitude === 'number' &&
-              !isNaN(coord.latitude) && !isNaN(coord.longitude)
-            );
-          
-          if (coordinates.length > 1) {
-            return (
-              <Polyline
-                key={`polyline-${selectedDate}`}
-                coordinates={coordinates}
-                strokeColor="#3B82F6"
-                strokeWidth={4}
-              />
-            );
-          }
-        }
-      }
-    } catch (error) {
-      console.error('Error creating polylines:', error);
-    }
-    
-    return null;
-  };
-
   const initialRegion = (() => {
     try {
       if (itineraryItems.length > 0 && itineraryItems[0].latitude && itineraryItems[0].longitude) {
@@ -391,26 +313,34 @@ export default function MapScreen() {
         showsUserLocation={Platform.OS === 'ios'}
         showsMyLocationButton={Platform.OS === 'ios'}
       >
-        {/* Polylines for connecting activities */}
-        {createPolylines()}
-        
         {/* Markers for activities */}
         {filteredItems
           .sort((a, b) => a.item_order - b.item_order)
-          .map((item, index) => (
-            <Marker
-              key={item.id}
-              coordinate={{
-                latitude: item.latitude!,
-                longitude: item.longitude!,
-              }}
-              title={`${index + 1}. ${item.title}`}
-              description={item.description ? 
-                `${item.description} • ${new Date(item.date).toLocaleDateString()} • Order: ${item.item_order}` : 
-                `${new Date(item.date).toLocaleDateString()} • Order: ${item.item_order}`
-              }
-            />
-          ))}
+          .map((item, index) => {
+            // Create a numbered marker for clear ordering
+            const orderNumber = index + 1;
+            
+            return (
+              <Marker
+                key={item.id}
+                coordinate={{
+                  latitude: item.latitude!,
+                  longitude: item.longitude!,
+                }}
+                title={`${orderNumber}. ${item.title}`}
+                description={item.description ? 
+                  `${item.description} • ${new Date(item.date).toLocaleDateString()}` : 
+                  `${new Date(item.date).toLocaleDateString()}`
+                }
+              >
+                <View className="bg-blue-500 w-8 h-8 rounded-full items-center justify-center border-2 border-white shadow-lg">
+                  <Text className="text-white font-bold text-sm">
+                    {orderNumber}
+                  </Text>
+                </View>
+              </Marker>
+            );
+          })}
       </MapView>
 
       {/* No Items Message */}
