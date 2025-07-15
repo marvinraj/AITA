@@ -9,7 +9,7 @@ export default function RootLayout() {
       <Stack.Screen 
         name="chatAI" 
         options={{ 
-          presentation: 'modal',
+          presentation: 'card',
           gestureEnabled: false 
         }} 
       />

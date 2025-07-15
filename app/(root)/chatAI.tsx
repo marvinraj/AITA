@@ -295,7 +295,7 @@ const chatAI = () => {
   };
 
   return (
-    <GestureHandlerRootView className="flex-1 bg-primaryBG">
+    <GestureHandlerRootView style={{ flex: 1 }}>
       <View className="flex-1 bg-[#1c0202]">
         {/* header */}
         <View className="flex-row justify-between px-4 bg-primaryBG border-b border-border pt-4" style={{ height: HEADER_HEIGHT }}>
@@ -347,6 +347,9 @@ const chatAI = () => {
               className="flex-1 px-4 pb-4 w-full"
               contentContainerStyle={{ justifyContent: 'flex-end', flexGrow: 1 }}
               onContentSizeChange={() => scrollViewRef.current?.scrollToEnd({ animated: true })}
+              bounces={false}
+              alwaysBounceVertical={false}
+              overScrollMode="never"
             >
               {loading && messages.length === 0 ? (
                 <View className="flex-1 justify-center items-center">
@@ -483,25 +486,28 @@ const chatAI = () => {
             </View>
           </View>
         </KeyboardAvoidingView>
-      </View>
 
-      {/* Add to Itinerary Modal */}
-      <AddToItineraryModal
-        visible={showAddModal}
-        item={selectedRecommendation}
-        tripDates={getTripDates()}
-        onClose={() => {
-          setShowAddModal(false);
-          setSelectedRecommendation(null);
-        }}
-        onAdd={handleAddToItineraryConfirm}
-      />
+        {/* Add to Itinerary Modal */}
+        <AddToItineraryModal
+          visible={showAddModal}
+          item={selectedRecommendation}
+          tripDates={getTripDates()}
+          onClose={() => {
+            setShowAddModal(false);
+            setSelectedRecommendation(null);
+          }}
+          onAdd={handleAddToItineraryConfirm}
+        />
+      </View>
     </GestureHandlerRootView>
   );
 };
 
 export const screenOptions = {
   gestureEnabled: false,
+  fullScreenGestureEnabled: false,
+  gestureDirection: 'horizontal',
+  animationEnabled: false,
 };
 
 export default chatAI;
