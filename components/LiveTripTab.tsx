@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 import { tripsService } from '../lib/services/tripsService';
 import { Trip } from '../types/database';
 import ItineraryTab from './ItineraryTab';
@@ -108,7 +108,7 @@ export default function LiveTripTab({ onTripChange, onChatPress, onMapPress }: L
 
   return (
     <View className="flex-1 bg-primaryBG">
-      {/* main header component with white shadow */}
+      {/* main header component with white shadow  */}
       <View style={{
         shadowColor: '#ffffff',
         shadowOffset: { width: 0, height: 4 },
@@ -118,8 +118,9 @@ export default function LiveTripTab({ onTripChange, onChatPress, onMapPress }: L
       }}>
         <LiveTripHeader trip={currentTrip} />
       </View>
+      
       {/* live trip tabs */}
-      <View className="flex-row items-end  border-border mb-2 mt-3">
+      <View className="flex-row items-end border-border mb-2 mt-3">
         {TABS.map(tab => {
           const isActive = activeTab === tab.key;
           return (
@@ -141,10 +142,11 @@ export default function LiveTripTab({ onTripChange, onChatPress, onMapPress }: L
           );
         })}
       </View>
-      {/* Active Tab Content */}
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+      
+      {/* Active Tab Content - SCROLLABLE */}
+      <View className="flex-1">
         <ActiveComponent trip={currentTrip} onTripUpdate={setCurrentTrip} />
-      </ScrollView>
+      </View>
     </View>
   );
 }
