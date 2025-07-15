@@ -226,7 +226,7 @@ export default function SavedPlacesTab() {
 
   const renderFolder = ({ item }: { item: SavedFolder }) => (
     <TouchableOpacity
-      className="bg-secondaryBG rounded-lg p-4 m-2 border border-border flex-1"
+      className="bg-transparent rounded-lg  m-2 flex-1"
       onPress={() => handleFolderPress(item.id)}
     >
       <View className="w-full h-32 rounded-lg mb-3 bg-inputBG justify-center items-center">
@@ -248,7 +248,7 @@ export default function SavedPlacesTab() {
 
   const renderAddFolderButton = () => (
     <TouchableOpacity
-      className="bg-inputBG rounded-lg p-4 m-2 border border-dashed border-border flex-1"
+      className="bg-inputBG rounded-lg m-2 border border-dashed border-border flex-1"
       onPress={handleCreateFolder}
     >
       <View className="w-full h-32 rounded-lg mb-3 justify-center items-center">
@@ -347,9 +347,9 @@ export default function SavedPlacesTab() {
     
     return (
       <View className="flex-1 px-2 pt-4">
-        <Text className="text-primaryFont text-lg font-semibold mb-4 px-2">
+        {/* <Text className="text-primaryFont text-lg font-semibold mb-4 px-2">
           Your Folders
-        </Text>
+        </Text> */}
         <FlatList
           data={foldersWithAddButton}
           renderItem={({ item }) => 
