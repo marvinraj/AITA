@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { Alert, Linking, Text, TouchableOpacity, View } from 'react-native';
 
@@ -99,22 +100,36 @@ export const RecommendationCard: React.FC<RecommendationCardProps> = ({
       </View>
 
       {/* Actions */}
-      <View className="flex-row space-x-2">
+      <View className="flex-row gap-4">
         <TouchableOpacity
           onPress={handleViewOnMaps}
-          className="flex-1 bg-blue-500 rounded-lg py-2 px-3"
+          className="flex-1 bg-blue-600 rounded-lg py-3 px-3 flex-row items-center justify-center"
+          activeOpacity={0.8}
         >
-          <Text className="text-primaryBG text-center font-medium text-sm">
-            🗺️ View on Maps
+          <Ionicons 
+            name="map-outline" 
+            size={16} 
+            color={'white'} 
+            style={{ marginRight: 6 }}
+          />
+          <Text className="text-white text-center font-medium text-sm">
+            View on Maps
           </Text>
         </TouchableOpacity>
         
         <TouchableOpacity
           onPress={handleAddToItinerary}
-          className="flex-1 bg-green-600 rounded-lg py-2 px-3"
+          className="flex-1 bg-green-600 rounded-lg py-3 px-3 flex-row items-center justify-center"
+          activeOpacity={0.8}
         >
+          <Ionicons 
+            name="add-circle" 
+            size={16} 
+            color={'white'} 
+            style={{ marginRight: 6 }}
+          />
           <Text className="text-white text-center font-medium text-sm">
-            ➕ Add to Trip
+            Add to Trip
           </Text>
         </TouchableOpacity>
       </View>

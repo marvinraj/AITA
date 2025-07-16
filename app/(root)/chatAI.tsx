@@ -492,7 +492,7 @@ const chatAI = () => {
                 />
                 {/* send message button */}
                 <TouchableOpacity 
-                  className={`rounded-full px-4 py-4 justify-center items-center ${loading || !isReady ? 'bg-gray-400' : 'bg-accentFont'}`} 
+                  className={`rounded-full px-4 py-4 justify-center items-center ${loading || !isReady ? 'bg-gray-400' : 'bg-primaryFont'}`} 
                   onPress={handleSend}
                   disabled={loading || !isReady}
                 >
