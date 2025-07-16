@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import { Link } from 'expo-router';
 import React, { useEffect } from 'react';
 import { ImageBackground, Text, TouchableOpacity, View } from "react-native";
@@ -30,8 +31,8 @@ const TravelAI = () => {
             elevation: 8,
             opacity: 0.65,
           }}>
-            <View className="bg-inputBG rounded-full p-3 mr-4">
-              <Text className="text-xl">📝</Text> 
+            <View className="bg-inputBG rounded-full p-4 mr-4">
+              <Ionicons name="create-outline" size={19} color="#FFFFFF" />
             </View>
             <View className="flex-1">
               <Text className="text-primaryFont font-semibold text-lg">Build Your Own</Text>
@@ -50,8 +51,8 @@ const TravelAI = () => {
             elevation: 8,
             opacity: 0.65,
           }}>
-            <View className="bg-inputBG rounded-full p-3 mr-4">
-              <Text className="text-xl">🤖</Text>
+            <View className="bg-inputBG rounded-full p-4 mr-4">
+              <Ionicons name="sparkles-outline" size={19} color="#FFFFFF" />
             </View>
             <View className="flex-1">
               <Text className="text-primaryFont font-semibold text-lg">AI-Powered Plan</Text>

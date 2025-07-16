@@ -109,7 +109,7 @@ export default function HomeScreen() {
               borderRadius: 35,
               justifyContent: 'center',
               alignItems: 'center',
-              shadowColor: '#7C3AED', // F7374F,
+              shadowColor: '#FFFFFF', // F7374F,
               shadowOffset: { width: 0, height: 0 },
               shadowOpacity: 0.45,
               shadowRadius: 8,
@@ -127,7 +127,7 @@ export default function HomeScreen() {
                   alignItems: 'center',
                 }}
               >
-                <Text className="text-sm text-white font-UrbanistSemiBold">AITA</Text>
+                <Ionicons name="sparkles-outline" size={21} color="#FFFFFF" />
               </LinearGradient>
             </View>
           </TouchableOpacity>
