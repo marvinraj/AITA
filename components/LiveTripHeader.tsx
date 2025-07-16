@@ -89,7 +89,7 @@ export default function LiveTripHeader({ trip, weather: weatherOverride }: LiveT
                   </Text>
               </View>
               {/* trip name */}
-              <Text className="text-4xl font-UrbanistSemiBold mb-4 text-white">{trip.name}</Text>
+              <Text className="text-4xl font-UrbanistSemiBold mb-4 text-[#ECDFCC]">{trip.name}</Text>
               {/* weather, location */}
               <View className="flex-row items-center">
                   <View className="flex-row items-center mr-2 bg-primaryFont/10 rounded-lg px-3 py-1">
