@@ -144,8 +144,8 @@ const SmartForm = () => {
             });
 
             // Navigate to chatAI with the trip ID and other params
-            router.push({
-                pathname: '/chatAI',
+            router.replace({
+                pathname: '/(root)/chatAI',
                 params: {
                     tripId: tripData.id,
                     tripName: tripName || `${destination} Trip`,

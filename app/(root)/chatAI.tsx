@@ -294,12 +294,26 @@ const chatAI = () => {
     }
   };
 
+  const handleBackNavigation = () => {
+    const cameFromSmartForm = tripName && destination && startDate && endDate && companions && activities;
+    
+    if (cameFromSmartForm) {
+      router.push('/(root)/(tabs)/profile');
+    } else {
+      if (router.canGoBack()) {
+        router.back();
+      } else {
+        router.push('/(root)/(tabs)/profile');
+      }
+    }
+  };
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <View className="flex-1 bg-primaryBG">
         {/* header */}
         <View className="flex-row justify-between px-4 bg-primaryBG border-b border-border pt-4" style={{ height: HEADER_HEIGHT }}>
-          <TouchableOpacity onPress={() => router.back()}>
+          <TouchableOpacity onPress={handleBackNavigation}>
             <Image source={require('../../assets/icons/back-arrow.png')} style={{ width: 24, height: 24 }} />
           </TouchableOpacity>
           <Text className="font-InterBold text-xl text-primaryFont">
