@@ -38,12 +38,12 @@ export default function HomeScreen() {
         contentContainerStyle={{ minHeight: '100%', paddingBottom: 10 }}
       >
         {/* main header --> should i remove this? */}
-        <View className="flex-row items-center mb-5">
+        {/* <View className="flex-row items-center mb-5">
           <Image source={icons.logo} className="w-10 h-10"/>
           <Text className="text-primaryFont text-lg ml-2 font-BellezaRegular">AITA.</Text>
-        </View>
+        </View> */}
         {/* live travel & future travels tabs */}
-        <View className="flex-row items-center justify-center mb-6">
+        <View className="flex-row items-center justify-center mb-6 mt-8">
           <TouchableOpacity
             className={`flex justify-center items-center h-14 px-4 py-2 rounded-full mr-2 ${activeTab === 'live' ? 'bg-secondaryBG' : ''}`}
             onPress={() => setActiveTab('live')}
