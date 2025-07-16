@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useState } from 'react';
 import { Alert, Modal, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { Place, placesService } from '../lib/services/placesService';
@@ -292,13 +293,18 @@ export default function EditTripModal({ visible, trip, onClose, onTripUpdate, on
           </View>
 
           {/* Delete Button */}
-          <View className='mt-8'>
+          <View className='mt-8 mb-4'>
             <TouchableOpacity
-              className="py-3"
+              className="flex-row items-center justify-center py-3 px-4 bg-red-500/10 border border-red-500/30 rounded-xl"
               onPress={handleDeleteTrip}
-              activeOpacity={0.8}
+              activeOpacity={0.7}
             >
-              <Text className="text-red-400 font-UrbanistSemiBold">🗑️ Delete trip</Text>
+              <Ionicons 
+                name="trash-outline" 
+                size={18} 
+                color="#ef4444" 
+              />
+              <Text className="text-[#ef4444] font-UrbanistSemiBold ml-2">Delete trip</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
