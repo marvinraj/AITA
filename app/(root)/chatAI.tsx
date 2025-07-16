@@ -329,7 +329,7 @@ const chatAI = () => {
         
         {/* divider */}
         <PanGestureHandler onGestureEvent={gestureHandler}>
-          <Animated.View className="h-4 bg-transparent items-center justify-center">
+          <Animated.View className="h-8 bg-transparent items-center justify-center">
             <View className="w-16 h-2.5 rounded-full" style={{ backgroundColor: '#520a0a', borderWidth: 1, borderColor: '#520a0a', shadowColor: '#7C3AED', shadowOpacity: 0.25, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 4 }} />
           </Animated.View>
         </PanGestureHandler>
@@ -430,16 +430,16 @@ const chatAI = () => {
                 </View>
               )}
             </ScrollView>
-            {/* input area */}
-            <View className="bg-secondaryBG border-t border-border mb-2">
-              {/* Suggestions button row */}
-              <View className="flex-row items-center justify-between px-4 py-2">
+            
+            {/* Suggestions button - Above input area */}
+            <View className="px-4 py-2 bg-primaryBG/90">
+              <View className="flex-row items-center justify-between">
                 <TouchableOpacity
                   onPress={handleGenerateSuggestions}
                   disabled={loading || !isReady || messages.length === 0}
                   className={`flex-row items-center px-3 py-2 rounded-xl ${
                     loading || !isReady || messages.length === 0 
-                      ? 'bg-gray-600' 
+                      ? 'bg-blue-950' 
                       : 'bg-accentFont'
                   }`}
                 >
@@ -461,11 +461,14 @@ const chatAI = () => {
                   </TouchableOpacity>
                 )}
               </View>
-
+            </View>
+            
+            {/* input area */}
+            <View className="bg-primaryBG mb-5">
               {/* Input row */}
-              <View className="flex-row items-center px-4 pb-4">
+              <View className="flex-row items-center px-4 py-4">
                 <TextInput
-                  className="flex-1 bg-inputBG rounded-2xl px-4 py-3 mr-3 text-base text-primaryFont"
+                  className="flex-1 bg-transparent rounded-2xl px-4 py-4 mr-3 text-base text-primaryFont border border-border"
                   placeholder={trip?.destination ? `Ask about your trip to ${trip.destination}...` : "Ask AITA anything about your trip..."}
                   placeholderTextColor="#828282"
                   returnKeyType="send"
@@ -475,13 +478,13 @@ const chatAI = () => {
                   editable={!loading && isReady}
                 />
                 {/* send message button */}
-              <TouchableOpacity 
-                className={`rounded-2xl px-4 py-3 justify-center items-center ${loading || !isReady ? 'bg-gray-400' : 'bg-accentFont'}`} 
-                onPress={handleSend}
-                disabled={loading || !isReady}
-              >
-                <Text className="text-primaryBG text-lg font-bold">{loading ? '...' : '↑'}</Text>
-              </TouchableOpacity>
+                <TouchableOpacity 
+                  className={`rounded-full px-4 py-4 justify-center items-center ${loading || !isReady ? 'bg-gray-400' : 'bg-accentFont'}`} 
+                  onPress={handleSend}
+                  disabled={loading || !isReady}
+                >
+                  <Text className="text-primaryBG text-lg font-bold">{loading ? '...' : '↑'}</Text>
+                </TouchableOpacity>
               </View>
             </View>
           </View>
