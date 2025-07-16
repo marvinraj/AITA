@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Alert, Modal, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Modal, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 interface RecommendationItem {
   name: string;
@@ -16,7 +16,7 @@ interface AddToItineraryModalProps {
   item: RecommendationItem | null;
   tripDates: string[]; // Array of date strings in YYYY-MM-DD format
   onClose: () => void;
-  onAdd: (item: RecommendationItem, selectedDate: string, time: string, notes?: string) => void;
+  onAdd: (item: RecommendationItem, selectedDate: string, time: string) => void;
 }
 
 export const AddToItineraryModal: React.FC<AddToItineraryModalProps> = ({
@@ -27,8 +27,9 @@ export const AddToItineraryModal: React.FC<AddToItineraryModalProps> = ({
   onAdd
 }) => {
   const [selectedDate, setSelectedDate] = useState<string>('');
-  const [selectedTime, setSelectedTime] = useState<string>('');
-  const [notes, setNotes] = useState<string>('');
+  const [selectedHour, setSelectedHour] = useState(9);
+  const [selectedMinute, setSelectedMinute] = useState(0);
+  const [selectedPeriod, setSelectedPeriod] = useState<'AM' | 'PM'>('AM');
 
   const handleAdd = () => {
     if (!selectedDate) {
@@ -36,19 +37,25 @@ export const AddToItineraryModal: React.FC<AddToItineraryModalProps> = ({
       return;
     }
 
-    if (!selectedTime) {
-      Alert.alert('Time Required', 'Please set a time for this activity.');
-      return;
-    }
-
     if (!item) return;
 
-    onAdd(item, selectedDate, selectedTime, notes || undefined);
+    // Convert time to 24-hour format
+    let hour = selectedHour;
+    if (selectedPeriod === 'PM' && selectedHour !== 12) {
+      hour = selectedHour + 12;
+    } else if (selectedPeriod === 'AM' && selectedHour === 12) {
+      hour = 0;
+    }
+    
+    const timeString = `${hour.toString().padStart(2, '0')}:${selectedMinute.toString().padStart(2, '0')}`;
+
+    onAdd(item, selectedDate, timeString);
     
     // Reset form
     setSelectedDate('');
-    setSelectedTime('');
-    setNotes('');
+    setSelectedHour(9);
+    setSelectedMinute(0);
+    setSelectedPeriod('AM');
     onClose();
   };
 
@@ -116,7 +123,7 @@ export const AddToItineraryModal: React.FC<AddToItineraryModalProps> = ({
           <ScrollView showsVerticalScrollIndicator={false}>
             {/* Date Selection */}
             <Text className="text-primaryFont font-semibold text-lg mb-3">📅 Choose a Day</Text>
-            <View className="mb-4">
+            <View className="mb-6">
               {tripDates.map((date, index) => (
                 <TouchableOpacity
                   key={date}
@@ -141,28 +148,97 @@ export const AddToItineraryModal: React.FC<AddToItineraryModalProps> = ({
               ))}
             </View>
 
-            {/* Time Selection (Required) */}
-            <Text className="text-primaryFont font-semibold text-lg mb-3">🕐 Time (Required)</Text>
-            <TextInput
-              className="bg-inputBG rounded-xl px-4 py-3 text-primaryFont mb-4"
-              placeholder="e.g., 09:00, 14:30"
-              placeholderTextColor="#828282"
-              value={selectedTime}
-              onChangeText={setSelectedTime}
-            />
-
-            {/* Notes (Optional) */}
-            <Text className="text-primaryFont font-semibold text-lg mb-3">📝 Notes (Optional)</Text>
-            <TextInput
-              className="bg-inputBG rounded-xl px-4 py-3 text-primaryFont mb-6"
-              placeholder="Add any special notes or reminders..."
-              placeholderTextColor="#828282"
-              value={notes}
-              onChangeText={setNotes}
-              multiline
-              numberOfLines={3}
-              textAlignVertical="top"
-            />
+            {/* Enhanced Time Picker */}
+            <View className="mb-6">
+              <View className="flex-row items-center justify-between mb-3">
+                <Text className="text-primaryFont font-semibold text-lg">🕐 Set Time</Text>
+                <Text className="text-red-400 text-sm">*</Text>
+              </View>
+              
+              <View className="bg-inputBG rounded-xl p-4 border border-border">
+                <View className="flex-row items-center justify-center">
+                  {/* Hour Picker */}
+                  <View className="items-center">
+                    <Text className="text-secondaryFont text-xs mb-2">Hour</Text>
+                    <View className="flex-row items-center">
+                      <TouchableOpacity
+                        onPress={() => setSelectedHour(selectedHour > 1 ? selectedHour - 1 : 12)}
+                        className="w-10 h-10 bg-accentFont/20 rounded-lg items-center justify-center"
+                        activeOpacity={0.7}
+                      >
+                        <Text className="text-accentFont font-semibold">−</Text>
+                      </TouchableOpacity>
+                      <Text className="text-primaryFont font-semibold text-xl mx-4 min-w-8 text-center">
+                        {selectedHour}
+                      </Text>
+                      <TouchableOpacity
+                        onPress={() => setSelectedHour(selectedHour < 12 ? selectedHour + 1 : 1)}
+                        className="w-10 h-10 bg-accentFont/20 rounded-lg items-center justify-center"
+                        activeOpacity={0.7}
+                      >
+                        <Text className="text-accentFont font-semibold">+</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                  
+                  <Text className="text-primaryFont font-semibold text-xl mx-2">:</Text>
+                  
+                  {/* Minute Picker */}
+                  <View className="items-center">
+                    <Text className="text-secondaryFont text-xs mb-2">Min</Text>
+                    <View className="flex-row items-center">
+                      <TouchableOpacity
+                        onPress={() => setSelectedMinute(selectedMinute >= 15 ? selectedMinute - 15 : 45)}
+                        className="w-10 h-10 bg-accentFont/20 rounded-lg items-center justify-center"
+                        activeOpacity={0.7}
+                      >
+                        <Text className="text-accentFont font-semibold">−</Text>
+                      </TouchableOpacity>
+                      <Text className="text-primaryFont font-semibold text-xl mx-4 min-w-8 text-center">
+                        {selectedMinute.toString().padStart(2, '0')}
+                      </Text>
+                      <TouchableOpacity
+                        onPress={() => setSelectedMinute(selectedMinute <= 30 ? selectedMinute + 15 : 0)}
+                        className="w-10 h-10 bg-accentFont/20 rounded-lg items-center justify-center"
+                        activeOpacity={0.7}
+                      >
+                        <Text className="text-accentFont font-semibold">+</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                  
+                  {/* AM/PM Toggle */}
+                  <View className="items-center ml-4">
+                    <Text className="text-secondaryFont text-xs mb-2">Period</Text>
+                    <View className="bg-primaryBG rounded-lg overflow-hidden border border-border">
+                      <TouchableOpacity
+                        onPress={() => setSelectedPeriod('AM')}
+                        className={`px-3 py-2 ${selectedPeriod === 'AM' ? 'bg-accentFont' : 'bg-transparent'}`}
+                        activeOpacity={0.7}
+                      >
+                        <Text className={`font-semibold text-sm ${selectedPeriod === 'AM' ? 'text-primaryBG' : 'text-primaryFont'}`}>
+                          AM
+                        </Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        onPress={() => setSelectedPeriod('PM')}
+                        className={`px-3 py-2 ${selectedPeriod === 'PM' ? 'bg-accentFont' : 'bg-transparent'}`}
+                        activeOpacity={0.7}
+                      >
+                        <Text className={`font-semibold text-sm ${selectedPeriod === 'PM' ? 'text-primaryBG' : 'text-primaryFont'}`}>
+                          PM
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                </View>
+                
+                {/* Selected time preview */}
+                <Text className="text-center text-secondaryFont text-sm mt-3">
+                  Selected: {selectedHour}:{selectedMinute.toString().padStart(2, '0')} {selectedPeriod}
+                </Text>
+              </View>
+            </View>
           </ScrollView>
 
           {/* Action Buttons */}

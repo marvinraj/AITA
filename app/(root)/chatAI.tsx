@@ -203,8 +203,7 @@ const chatAI = () => {
   const handleAddToItineraryConfirm = async (
     item: any, 
     selectedDate: string, 
-    time: string, // Now required
-    notes?: string
+    time: string // Now required
   ) => {
     try {
       if (!tripId) {
@@ -241,7 +240,7 @@ const chatAI = () => {
         location: item.location,
         category: getCategoryFromItem(item),
         priority: 'medium' as const,
-        notes: notes
+        notes: undefined // No notes since we removed the notes feature
       };
 
       console.log('Adding to itinerary:', itineraryItem);
