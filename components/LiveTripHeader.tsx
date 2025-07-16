@@ -89,7 +89,7 @@ export default function LiveTripHeader({ trip, weather: weatherOverride }: LiveT
               {/* date */}
               <View className="flex-row items-center">
                   {/* <Text className="text-sm">📅</Text> */}
-                  <Text className="text-sm font-UrbanistSemiBold tracking-wide text-white/80 mb-1">
+                  <Text className="text-sm font-UrbanistSemiBold tracking-wide text-primaryFont/40 mb-1">
                     {trip.status === 'active' ? formatCurrentDate() : formatTripDates()}
                   </Text>
               </View>

@@ -129,7 +129,7 @@ export default function DailyItinerarySection({
         onPress={handleToggle}
         className="flex-row items-center justify-between px-4 py-6 bg-secondaryBG/50 rounded-lg"
       >
-        <Text className="text-primaryFont font-UrbanistSemiBold text-xl">
+        <Text className="text-primaryFont font-UrbanistSemiBold text-2xl">
           {dayHeader}
         </Text>
         
