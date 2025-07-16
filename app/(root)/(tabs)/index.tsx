@@ -109,9 +109,9 @@ export default function HomeScreen() {
               borderRadius: 35,
               justifyContent: 'center',
               alignItems: 'center',
-              shadowColor: '#a01a1a', // F7374F,
+              shadowColor: '#7C3AED', // F7374F,
               shadowOffset: { width: 0, height: 0 },
-              shadowOpacity: 0.8,
+              shadowOpacity: 0.45,
               shadowRadius: 8,
               elevation: 15,
             }}>

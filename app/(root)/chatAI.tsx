@@ -296,7 +296,7 @@ const chatAI = () => {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <View className="flex-1 bg-[#1c0202]">
+      <View className="flex-1 bg-primaryBG">
         {/* header */}
         <View className="flex-row justify-between px-4 bg-primaryBG border-b border-border pt-4" style={{ height: HEADER_HEIGHT }}>
           <TouchableOpacity onPress={() => router.back()}>
@@ -312,7 +312,7 @@ const chatAI = () => {
         
         {/* panels */}
         <Animated.View
-          className="bg-slate-100 overflow-hidden mb-3 rounded-b-2xl border-b border-[#520a0a]"
+          className="bg-slate-100 overflow-hidden mb-3 rounded-b-2xl border-b-4 border-[#520a0a]"
           style={[animatedTopPanelStyle]}
         >
           {/* NEW: Using ItineraryWrapper with real ItineraryTab functionality */}
@@ -340,7 +340,7 @@ const chatAI = () => {
           keyboardVerticalOffset={HEADER_HEIGHT}
           className="flex-1 w-full"
         >
-          <View className="flex-1 bg-primaryBG overflow-hidden justify-end mt-3 rounded-2xl border-t border-[#520a0a]"> 
+          <View className="flex-1 bg-primaryBG overflow-hidden justify-end mt-3 rounded-2xl"> 
             {/* chat messages area */}
             <ScrollView
               ref={scrollViewRef}
