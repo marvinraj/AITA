@@ -1,6 +1,8 @@
-import React, { forwardRef, useImperativeHandle, useRef } from 'react';
-import { Text, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import React, { forwardRef, useImperativeHandle, useRef, useState } from 'react';
+import { Text, TouchableOpacity, View } from 'react-native';
 import { Trip } from '../types/database';
+import ItineraryMapView from './ItineraryMapView';
 import ItineraryTab, { ItineraryTabRef } from './ItineraryTab';
 
 interface ItineraryWrapperProps {
@@ -20,6 +22,7 @@ export default forwardRef<ItineraryWrapperRef, ItineraryWrapperProps>(function I
 }, ref) {
   
   const itineraryTabRef = useRef<ItineraryTabRef>(null);
+  const [viewMode, setViewMode] = useState<'itinerary' | 'map'>('itinerary');
 
   // Expose refresh function to parent components
   useImperativeHandle(ref, () => ({
@@ -67,14 +70,53 @@ export default forwardRef<ItineraryWrapperRef, ItineraryWrapperProps>(function I
   // render ItineraryTab with height constraint
   return (
     <View 
-      className="flex-1 bg-primaryBG overflow-hidden"
+      className="flex-1 bg-primaryBG overflow-hidden relative"
       style={{ height }}
     >
-      <ItineraryTab 
-        ref={itineraryTabRef}
-        trip={trip}
-        onTripUpdate={handleTripUpdate}
-      />
+      {/* Content */}
+      <View className="flex-1">
+        {viewMode === 'itinerary' ? (
+          <ItineraryTab 
+            ref={itineraryTabRef}
+            trip={trip}
+            onTripUpdate={handleTripUpdate}
+          />
+        ) : (
+          <ItineraryMapView 
+            trip={trip}
+            height={height}
+          />
+        )}
+      </View>
+
+      {/* Toggle Icons - Bottom Right Corner */}
+      <View className="absolute bottom-12 right-3 flex-row bg-secondaryBG rounded-full border border-border shadow-lg">
+        <TouchableOpacity
+          onPress={() => setViewMode('itinerary')}
+          className={`px-4 py-4 rounded-full ${
+            viewMode === 'itinerary' ? 'bg-primaryFont' : 'bg-transparent'
+          }`}
+        >
+          <Ionicons 
+            name="calendar-outline" 
+            size={18} 
+            color={viewMode === 'itinerary' ? '#0B0705' : '#828282'} 
+          />
+        </TouchableOpacity>
+        
+        <TouchableOpacity
+          onPress={() => setViewMode('map')}
+          className={`px-4 py-4 rounded-full ${
+            viewMode === 'map' ? 'bg-primaryFont' : 'bg-transparent'
+          }`}
+        >
+          <Ionicons 
+            name="map-outline" 
+            size={18} 
+            color={viewMode === 'map' ? '#0B0705' : '#828282'} 
+          />
+        </TouchableOpacity>
+      </View>
     </View>
   );
 });
