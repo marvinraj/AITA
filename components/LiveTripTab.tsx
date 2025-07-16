@@ -113,14 +113,14 @@ export default function LiveTripTab({ onTripChange, onChatPress, onMapPress }: L
         shadowColor: '#ffffff',
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.2,
-        shadowRadius: 15,
-        elevation: 5,
+        shadowRadius: 8,
+        elevation: 10,
       }}>
         <LiveTripHeader trip={currentTrip} />
       </View>
       
       {/* live trip tabs */}
-      <View className="flex-row items-end border-border mb-2 mt-3">
+      <View className="flex-row items-end border-border mb-2 mt-6">
         {TABS.map(tab => {
           const isActive = activeTab === tab.key;
           return (

@@ -77,11 +77,6 @@ export default function LiveTripHeader({ trip, weather: weatherOverride }: LiveT
           paddingVertical: 24,
           paddingHorizontal: 16,
           marginBottom: 16,
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.15,
-          shadowRadius: 8,
-          elevation: 8,
         }}
       >
         <View className="flex-row items-center justify-between">
@@ -97,14 +92,14 @@ export default function LiveTripHeader({ trip, weather: weatherOverride }: LiveT
               <Text className="text-4xl font-UrbanistSemiBold mb-4 text-white">{trip.name}</Text>
               {/* weather, location */}
               <View className="flex-row items-center">
-                  <View className="flex-row items-center mr-2 bg-white/10 rounded-lg px-2 py-1 border-[0.5px] border-white/20">
+                  <View className="flex-row items-center mr-2 bg-primaryFont/10 rounded-lg px-3 py-1">
                       <Text className="text-xs">{getWeatherIcon()}</Text>
-                      <Text className="text-sm ml-1 font-UrbanistRegular text-white">{getWeatherDisplay()}</Text>
+                      <Text className="text-sm ml-1 font-UrbanistRegular text-primaryFont/80">{getWeatherDisplay()}</Text>
                   </View>
                   {trip.destination && (
-                    <View className="flex-row items-center bg-white/10 rounded-lg px-2 py-1 border-[0.5px] border-white/20">
+                    <View className="flex-row items-center bg-primaryFont/10 rounded-lg px-3 py-1">
                         <Text className="text-xs">📍</Text>
-                        <Text className="text-sm ml-1 font-UrbanistRegular text-white">{trip.destination}</Text>
+                        <Text className="text-sm ml-1 font-UrbanistRegular text-primaryFont/80">{trip.destination}</Text>
                     </View>
                   )}
               </View>
