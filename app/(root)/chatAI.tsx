@@ -312,7 +312,7 @@ const chatAI = () => {
         
         {/* panels */}
         <Animated.View
-          className="bg-slate-100 overflow-hidden mb-3 rounded-b-2xl border-b-4 border-[#520a0a]"
+          className="bg-slate-100 overflow-hidden mb-3 rounded-b-3xl border-b-4 border-[#520a0a]"
           style={[animatedTopPanelStyle]}
         >
           {/* NEW: Using ItineraryWrapper with real ItineraryTab functionality */}
@@ -329,7 +329,7 @@ const chatAI = () => {
         
         {/* divider */}
         <PanGestureHandler onGestureEvent={gestureHandler}>
-          <Animated.View className="h-8 bg-transparent items-center justify-center">
+          <Animated.View className="h-6 bg-transparent items-center justify-center">
             <View className="w-16 h-2.5 rounded-full" style={{ backgroundColor: '#520a0a', borderWidth: 1, borderColor: '#520a0a', shadowColor: '#7C3AED', shadowOpacity: 0.25, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 4 }} />
           </Animated.View>
         </PanGestureHandler>
@@ -340,7 +340,7 @@ const chatAI = () => {
           keyboardVerticalOffset={HEADER_HEIGHT}
           className="flex-1 w-full"
         >
-          <View className="flex-1 bg-primaryBG overflow-hidden justify-end mt-3 rounded-2xl"> 
+          <View className="flex-1 bg-primaryBG overflow-hidden justify-end mt-3 rounded-t-3xl border-t-4 border-[#520a0a]"> 
             {/* chat messages area */}
             <ScrollView
               ref={scrollViewRef}
