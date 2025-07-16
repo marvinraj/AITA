@@ -1,4 +1,5 @@
 import React from 'react';
+import { Ionicons } from '@expo/vector-icons';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { formatDateButton, generateDateRange } from '../lib/utils/dateUtils';
 
@@ -63,7 +64,11 @@ export default function DatePicker({
               className="w-14 h-14 rounded-full border border-secondaryFont/30 items-center justify-center mr-2"
               onPress={onEditPress}
             >
-              <Text className="text-secondaryFont text-xs">✏️</Text>
+              <Ionicons 
+                  name="calendar-outline" 
+                  size={18} 
+                  color={'white'} 
+                />
             </TouchableOpacity>
           )}
           {dateButtons.map((dateButton) => (
