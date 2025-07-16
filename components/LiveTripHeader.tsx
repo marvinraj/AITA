@@ -1,18 +1,25 @@
+import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Text, View } from 'react-native';
+import React, { useState } from 'react';
+import { Text, TouchableOpacity, View } from 'react-native';
 import { useWeather } from '../hooks/useWeather';
 import { weatherService } from '../lib/services/weatherService';
 import { Trip } from '../types/database';
+import EditTripModal from './EditTripModal';
 
 interface LiveTripHeaderProps {
   trip: Trip;
   weather?: string; // Optional weather override (for backward compatibility)
+  onTripUpdate?: (updatedTrip: Trip) => void; // Callback for when trip is updated
 }
 
-export default function LiveTripHeader({ trip, weather: weatherOverride }: LiveTripHeaderProps) {
+export default function LiveTripHeader({ trip, weather: weatherOverride, onTripUpdate }: LiveTripHeaderProps) {
   const { weatherData, isLoading: isLoadingWeather } = useWeather(
     weatherOverride ? undefined : trip.destination
   );
+  
+  // Modal state
+  const [showEditModal, setShowEditModal] = useState(false);
   
   // Get weather icon
   const getWeatherIcon = () => {
@@ -66,6 +73,18 @@ export default function LiveTripHeader({ trip, weather: weatherOverride }: LiveT
       day: 'numeric'
     });
   };
+
+  // Handle edit trip
+  const handleEditTrip = () => {
+    setShowEditModal(true);
+  };
+
+  // Handle trip update from modal
+  const handleTripUpdate = (updatedTrip: Trip) => {
+    if (onTripUpdate) {
+      onTripUpdate(updatedTrip);
+    }
+  };
   return (
     <View className="my-1">
       <LinearGradient
@@ -81,12 +100,18 @@ export default function LiveTripHeader({ trip, weather: weatherOverride }: LiveT
       >
         <View className="flex-row items-center justify-between">
           <View className="flex-1 justify-between">
-              {/* date */}
-              <View className="flex-row items-center">
-                  {/* <Text className="text-sm">📅</Text> */}
-                  <Text className="text-sm font-UrbanistSemiBold tracking-wide text-primaryFont/40 mb-1">
+              {/* date and 3 dots - same row */}
+              <View className="flex-row items-center justify-between mb-1">
+                  <Text className="text-sm font-UrbanistSemiBold tracking-wide text-primaryFont/40">
                     {trip.status === 'active' ? formatCurrentDate() : formatTripDates()}
                   </Text>
+                  <TouchableOpacity
+                    onPress={handleEditTrip}
+                    className="p-2 -mr-2 -mt-2"
+                    activeOpacity={0.7}
+                  >
+                    <Ionicons name="ellipsis-horizontal" size={18} color="rgba(255, 255, 255, 0.6)" />
+                  </TouchableOpacity>
               </View>
               {/* trip name */}
               <Text className="text-4xl font-UrbanistSemiBold mb-4 text-[#ECDFCC]">{trip.name}</Text>
@@ -106,6 +131,14 @@ export default function LiveTripHeader({ trip, weather: weatherOverride }: LiveT
           </View>
         </View>
       </LinearGradient>
+
+      {/* Edit Trip Modal */}
+      <EditTripModal
+        visible={showEditModal}
+        trip={trip}
+        onClose={() => setShowEditModal(false)}
+        onTripUpdate={handleTripUpdate}
+      />
     </View>
   );
 }
