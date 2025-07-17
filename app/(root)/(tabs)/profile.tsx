@@ -27,6 +27,7 @@ const ProfileScreen = () => {
     name: '',
     username: '',
     avatar: null,
+    avatarColor: '#10B981',
   });
 
   // State for loading
@@ -62,6 +63,7 @@ const ProfileScreen = () => {
         name: data?.full_name || user.user_metadata?.full_name || 'User',
         username: data?.username ? `@${data.username}` : `@${defaultUsername}`,
         avatar: data?.avatar_url || user.user_metadata?.avatar_url || null,
+        avatarColor: data?.avatar_color || '#10B981',
       });
 
     } catch (err) {
@@ -71,6 +73,7 @@ const ProfileScreen = () => {
         name: 'User',
         username: '@user',
         avatar: null,
+        avatarColor: '#10B981',
       });
     }
   };
@@ -110,8 +113,15 @@ const ProfileScreen = () => {
     <View className="flex-1 bg-primaryBG">
       {/* header */}
       <View className="items-center pt-12 pb-6 bg-primaryBG">
-        {/* avatar placeholder, for now -> will replace with actual image */}
-        <View className="w-24 h-24 rounded-full bg-accentFont mb-4 justify-center items-center"></View>
+        {/* avatar - now shows colored circle with initial */}
+        <View 
+          className="w-24 h-24 rounded-full mb-4 justify-center items-center"
+          style={{ backgroundColor: profileData.avatarColor }}
+        >
+          <Text className="text-white text-2xl font-BellezaRegular">
+            {profileData.name ? profileData.name.charAt(0).toUpperCase() : 'U'}
+          </Text>
+        </View>
         {loading ? (
           <>
             <View className="w-32 h-8 bg-gray-300 rounded mb-2" />

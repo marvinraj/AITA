@@ -3,7 +3,6 @@ import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
     Alert,
-    Image,
     ScrollView,
     Text,
     TextInput,
@@ -22,15 +21,33 @@ const EditProfileScreen = () => {
         username: '',
         fullName: '',
         website: '',
-        avatarUrl: ''
+        avatarColor: '#10B981' // Default green color
     });
 
     const [originalProfile, setOriginalProfile] = useState({
         username: '',
         fullName: '',
         website: '',
-        avatarUrl: ''
+        avatarColor: '#10B981'
     });
+
+    // Available avatar colors
+    const avatarColors = [
+        '#10B981', // Green
+        '#3B82F6', // Blue
+        '#8B5CF6', // Purple
+        '#F59E0B', // Yellow
+        '#EF4444', // Red
+        '#F97316', // Orange
+        '#06B6D4', // Cyan
+        '#84CC16', // Lime
+        '#EC4899', // Pink
+        '#6B7280', // Gray
+        '#059669', // Emerald
+        '#7C3AED', // Violet
+    ];
+
+    const [showColorPicker, setShowColorPicker] = useState(false);
 
     useEffect(() => {
         getProfile();
@@ -71,7 +88,7 @@ const EditProfileScreen = () => {
                         username: defaultUsername,
                         fullName: user.user_metadata?.full_name || '',
                         website: '',
-                        avatarUrl: user.user_metadata?.avatar_url || ''
+                        avatarColor: user.user_metadata?.avatar_color || '#10B981'
                     };
                     setProfile(profileData);
                     setOriginalProfile(profileData);
@@ -83,7 +100,7 @@ const EditProfileScreen = () => {
                         username: defaultUsername,
                         fullName: user.user_metadata?.full_name || '',
                         website: '',
-                        avatarUrl: ''
+                        avatarColor: '#10B981'
                     };
                     setProfile(profileData);
                     setOriginalProfile(profileData);
@@ -97,7 +114,7 @@ const EditProfileScreen = () => {
                     username: data.username || defaultUsername,
                     fullName: data.full_name || user.user_metadata?.full_name || '',
                     website: data.website || '',
-                    avatarUrl: data.avatar_url || user.user_metadata?.avatar_url || ''
+                    avatarColor: data.avatar_color || user.user_metadata?.avatar_color || '#10B981'
                 };
                 setProfile(profileData);
                 setOriginalProfile(profileData);
@@ -108,7 +125,7 @@ const EditProfileScreen = () => {
                     username: defaultUsername,
                     fullName: user.user_metadata?.full_name || '',
                     website: '',
-                    avatarUrl: ''
+                    avatarColor: '#10B981'
                 };
                 setProfile(profileData);
                 setOriginalProfile(profileData);
@@ -126,7 +143,7 @@ const EditProfileScreen = () => {
                         username: user.email?.split('@')[0] || '',
                         fullName: user.user_metadata?.full_name || '',
                         website: '',
-                        avatarUrl: ''
+                        avatarColor: '#10B981'
                     };
                     setProfile(profileData);
                     setOriginalProfile(profileData);
@@ -145,7 +162,7 @@ const EditProfileScreen = () => {
             profile.username !== originalProfile.username ||
             profile.fullName !== originalProfile.fullName ||
             profile.website !== originalProfile.website ||
-            profile.avatarUrl !== originalProfile.avatarUrl
+            profile.avatarColor !== originalProfile.avatarColor
         );
     };
 
@@ -163,7 +180,7 @@ const EditProfileScreen = () => {
                     username: profile.username,
                     full_name: profile.fullName,
                     website: profile.website,
-                    avatar_url: profile.avatarUrl,
+                    avatar_color: profile.avatarColor,
                     updated_at: new Date().toISOString()
                 });
 
@@ -179,48 +196,81 @@ const EditProfileScreen = () => {
         }
     };
 
-    const pickImage = async () => {
-        try {
-            Alert.alert(
-                'Change Profile Photo',
-                'Photo upload feature coming soon!',
-                [
-                    { text: 'Cancel', style: 'cancel' },
-                    { 
-                        text: 'Use Default', 
-                        onPress: () => setProfile(prev => ({ ...prev, avatarUrl: '' }))
-                    }
-                ]
-            );
-        } catch (error) {
-            console.error('Error picking image:', error);
-            Alert.alert('Error', 'Failed to pick image');
-        }
+    const pickColor = () => {
+        setShowColorPicker(true);
+    };
+
+    const selectColor = (color: string) => {
+        setProfile(prev => ({ ...prev, avatarColor: color }));
+        setShowColorPicker(false);
     };
 
     const renderProfileImage = () => (
         <View className="items-center mb-8">
-            <TouchableOpacity onPress={pickImage} className="relative">
-                <View className="w-24 h-24 rounded-full bg-gray-200 items-center justify-center overflow-hidden">
-                    {profile.avatarUrl ? (
-                        <Image 
-                            source={{ uri: profile.avatarUrl }} 
-                            className="w-full h-full"
-                            resizeMode="cover"
-                        />
-                    ) : (
-                        <MaterialIcons name="person" size={40} color="#9CA3AF" />
-                    )}
+            <TouchableOpacity onPress={pickColor} className="relative">
+                <View 
+                    className="w-24 h-24 rounded-full justify-center items-center"
+                    style={{ backgroundColor: profile.avatarColor }}
+                >
+                    <Text className="text-white text-2xl font-BellezaRegular">
+                        {profile.fullName ? profile.fullName.charAt(0).toUpperCase() : 
+                         profile.username ? profile.username.charAt(0).toUpperCase() : 'U'}
+                    </Text>
                 </View>
-                <View className="absolute -bottom-1 -right-1 w-8 h-8 bg-blue-500 rounded-full items-center justify-center">
-                    <MaterialIcons name="camera-alt" size={16} color="white" />
+                <View className="absolute -bottom-1 -right-1 w-8 h-8 bg-primaryBG rounded-full items-center justify-center">
+                    <MaterialIcons name="palette" size={16} color="white" />
                 </View>
             </TouchableOpacity>
             <Text className="text-secondaryFont text-sm font-InterRegular mt-2">
-                Tap to change photo
+                Tap to change color
             </Text>
         </View>
     );
+
+    const renderColorPicker = () => {
+        if (!showColorPicker) return null;
+        
+        return (
+            <View className="absolute inset-0 bg-black/40 bg-opacity-50 justify-center items-center z-50">
+                <View className="bg-secondaryBG rounded-2xl p-6 mx-8 w-80">
+                    <Text className="text-primaryFont text-lg font-BellezaRegular text-center mb-6">
+                        Choose Avatar Color
+                    </Text>
+                    
+                    <View className="flex-row flex-wrap justify-center">
+                        {avatarColors.map((color, index) => (
+                            <TouchableOpacity
+                                key={index}
+                                onPress={() => selectColor(color)}
+                                className="m-2"
+                            >
+                                <View 
+                                    className="w-12 h-12 rounded-full border-2"
+                                    style={{ 
+                                        backgroundColor: color,
+                                        borderColor: profile.avatarColor === color ? '#000' : '#E5E7EB'
+                                    }}
+                                >
+                                    {profile.avatarColor === color && (
+                                        <View className="flex-1 justify-center items-center">
+                                            <MaterialIcons name="check" size={20} color="white" />
+                                        </View>
+                                    )}
+                                </View>
+                            </TouchableOpacity>
+                        ))}
+                    </View>
+                    
+                    <TouchableOpacity
+                        onPress={() => setShowColorPicker(false)}
+                        className="mt-6 py-3 px-6 bg-gray-200 rounded-full self-center"
+                    >
+                        <Text className="text-gray-700 font-InterRegular">Cancel</Text>
+                    </TouchableOpacity>
+                </View>
+            </View>
+        );
+    };
 
     const renderInputField = (
         label: string, 
@@ -321,6 +371,9 @@ const EditProfileScreen = () => {
                     'https://yourwebsite.com'
                 )}
             </ScrollView>
+
+            {/* Color Picker Modal */}
+            {renderColorPicker()}
         </View>
     );
 };
