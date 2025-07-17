@@ -74,7 +74,7 @@ export default forwardRef<ItineraryWrapperRef, ItineraryWrapperProps>(function I
       style={{ height }}
     >
       {/* Content */}
-      <View className="flex-1">
+      <View className="flex-1 px-4">
         {viewMode === 'itinerary' ? (
           <ItineraryTab 
             ref={itineraryTabRef}
@@ -90,7 +90,7 @@ export default forwardRef<ItineraryWrapperRef, ItineraryWrapperProps>(function I
       </View>
 
       {/* Toggle Icons - Bottom Right Corner */}
-      <View className="absolute bottom-12 right-3 flex-row bg-secondaryBG rounded-full border border-border shadow-lg">
+      <View className="absolute bottom-8 right-3 flex-row bg-secondaryBG rounded-full border border-border shadow-lg">
         <TouchableOpacity
           onPress={() => setViewMode('itinerary')}
           className={`px-4 py-4 rounded-full ${

@@ -1,6 +1,7 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, Dimensions, Image, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Dimensions, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { GestureHandlerRootView, PanGestureHandler } from 'react-native-gesture-handler';
 import Markdown from 'react-native-markdown-display';
 import Animated, { runOnJS, useAnimatedGestureHandler, useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
@@ -353,23 +354,23 @@ const chatAI = () => {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <View className="flex-1 bg-primaryBG">
+      <View className="flex-1 bg-[#3c3c3c]">
         {/* header */}
-        <View className="flex-row justify-between px-4 bg-primaryBG border-b border-border pt-4" style={{ height: HEADER_HEIGHT }}>
+        <View className="flex-row justify-between px-4 bg-[#3c3c3c] pt-4" style={{ height: HEADER_HEIGHT }}>
           <TouchableOpacity onPress={handleBackNavigation}>
-            <Image source={require('../../assets/icons/back-arrow.png')} style={{ width: 24, height: 24 }} />
+            <Ionicons name="arrow-back" size={24} color="#000" />
           </TouchableOpacity>
-          <Text className="font-InterBold text-xl text-primaryFont">
+          <Text className="font-InterBold text-xl text-primaryBG">
             {tripLoading ? 'Loading...' : trip?.destination || 'AI Assistant'}
           </Text>
           <TouchableOpacity>
-            <Image source={require('../../assets/icons/3-dots.png')} style={{ width: 20, height: 20 }} />
+            <Ionicons name="ellipsis-horizontal" size={24} color="#000" />
           </TouchableOpacity>
         </View>
         
         {/* panels */}
         <Animated.View
-          className="bg-slate-100 overflow-hidden mb-1 rounded-b-3xl border-b-4 border-[#520a0a]"
+          className="bg-slate-100 overflow-hidden mb-1 rounded-3xl"
           style={[animatedTopPanelStyle]}
         >
           {/* NEW: Using ItineraryWrapper with real ItineraryTab functionality */}
@@ -386,8 +387,8 @@ const chatAI = () => {
         
         {/* divider */}
         <PanGestureHandler onGestureEvent={gestureHandler}>
-          <Animated.View className="h-6 bg-transparent items-center justify-center">
-            <View className="w-16 h-2.5 rounded-full" style={{ backgroundColor: '#520a0a', borderWidth: 1, borderColor: '#520a0a', shadowColor: '#7C3AED', shadowOpacity: 0.25, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 4 }} />
+          <Animated.View className="h-4 bg-transparent items-center justify-center">
+            <View className="w-16 h-2.5 rounded-full" style={{ backgroundColor: '#0B0705', borderWidth: 1, borderColor: '#0B0705', shadowColor: '#7C3AED', shadowOpacity: 0.25, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 4 }} />
           </Animated.View>
         </PanGestureHandler>
 
@@ -397,7 +398,7 @@ const chatAI = () => {
           keyboardVerticalOffset={HEADER_HEIGHT}
           className="flex-1 w-full"
         >
-          <View className="flex-1 bg-primaryBG overflow-hidden justify-end mt-1 rounded-t-3xl border-t-4 border-[#520a0a]"> 
+          <View className="flex-1 bg-primaryBG overflow-hidden justify-end mt-1 rounded-t-3xl"> 
             {/* chat messages area */}
             <ScrollView
               ref={scrollViewRef}
@@ -540,7 +541,11 @@ const chatAI = () => {
                   onPress={handleSend}
                   disabled={loading || !isReady}
                 >
-                  <Text className="text-primaryBG text-lg font-bold">{loading ? '...' : '↑'}</Text>
+                  {loading ? (
+                    <Text className="text-primaryBG text-lg font-bold">...</Text>
+                  ) : (
+                    <Ionicons name="arrow-up" size={18} color="#000" />
+                  )}
                 </TouchableOpacity>
               </View>
             </View>
