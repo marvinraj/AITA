@@ -1,5 +1,6 @@
 import { Entypo } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
@@ -22,12 +23,33 @@ const ProfileScreen = () => {
   // State for trips count (for display in profile header)
   const [tripsCount, setTripsCount] = useState(0);
 
+  const avatarGradients = [
+    ['#1a1a2e', '#8B5CF6'], // Dark blue to bright purple
+    ['#2d1b69', '#F59E0B'], // Deep purple to bright yellow
+    ['#0f3460', '#06B6D4'], // Navy to bright cyan
+    ['#2c5530', '#10B981'], // Forest to bright green
+    ['#4a1a2b', '#F97316'], // Deep maroon to bright orange
+    ['#3a2f42', '#EC4899'], // Dark slate to bright pink
+    ['#3d2914', '#84CC16'], // Dark brown to bright lime
+    ['#2e3440', '#3B82F6'], // Dark gray to bright blue
+    ['#16213e', '#EF4444'], // Midnight blue to bright red
+    ['#11022e', '#A855F7'], // Deep purple-black to bright violet
+    ['#16537e', '#14B8A6'], // Steel blue to bright teal
+    ['#1a2f1d', '#F43F5E'], // Dark forest to bright rose
+  ];
+
+  // Helper function to find gradient index from hex color
+  const getGradientIndexFromColor = (hexColor: string): number => {
+    const index = avatarGradients.findIndex(gradient => gradient[0] === hexColor);
+    return index >= 0 ? index : 0; // Default to first gradient if not found
+  };
+
   // State for profile data
   const [profileData, setProfileData] = useState({
     name: '',
     username: '',
     avatar: null,
-    avatarColor: '#10B981',
+    avatarGradientIndex: 0,
   });
 
   // State for loading
@@ -63,7 +85,7 @@ const ProfileScreen = () => {
         name: data?.full_name || user.user_metadata?.full_name || 'User',
         username: data?.username ? `@${data.username}` : `@${defaultUsername}`,
         avatar: data?.avatar_url || user.user_metadata?.avatar_url || null,
-        avatarColor: data?.avatar_color || '#10B981',
+        avatarGradientIndex: data?.avatar_color ? getGradientIndexFromColor(data.avatar_color) : 0,
       });
 
     } catch (err) {
@@ -73,7 +95,7 @@ const ProfileScreen = () => {
         name: 'User',
         username: '@user',
         avatar: null,
-        avatarColor: '#10B981',
+        avatarGradientIndex: 0,
       });
     }
   };
@@ -113,15 +135,24 @@ const ProfileScreen = () => {
     <View className="flex-1 bg-primaryBG">
       {/* header */}
       <View className="items-center pt-12 pb-6 bg-primaryBG">
-        {/* avatar - now shows colored circle with initial */}
-        <View 
-          className="w-24 h-24 rounded-full mb-4 justify-center items-center"
-          style={{ backgroundColor: profileData.avatarColor }}
+        {/* avatar */}
+        <LinearGradient
+          colors={avatarGradients[profileData.avatarGradientIndex] as [string, string]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={{
+            width: 96,
+            height: 96,
+            borderRadius: 48,
+            marginBottom: 16,
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
         >
           <Text className="text-white text-2xl font-BellezaRegular">
             {profileData.name ? profileData.name.charAt(0).toUpperCase() : 'U'}
           </Text>
-        </View>
+        </LinearGradient>
         {loading ? (
           <>
             <View className="w-32 h-8 bg-gray-300 rounded mb-2" />

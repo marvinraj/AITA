@@ -1,4 +1,5 @@
 import { Entypo, MaterialIcons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
@@ -21,31 +22,36 @@ const EditProfileScreen = () => {
         username: '',
         fullName: '',
         website: '',
-        avatarColor: '#10B981' // Default green color
+        avatarColor: 0 // Default to first gradient index
     });
 
     const [originalProfile, setOriginalProfile] = useState({
         username: '',
         fullName: '',
         website: '',
-        avatarColor: '#10B981'
+        avatarColor: 0
     });
 
-    // Available avatar colors
-    const avatarColors = [
-        '#10B981', // Green
-        '#3B82F6', // Blue
-        '#8B5CF6', // Purple
-        '#F59E0B', // Yellow
-        '#EF4444', // Red
-        '#F97316', // Orange
-        '#06B6D4', // Cyan
-        '#84CC16', // Lime
-        '#EC4899', // Pink
-        '#6B7280', // Gray
-        '#059669', // Emerald
-        '#7C3AED', // Violet
+    const avatarGradients = [
+        ['#1a1a2e', '#8B5CF6'], // Dark blue to bright purple
+        ['#2d1b69', '#F59E0B'], // Deep purple to bright yellow
+        ['#0f3460', '#06B6D4'], // Navy to bright cyan
+        ['#2c5530', '#10B981'], // Forest to bright green
+        ['#4a1a2b', '#F97316'], // Deep maroon to bright orange
+        ['#3a2f42', '#EC4899'], // Dark slate to bright pink
+        ['#3d2914', '#84CC16'], // Dark brown to bright lime
+        ['#2e3440', '#3B82F6'], // Dark gray to bright blue
+        ['#16213e', '#EF4444'], // Midnight blue to bright red
+        ['#11022e', '#A855F7'], // Deep purple-black to bright violet
+        ['#16537e', '#14B8A6'], // Steel blue to bright teal
+        ['#1a2f1d', '#F43F5E'], // Dark forest to bright rose
     ];
+
+    // Helper function to find gradient index from hex color
+    const getGradientIndexFromColor = (hexColor: string): number => {
+        const index = avatarGradients.findIndex(gradient => gradient[0] === hexColor);
+        return index >= 0 ? index : 0; // Default to first gradient if not found
+    };
 
     const [showColorPicker, setShowColorPicker] = useState(false);
 
@@ -88,7 +94,8 @@ const EditProfileScreen = () => {
                         username: defaultUsername,
                         fullName: user.user_metadata?.full_name || '',
                         website: '',
-                        avatarColor: user.user_metadata?.avatar_color || '#10B981'
+                        avatarColor: user.user_metadata?.avatar_color ? 
+                            getGradientIndexFromColor(user.user_metadata.avatar_color) : 0
                     };
                     setProfile(profileData);
                     setOriginalProfile(profileData);
@@ -100,7 +107,7 @@ const EditProfileScreen = () => {
                         username: defaultUsername,
                         fullName: user.user_metadata?.full_name || '',
                         website: '',
-                        avatarColor: '#10B981'
+                        avatarColor: 0
                     };
                     setProfile(profileData);
                     setOriginalProfile(profileData);
@@ -114,7 +121,7 @@ const EditProfileScreen = () => {
                     username: data.username || defaultUsername,
                     fullName: data.full_name || user.user_metadata?.full_name || '',
                     website: data.website || '',
-                    avatarColor: data.avatar_color || user.user_metadata?.avatar_color || '#10B981'
+                    avatarColor: data.avatar_color ? getGradientIndexFromColor(data.avatar_color) : 0
                 };
                 setProfile(profileData);
                 setOriginalProfile(profileData);
@@ -125,7 +132,7 @@ const EditProfileScreen = () => {
                     username: defaultUsername,
                     fullName: user.user_metadata?.full_name || '',
                     website: '',
-                    avatarColor: '#10B981'
+                    avatarColor: 0
                 };
                 setProfile(profileData);
                 setOriginalProfile(profileData);
@@ -143,7 +150,7 @@ const EditProfileScreen = () => {
                         username: user.email?.split('@')[0] || '',
                         fullName: user.user_metadata?.full_name || '',
                         website: '',
-                        avatarColor: '#10B981'
+                        avatarColor: 0
                     };
                     setProfile(profileData);
                     setOriginalProfile(profileData);
@@ -173,6 +180,8 @@ const EditProfileScreen = () => {
             
             if (!user) throw new Error('No user found');
 
+            const gradientFirstColor = avatarGradients[profile.avatarColor][0];
+
             const { error } = await supabase
                 .from('profiles')
                 .upsert({
@@ -180,7 +189,7 @@ const EditProfileScreen = () => {
                     username: profile.username,
                     full_name: profile.fullName,
                     website: profile.website,
-                    avatar_color: profile.avatarColor,
+                    avatar_color: gradientFirstColor, // Save as hex color to satisfy constraint
                     updated_at: new Date().toISOString()
                 });
 
@@ -200,23 +209,31 @@ const EditProfileScreen = () => {
         setShowColorPicker(true);
     };
 
-    const selectColor = (color: string) => {
-        setProfile(prev => ({ ...prev, avatarColor: color }));
+    const selectColor = (gradientIndex: number) => {
+        setProfile(prev => ({ ...prev, avatarColor: gradientIndex }));
         setShowColorPicker(false);
     };
 
     const renderProfileImage = () => (
         <View className="items-center mb-8">
             <TouchableOpacity onPress={pickColor} className="relative">
-                <View 
-                    className="w-24 h-24 rounded-full justify-center items-center"
-                    style={{ backgroundColor: profile.avatarColor }}
+                <LinearGradient
+                    colors={avatarGradients[profile.avatarColor] as [string, string]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={{
+                        width: 96,
+                        height: 96,
+                        borderRadius: 48,
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                    }}
                 >
-                    <Text className="text-white text-2xl font-BellezaRegular">
+                    <Text className="text-white text-2xl font-BellezaRegular drop-shadow-lg">
                         {profile.fullName ? profile.fullName.charAt(0).toUpperCase() : 
                          profile.username ? profile.username.charAt(0).toUpperCase() : 'U'}
                     </Text>
-                </View>
+                </LinearGradient>
                 <View className="absolute -bottom-1 -right-1 w-8 h-8 bg-primaryBG rounded-full items-center justify-center">
                     <MaterialIcons name="palette" size={16} color="white" />
                 </View>
@@ -234,29 +251,34 @@ const EditProfileScreen = () => {
             <View className="absolute inset-0 bg-black/40 bg-opacity-50 justify-center items-center z-50">
                 <View className="bg-secondaryBG rounded-2xl p-6 mx-8 w-80">
                     <Text className="text-primaryFont text-lg font-BellezaRegular text-center mb-6">
-                        Choose Avatar Color
+                        Choose Avatar Gradient
                     </Text>
                     
                     <View className="flex-row flex-wrap justify-center">
-                        {avatarColors.map((color, index) => (
+                        {avatarGradients.map((gradient, index) => (
                             <TouchableOpacity
                                 key={index}
-                                onPress={() => selectColor(color)}
+                                onPress={() => selectColor(index)}
                                 className="m-2"
                             >
-                                <View 
-                                    className="w-12 h-12 rounded-full border-2"
-                                    style={{ 
-                                        backgroundColor: color,
-                                        borderColor: profile.avatarColor === color ? '#000' : '#E5E7EB'
+                                <LinearGradient
+                                    colors={gradient as [string, string]}
+                                    start={{ x: 0, y: 0 }}
+                                    end={{ x: 1, y: 1 }}
+                                    style={{
+                                        width: 48,
+                                        height: 48,
+                                        borderRadius: 24,
+                                        borderWidth: 2,
+                                        borderColor: profile.avatarColor === index ? '#fff' : '#E5E7EB'
                                     }}
                                 >
-                                    {profile.avatarColor === color && (
+                                    {profile.avatarColor === index && (
                                         <View className="flex-1 justify-center items-center">
                                             <MaterialIcons name="check" size={20} color="white" />
                                         </View>
                                     )}
-                                </View>
+                                </LinearGradient>
                             </TouchableOpacity>
                         ))}
                     </View>
