@@ -43,18 +43,9 @@ export default function HomeScreen() {
 
   return (
     <View className="flex-1 bg-primaryBG">
-      <ScrollView 
-        className="flex-1 px-5"
-        showsVerticalScrollIndicator={false} 
-        contentContainerStyle={{ minHeight: '100%', paddingBottom: 10 }}
-      >
-        {/* main header --> should i remove this? */}
-        {/* <View className="flex-row items-center mb-5">
-          <Image source={icons.logo} className="w-10 h-10"/>
-          <Text className="text-primaryFont text-lg ml-2 font-BellezaRegular">AITA.</Text>
-        </View> */}
-        {/* live travel & future travels tabs */}
-        <View className="flex-row items-center justify-center mb-6 mt-8">
+      {/* Fixed tabs at the top */}
+      <View className="bg-primaryBG px-5 pt-8 pb-4">
+        <View className="flex-row items-center justify-center">
           <TouchableOpacity
             className={`flex justify-center items-center h-14 px-4 py-2 rounded-full mr-2 ${activeTab === 'live' ? 'bg-secondaryBG' : ''}`}
             onPress={() => setActiveTab('live')}
@@ -68,6 +59,14 @@ export default function HomeScreen() {
             <Text className={`font-UrbanistSemiBold text-sm text-center ${activeTab === 'future' ? 'text-primaryFont' : 'text-secondaryFont'}`}>Future Travels</Text>
           </TouchableOpacity>
         </View>
+      </View>
+
+      {/* Scrollable content */}
+      <ScrollView 
+        className="flex-1 px-5"
+        showsVerticalScrollIndicator={false} 
+        contentContainerStyle={{ paddingBottom: 10 }}
+      >
         {/* tab content */}
         {activeTab === 'live' ? 
           <LiveTripTab 
@@ -120,7 +119,7 @@ export default function HomeScreen() {
               borderRadius: 35,
               justifyContent: 'center',
               alignItems: 'center',
-              shadowColor: '#FFFFFF', // F7374F,
+              shadowColor: '#F7374F', // fff,
               shadowOffset: { width: 0, height: 0 },
               shadowOpacity: 0.45,
               shadowRadius: 8,

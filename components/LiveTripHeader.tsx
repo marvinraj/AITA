@@ -112,7 +112,7 @@ export default function LiveTripHeader({ trip, weather: weatherOverride, onTripU
     }
   };
   return (
-    <View className="my-1">
+    <View className="my-2">
       {/* Background Image Container */}
       <View 
         style={{
@@ -173,12 +173,12 @@ export default function LiveTripHeader({ trip, weather: weatherOverride, onTripU
                   <Text className="text-4xl font-UrbanistSemiBold mb-4 text-[#ECDFCC]">{trip.name}</Text>
                   {/* weather, location */}
                   <View className="flex-row items-center">
-                      <View className="flex-row items-center mr-2 bg-primaryFont/10 rounded-lg px-3 py-1">
+                      <View className="flex-row items-center mr-2 bg-primaryFont/20 rounded-lg px-3 py-1">
                           <Text className="text-xs">{getWeatherIcon()}</Text>
                           <Text className="text-sm ml-1 font-UrbanistRegular text-primaryFont/80">{getWeatherDisplay()}</Text>
                       </View>
                       {trip.destination && (
-                        <View className="flex-row items-center bg-primaryFont/10 rounded-lg px-3 py-1">
+                        <View className="flex-row items-center bg-primaryFont/20 rounded-lg px-3 py-1">
                             <Text className="text-xs">📍</Text>
                             <Text className="text-sm ml-1 font-UrbanistRegular text-primaryFont/80">{trip.destination}</Text>
                         </View>
@@ -218,12 +218,12 @@ export default function LiveTripHeader({ trip, weather: weatherOverride, onTripU
                   <Text className="text-4xl font-UrbanistSemiBold mb-4 text-[#ECDFCC]">{trip.name}</Text>
                   {/* weather, location */}
                   <View className="flex-row items-center">
-                      <View className="flex-row items-center mr-2 bg-primaryFont/10 rounded-lg px-3 py-1">
+                      <View className="flex-row items-center mr-2 bg-primaryFont/20 rounded-lg px-3 py-1">
                           <Text className="text-xs">{getWeatherIcon()}</Text>
                           <Text className="text-sm ml-1 font-UrbanistRegular text-primaryFont/80">{getWeatherDisplay()}</Text>
                       </View>
                       {trip.destination && (
-                        <View className="flex-row items-center bg-primaryFont/10 rounded-lg px-3 py-1">
+                        <View className="flex-row items-center bg-primaryFont/20 rounded-lg px-3 py-1">
                             <Text className="text-xs">📍</Text>
                             <Text className="text-sm ml-1 font-UrbanistRegular text-primaryFont/80">{trip.destination}</Text>
                         </View>
