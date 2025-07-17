@@ -125,7 +125,7 @@ const chatAI = () => {
   });
   
   // state to manage the height of the top panel
-  const initialTopHeight = (SCREEN_HEIGHT - HEADER_HEIGHT) * 0.4;
+  const initialTopHeight = (SCREEN_HEIGHT - HEADER_HEIGHT) * 0.2;
   const [topHeight, setTopHeight] = useState(initialTopHeight);
   
   // Animated values for smooth gesture handling
@@ -369,7 +369,7 @@ const chatAI = () => {
         
         {/* panels */}
         <Animated.View
-          className="bg-slate-100 overflow-hidden mb-3 rounded-b-3xl border-b-4 border-[#520a0a]"
+          className="bg-slate-100 overflow-hidden mb-1 rounded-b-3xl border-b-4 border-[#520a0a]"
           style={[animatedTopPanelStyle]}
         >
           {/* NEW: Using ItineraryWrapper with real ItineraryTab functionality */}
@@ -397,7 +397,7 @@ const chatAI = () => {
           keyboardVerticalOffset={HEADER_HEIGHT}
           className="flex-1 w-full"
         >
-          <View className="flex-1 bg-primaryBG overflow-hidden justify-end mt-3 rounded-t-3xl border-t-4 border-[#520a0a]"> 
+          <View className="flex-1 bg-primaryBG overflow-hidden justify-end mt-1 rounded-t-3xl border-t-4 border-[#520a0a]"> 
             {/* chat messages area */}
             <ScrollView
               ref={scrollViewRef}
