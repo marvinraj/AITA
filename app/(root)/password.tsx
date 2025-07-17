@@ -280,7 +280,7 @@ const PasswordScreen = () => {
                     disabled={loading || !formData.currentPassword || !formData.newPassword || !formData.confirmPassword}
                     className={`py-4 rounded-full items-center mb-6 ${
                         loading || !formData.currentPassword || !formData.newPassword || !formData.confirmPassword
-                            ? 'bg-gray-300' 
+                            ? 'bg-gray-600' 
                             : 'bg-blue-500'
                     }`}
                 >
@@ -299,19 +299,6 @@ const PasswordScreen = () => {
                             Send reset email
                         </Text>
                     </TouchableOpacity>
-                </View>
-
-                {/* Security Tips */}
-                <View className="p-4 bg-blue-50 rounded-lg">
-                    <Text className="text-blue-600 text-sm font-InterRegular mb-2">
-                        🔒 Security Tips:
-                    </Text>
-                    <Text className="text-blue-600 text-xs font-InterRegular">
-                        • Use a unique password you don't use elsewhere{'\n'}
-                        • Consider using a password manager{'\n'}
-                        • Enable two-factor authentication for extra security{'\n'}
-                        • Change your password regularly
-                    </Text>
                 </View>
             </ScrollView>
         </View>
