@@ -160,9 +160,9 @@ const SettingsScreen = () => {
                         await supabase.auth.signOut();
                         router.replace('/(auth)/sign-in');
                     }}
-                    className="bg-accentFont py-4 rounded-full items-center"
+                    className="bg-buttonPrimary py-4 rounded-full items-center"
                 >
-                    <Text className="text-primaryFont font-BellezaRegular text-lg">Sign Out</Text>
+                    <Text className="text-primaryBG font-BellezaRegular text-lg">Sign Out</Text>
                 </TouchableOpacity>
             </View>
         </View>
