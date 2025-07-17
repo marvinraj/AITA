@@ -354,23 +354,23 @@ const chatAI = () => {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <View className="flex-1 bg-[#3c3c3c]">
+      <View className="flex-1 bg-primaryBG">
         {/* header */}
-        <View className="flex-row justify-between px-4 bg-[#3c3c3c] pt-4" style={{ height: HEADER_HEIGHT }}>
+        <View className="flex-row justify-between px-4 bg-primaryBG pt-4 border-b-2 border-border/50" style={{ height: HEADER_HEIGHT }}>
           <TouchableOpacity onPress={handleBackNavigation}>
-            <Ionicons name="arrow-back" size={24} color="#000" />
+            <Ionicons name="arrow-back" size={24} color="#fff" />
           </TouchableOpacity>
-          <Text className="font-InterBold text-xl text-primaryBG">
+          <Text className="font-InterBold text-xl text-primaryFont">
             {tripLoading ? 'Loading...' : trip?.destination || 'AI Assistant'}
           </Text>
           <TouchableOpacity>
-            <Ionicons name="ellipsis-horizontal" size={24} color="#000" />
+            <Ionicons name="ellipsis-horizontal" size={24} color="#fff" />
           </TouchableOpacity>
         </View>
         
         {/* panels */}
         <Animated.View
-          className="bg-slate-100 overflow-hidden mb-1 rounded-3xl"
+          className="bg-slate-100 overflow-hidden mb-1 rounded-b-3xl"
           style={[animatedTopPanelStyle]}
         >
           {/* NEW: Using ItineraryWrapper with real ItineraryTab functionality */}
@@ -387,9 +387,23 @@ const chatAI = () => {
         
         {/* divider */}
         <PanGestureHandler onGestureEvent={gestureHandler}>
-          <Animated.View className="h-4 bg-transparent items-center justify-center">
-            <View className="w-16 h-2.5 rounded-full" style={{ backgroundColor: '#0B0705', borderWidth: 1, borderColor: '#0B0705', shadowColor: '#7C3AED', shadowOpacity: 0.25, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 4 }} />
-          </Animated.View>
+            <Animated.View className="h-6 bg-transparent items-center justify-center w-full">
+              <View
+                className="h-2.5 rounded-full px-4"
+                  style={{
+                    width: '92%',
+                    alignSelf: 'center',
+                    backgroundColor: '#0B0705',
+                    borderWidth: 1,
+                    borderColor: '#0B0705',
+                    shadowColor: '#7C3AED',
+                    shadowOpacity: 0.8,
+                    shadowRadius: 15,
+                    shadowOffset: { width: 0, height: 2 },
+                    elevation: 4,
+                  }}
+              />
+            </Animated.View>
         </PanGestureHandler>
 
         {/* chat interface */}
