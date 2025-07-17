@@ -1,8 +1,9 @@
 import { useFocusEffect } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { useCallback, useState } from 'react';
-import { Alert, Image, RefreshControl, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { useCallback, useEffect, useState } from 'react';
+import { Alert, Image, ImageBackground, RefreshControl, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { DestinationImage, imageService } from '../lib/services/imageService';
 import { tripsService } from '../lib/services/tripsService';
 import { Trip } from '../types/database';
 
@@ -12,6 +13,7 @@ export default function FutureTripsTab() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [tripImages, setTripImages] = useState<Map<string, DestinationImage>>(new Map());
 
   // Reload trips when component gains focus (when user returns from creating a trip)
   useFocusEffect(
@@ -27,6 +29,9 @@ export default function FutureTripsTab() {
       
       const allTrips = await tripsService.getAllTrips();
       setTrips(allTrips);
+      
+      // Load destination images for all trips
+      loadTripImages(allTrips);
     } catch (err) {
       console.error('Error loading trips:', err);
       setError('Failed to load your trips');
@@ -34,6 +39,26 @@ export default function FutureTripsTab() {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Load destination images for trips
+  const loadTripImages = async (trips: Trip[]) => {
+    const imageMap = new Map<string, DestinationImage>();
+    
+    // Load images for trips that have destinations
+    const imagePromises = trips
+      .filter(trip => trip.destination)
+      .map(async (trip) => {
+        try {
+          const image = await imageService.getDestinationImage(trip.destination!);
+          imageMap.set(trip.id, image);
+        } catch (error) {
+          console.error(`Error loading image for ${trip.destination}:`, error);
+        }
+      });
+
+    await Promise.all(imagePromises);
+    setTripImages(imageMap);
   };
 
   // Format date for display
@@ -165,19 +190,57 @@ export default function FutureTripsTab() {
                 activeOpacity={0.8}
               >
                 <View className="flex-row">
-                  {/* Gradient box on the left */}
-                  <LinearGradient
-                    colors={getGradientColors(index) as [string, string]}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
+                  {/* Destination image on the left */}
+                  <View
                     style={{
                       width: 85,
                       height: 85,
                       borderRadius: 8,
                       marginRight: 16,
                       flexShrink: 0,
+                      overflow: 'hidden',
                     }}
-                  />
+                  >
+                    {tripImages.has(trip.id) ? (
+                      <ImageBackground
+                        source={{ uri: tripImages.get(trip.id)!.url }}
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                        }}
+                        imageStyle={{
+                          borderRadius: 8,
+                        }}
+                      >
+                        {/* Dark overlay for better contrast */}
+                        <View 
+                          style={{
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            backgroundColor: 'rgba(0, 0, 0, 0.3)',
+                            borderRadius: 8,
+                          }}
+                        />
+                      </ImageBackground>
+                    ) : (
+                      /* Fallback gradient while image loads */
+                      <LinearGradient
+                        colors={getGradientColors(index) as [string, string]}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 1 }}
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          borderRadius: 8,
+                        }}
+                      />
+                    )}
+                  </View>
                   
                   {/* Trip content */}
                   <View className="flex-1">
