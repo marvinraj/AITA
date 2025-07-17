@@ -8,12 +8,6 @@ import SavedPlacesTab from '../../../components/SavedPlacesTab';
 import { tripsService } from '../../../lib/services/tripsService';
 import { supabase } from '../../../lib/supabase';
 
-const profileData = {
-  name: 'Marvin Raj',
-  username: '@marvwtf',
-  avatar: null, // placeholder for avatar, can be replaced with an image URL or component
-};
-
 
 // tabs for the profile screen, allows switching between Travels and Saves
 const TABS = ['Travels', 'Saves'];
@@ -28,6 +22,59 @@ const ProfileScreen = () => {
   // State for trips count (for display in profile header)
   const [tripsCount, setTripsCount] = useState(0);
 
+  // State for profile data
+  const [profileData, setProfileData] = useState({
+    name: '',
+    username: '',
+    avatar: null,
+  });
+
+  // State for loading
+  const [loading, setLoading] = useState(true);
+
+  // Load profile data from Supabase
+  const loadProfileData = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        console.error('No user found');
+        return;
+      }
+
+      // Try to get profile from profiles table
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error loading profile:', error);
+      }
+
+      // Set profile data with fallbacks
+      const defaultUsername = user.user_metadata?.username || 
+                            user.email?.split('@')[0] || 
+                            'user';
+
+      setProfileData({
+        name: data?.full_name || user.user_metadata?.full_name || 'User',
+        username: data?.username ? `@${data.username}` : `@${defaultUsername}`,
+        avatar: data?.avatar_url || user.user_metadata?.avatar_url || null,
+      });
+
+    } catch (err) {
+      console.error('Error loading profile data:', err);
+      // Set fallback data if everything fails
+      setProfileData({
+        name: 'User',
+        username: '@user',
+        avatar: null,
+      });
+    }
+  };
+
   // Load trips count for profile header
   const loadTripsCount = async () => {
     try {
@@ -38,10 +85,17 @@ const ProfileScreen = () => {
     }
   };
 
-  // Load trips count when component mounts and when it gains focus
+  // Load all data
+  const loadData = async () => {
+    setLoading(true);
+    await Promise.all([loadProfileData(), loadTripsCount()]);
+    setLoading(false);
+  };
+
+  // Load data when component mounts and when it gains focus
   useFocusEffect(
     React.useCallback(() => {
-      loadTripsCount();
+      loadData();
     }, [])
   );
 
@@ -58,8 +112,17 @@ const ProfileScreen = () => {
       <View className="items-center pt-12 pb-6 bg-primaryBG">
         {/* avatar placeholder, for now -> will replace with actual image */}
         <View className="w-24 h-24 rounded-full bg-accentFont mb-4 justify-center items-center"></View>
-        <Text className="text-primaryFont text-3xl mb-1 font-BellezaRegular">{profileData.name}</Text>
-        <Text className="text-secondaryFont text-sm font-InterRegular">{profileData.username}  •  {tripsCount} Travels</Text>
+        {loading ? (
+          <>
+            <View className="w-32 h-8 bg-gray-300 rounded mb-2" />
+            <View className="w-24 h-4 bg-gray-300 rounded" />
+          </>
+        ) : (
+          <>
+            <Text className="text-primaryFont text-3xl mb-1 font-BellezaRegular">{profileData.name}</Text>
+            <Text className="text-secondaryFont text-sm font-InterRegular">{profileData.username}  •  {tripsCount} Travels</Text>
+          </>
+        )}
       </View>
       {/* travels & saves tabs */}
       <View className="flex-row items-end border-b border-border mb-2 ml-0 pl-4 mt-12">
