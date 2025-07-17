@@ -86,7 +86,19 @@ export default function LiveTripTab({ onTripChange, onChatPress, onMapPress }: L
     if (onChatPress) {
       onChatPress();
     } else if (currentTrip) {
-      router.push(`/chatAI?tripId=${currentTrip.id}`);
+      // Pass trip data as navigation params to help with context
+      router.push({
+        pathname: '/chatAI',
+        params: {
+          tripId: currentTrip.id,
+          tripName: currentTrip.name,
+          destination: currentTrip.destination,
+          startDate: currentTrip.start_date,
+          endDate: currentTrip.end_date,
+          companions: currentTrip.companions,
+          activities: currentTrip.activities
+        }
+      });
     }
   };
 

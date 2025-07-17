@@ -123,7 +123,19 @@ export default function TripDetailsPage() {
   // Handle chat button press
   const handleChatPress = () => {
     if (trip) {
-      router.push(`/chatAI?tripId=${trip.id}`);
+      // Pass trip data as navigation params to help with context
+      router.push({
+        pathname: '/chatAI',
+        params: {
+          tripId: trip.id,
+          tripName: trip.name,
+          destination: trip.destination,
+          startDate: trip.start_date,
+          endDate: trip.end_date,
+          companions: trip.companions,
+          activities: trip.activities
+        }
+      });
     }
   };
 

@@ -84,6 +84,12 @@ export function useAIChat({
   // Function to initialize chat with trip context
   const initializeChatWithContext = useCallback(async (chatId: string, context: TripContext) => {
     try {
+      // Check if chat already has messages (to avoid duplicate initialization)
+      const existingMessages = await aiChatService.getMessageHistory(chatId);
+      
+      if (existingMessages.length > 0) {
+        return;
+      }
       // Create system message with trip context
       const systemMessage = `You are AITA, a helpful AI travel assistant. The user is planning a trip with the following details:
 
@@ -175,20 +181,35 @@ What interests you most about your upcoming trip?`;
     }
   }, [tripId]);
 
+  // Track initialization state to prevent race conditions
+  const [initializationState, setInitializationState] = useState<'idle' | 'initializing' | 'completed'>('idle');
+
   // Separate effect to handle context initialization
   useEffect(() => {
     const initializeWithContext = async () => {
-      if (chat && tripContext && messages.length === 0 && initializedWithContext.current !== chat.id) {
+      // console.log('Initialization check:', {
+      //   hasChat: !!chat,
+      //   hasTripContext: !!tripContext,
+      //   chatId: chat?.id,
+      //   alreadyInitialized: initializedWithContext.current,
+      //   initializationState,
+      //   tripContextDetails: tripContext
+      // });
+      
+      if (chat && tripContext && initializedWithContext.current !== chat.id && initializationState === 'idle') {
         try {
-          console.log('Initializing chat with trip context');
+          console.log('Initializing chat with trip context:', tripContext.tripName);
+          setInitializationState('initializing');
           setLoading(true);
           await initializeChatWithContext(chat.id, tripContext);
           initializedWithContext.current = chat.id;
+          setInitializationState('completed');
           // Reload messages after adding context
           const updatedHistory = await aiChatService.getMessageHistory(chat.id);
           setMessages(updatedHistory);
         } catch (error) {
           console.error('Error initializing chat with context:', error);
+          setInitializationState('idle'); // Reset state on error to allow retry
           setError('Failed to initialize chat with context');
         } finally {
           setLoading(false);
@@ -197,7 +218,14 @@ What interests you most about your upcoming trip?`;
     };
     
     initializeWithContext();
-  }, [chat, tripContext, messages.length, initializeChatWithContext]);
+  }, [chat, tripContext, initializeChatWithContext]);
+
+  // Reset initialization state when chat changes
+  useEffect(() => {
+    if (chat?.id && initializedWithContext.current !== chat.id) {
+      setInitializationState('idle');
+    }
+  }, [chat?.id]);
 
   // Send a message
   const sendMessage = useCallback(async (content: string) => {
@@ -237,6 +265,7 @@ What interests you most about your upcoming trip?`;
       // Enhanced context for AI
       const conversationContext = {
         tripDetails: tripContext ? {
+          tripName: tripContext.tripName,
           destination: tripContext.destination,
           startDate: tripContext.startDate,
           endDate: tripContext.endDate,
@@ -345,7 +374,7 @@ What interests you most about your upcoming trip?`;
     setError(null);
   }, []);
 
-  // Auto-load on mount and tripId change
+  // Auto-load on mount and tripId change, but only if we have tripContext or don't need it
   useEffect(() => {
     if (autoLoad && tripId) {
       loadChat();

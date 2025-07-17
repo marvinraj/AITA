@@ -87,6 +87,7 @@ class AITAApiService {
             
             if (conversationContext?.tripDetails) {
                 contextualPrompt += `\n\n📍 **Current Trip Context:**
+Trip Name: ${conversationContext.tripDetails.tripName}
 Destination: ${conversationContext.tripDetails.destination}
 Dates: ${conversationContext.tripDetails.startDate} to ${conversationContext.tripDetails.endDate}
 Travelers: ${conversationContext.tripDetails.companions}
@@ -174,7 +175,7 @@ Provide exactly 3 short, actionable suggestions (max 8 words each) that would be
                 return null; // Regular response, no structured data needed
             }
 
-            const prompt = `You are a travel assistant. The user is asking for recommendations in ${tripContext?.destination || 'their destination'}.
+            const prompt = `You are a travel assistant. The user is asking for recommendations for their trip "${tripContext?.tripName || 'trip'}" in ${tripContext?.destination || 'their destination'}.
 
 User's request: "${latestMessage}"
 
@@ -193,7 +194,7 @@ If this is a request for specific places (cafes, restaurants, attractions, etc.)
       "googleMapsQuery": "Place Name + ${tripContext?.destination || 'location'}"
     }
   ],
-  "responseText": "Here are some great cafes I found for you! Each one offers something unique:"
+  "responseText": "Here are some great recommendations for your ${tripContext?.tripName || 'trip'}! Each one offers something unique:"
 }
 
 Provide 3-5 realistic recommendations based on the user's request. Make sure the JSON is valid and the googleMapsQuery can be used to search on Google Maps.

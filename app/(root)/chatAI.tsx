@@ -40,7 +40,6 @@ const chatAI = () => {
     activities?: string;
   }>();
   
-  console.log('ChatAI screen mounted with tripId:', tripId);
   
   const router = useRouter();
   
@@ -56,6 +55,12 @@ const chatAI = () => {
   
   // memoize trip context to prevent unnecessary re-creation and re-renders
   const tripContext: TripContext | undefined = useMemo(() => {
+    console.log('Evaluating tripContext with:', {
+      fromNavigation: { tripName, destination, startDate, endDate, companions, activities },
+      fromTrip: trip ? { name: trip.name, destination: trip.destination, start_date: trip.start_date } : null
+    });
+    
+    // First try to use navigation parameters (from smart form)
     if (tripName && destination && startDate && endDate && companions && activities) {
       return {
         tripName,
@@ -66,10 +71,44 @@ const chatAI = () => {
         activities
       };
     }
+    
+    // Fallback to loaded trip data (when navigating from existing trips)
+    if (trip && trip.destination && trip.start_date && trip.end_date && trip.companions && trip.activities) {
+      return {
+        tripName: trip.name && trip.name.trim() !== '' ? trip.name : `${trip.destination} Trip`,
+        destination: trip.destination,
+        startDate: trip.start_date,
+        endDate: trip.end_date,
+        companions: trip.companions,
+        activities: trip.activities
+      };
+    }
+    
     return undefined;
-  }, [tripName, destination, startDate, endDate, companions, activities]);
+  }, [tripName, destination, startDate, endDate, companions, activities, trip]);
 
+  // Add debugging for tripContext
+  useEffect(() => {
+    console.log('TripContext updated:', tripContext?.tripName || 'undefined');
+  }, [tripContext, trip, tripLoading]);
+  
   // use persistent AI chat hook - automatically loads/creates chat for this trip
+  // Only initialize when we have either navigation params or loaded trip data
+  const shouldInitializeChat = useMemo(() => {
+    // If we have navigation params, we can initialize immediately
+    if (tripName && destination && startDate && endDate && companions && activities) {
+      return true;
+    }
+    // If we're loading from existing trip, wait for trip data to load
+    const canInitialize = !tripLoading && trip !== null;
+    console.log('Chat initialization decision:', {
+      tripLoading,
+      hasTrip: !!trip,
+      canInitialize
+    });
+    return canInitialize;
+  }, [tripName, destination, startDate, endDate, companions, activities, tripLoading, trip]);
+
   const {
     chat,
     messages,
@@ -81,7 +120,7 @@ const chatAI = () => {
     isTyping
   } = useAIChat({
     tripId: tripId || '',
-    autoLoad: true,
+    autoLoad: shouldInitializeChat,
     tripContext
   });
   
@@ -112,8 +151,13 @@ const chatAI = () => {
       
       try {
         setTripLoading(true);
+        console.log('Loading trip data for tripId:', tripId);
         const tripData = await tripsService.getTripById(tripId);
+        console.log('Loaded trip data:', tripData);
+        console.log('Trip name from database:', tripData?.name);
+        console.log('Trip name is empty or null:', !tripData?.name || tripData.name.trim() === '');
         setTrip(tripData);
+        console.log('Trip state updated, tripContext should be re-evaluated');
       } catch (error) {
         console.error('Failed to load trip:', error);
       } finally {

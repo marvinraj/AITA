@@ -1,11 +1,10 @@
 import FutureTripsTab from '@/components/FutureTripsTab';
 import LiveTripTab from '@/components/LiveTripTab';
-import { icons } from '@/constants/icons';
+import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useState } from "react";
-import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
-import { Ionicons } from '@expo/vector-icons';
+import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { Trip } from '../../../types/database';
 
 export default function HomeScreen() {
@@ -18,7 +17,19 @@ export default function HomeScreen() {
   // Handle chat button press
   const handleChatPress = () => {
     if (currentTrip) {
-      router.push(`/chatAI?tripId=${currentTrip.id}`);
+      // Pass trip data as navigation params to help with context
+      router.push({
+        pathname: '/chatAI',
+        params: {
+          tripId: currentTrip.id,
+          tripName: currentTrip.name,
+          destination: currentTrip.destination,
+          startDate: currentTrip.start_date,
+          endDate: currentTrip.end_date,
+          companions: currentTrip.companions,
+          activities: currentTrip.activities
+        }
+      });
     }
   };
 
