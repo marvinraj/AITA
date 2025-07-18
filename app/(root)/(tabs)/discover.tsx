@@ -355,7 +355,7 @@ const DiscoverScreen = () => {
         />
         {/* Header */}
         <View className="flex-row justify-between items-center py-4">
-          <Text className="text-primaryFont text-2xl font-bold">Discover</Text>
+          <Text className="text-primaryFont text-2xl font-BellezaRegular">Discover</Text>
           <TouchableOpacity
             onPress={() => setFilterModalVisible(true)}
             className="relative"
