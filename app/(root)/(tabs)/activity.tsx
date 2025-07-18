@@ -221,7 +221,7 @@ const ActivityScreen = () => {
       {/* header */}
       <View className="px-5 pt-16 pb-6 border-b border-secondaryBG/10">
         <View className="flex-row items-center justify-between">
-          <Text className="text-primaryFont text-2xl font-UrbanistSemiBold">
+          <Text className="text-primaryFont text-2xl font-BellezaRegular">
             Activity
           </Text>
           
