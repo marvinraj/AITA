@@ -6,6 +6,7 @@ import { GestureHandlerRootView, PanGestureHandler } from 'react-native-gesture-
 import Markdown from 'react-native-markdown-display';
 import Animated, { runOnJS, useAnimatedGestureHandler, useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import { AddToItineraryModal } from '../../components/AddToItineraryModal';
+import EditTripModal from '../../components/EditTripModal';
 import ItineraryWrapper, { ItineraryWrapperRef } from '../../components/ItineraryWrapper'; // New wrapper component
 import { StructuredResponse } from '../../components/StructuredResponse';
 import { TripContext, useAIChat } from '../../hooks/useAIChat';
@@ -77,6 +78,9 @@ const chatAI = () => {
   // Modal state for adding to itinerary
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedRecommendation, setSelectedRecommendation] = useState<any>(null);
+  
+  // Modal state for editing trip details
+  const [showEditTripModal, setShowEditTripModal] = useState(false);
   
   // memoize trip context to prevent unnecessary re-creation and re-renders
   const tripContext: TripContext | undefined = useMemo(() => {
@@ -425,6 +429,28 @@ const chatAI = () => {
     }
   };
 
+  const handleOpenEditTripModal = () => {
+    setShowEditTripModal(true);
+  };
+
+  const handleCloseEditTripModal = () => {
+    setShowEditTripModal(false);
+  };
+
+  const handleEditTripUpdate = (updatedTrip: Trip) => {
+    setTrip(updatedTrip);
+    setShowEditTripModal(false);
+  };
+
+  const handleTripDeleted = () => {
+    setShowEditTripModal(false);
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.push('/(root)/(tabs)/profile');
+    }
+  };
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <View className="flex-1 bg-primaryBG">
@@ -436,7 +462,7 @@ const chatAI = () => {
           <Text className="font-InterBold text-xl text-primaryFont">
             {tripLoading ? 'Loading...' : trip?.destination || 'AI Assistant'}
           </Text>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={handleOpenEditTripModal}>
             <Ionicons name="ellipsis-horizontal" size={24} color="#fff" />
           </TouchableOpacity>
         </View>
@@ -650,6 +676,15 @@ const chatAI = () => {
             setSelectedRecommendation(null);
           }}
           onAdd={handleAddToItineraryConfirm}
+        />
+
+        {/* Edit Trip Modal */}
+        <EditTripModal
+          visible={showEditTripModal}
+          trip={trip}
+          onClose={handleCloseEditTripModal}
+          onTripUpdate={handleEditTripUpdate}
+          onTripDeleted={handleTripDeleted}
         />
       </View>
     </GestureHandlerRootView>
