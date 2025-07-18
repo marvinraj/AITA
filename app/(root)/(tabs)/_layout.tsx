@@ -1,10 +1,12 @@
 import { icons } from '@/constants/icons'
 import tailwindConfig from '@/tailwind.config'
+import { LinearGradient } from 'expo-linear-gradient'
 import { Tabs, useRouter } from 'expo-router'
 import React from 'react'
 import { Image, Text, View } from 'react-native'
 import resolveConfig from 'tailwindcss/resolveConfig'
 import { useNotifications } from '../../../hooks/useNotifications'
+import { useProfile } from '../../../hooks/useProfile'
 
 
 const fullConfig = resolveConfig(tailwindConfig)
@@ -14,6 +16,7 @@ const colors = fullConfig.theme?.colors as any
 const TabsLayout = () => {
   const router = useRouter();
   const { unreadCount } = useNotifications();
+  const { profileData, avatarGradients } = useProfile();
 
   return (
     <Tabs
@@ -145,15 +148,28 @@ const TabsLayout = () => {
                 title: 'Profile',
                 headerShown: false,
                 tabBarIcon: ({ focused }) => (
-                    <>
-                        <Image 
-                            source={icons.profile} 
-                            className='size-7'
-                            style={{
-                                tintColor: focused ? colors.primaryFont : colors.secondaryFont,
-                            }} 
-                        />
-                    </>
+                    <LinearGradient
+                        colors={avatarGradients[profileData.avatarGradientIndex] as [string, string]}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 1 }}
+                        style={{
+                            width: 28,
+                            height: 28,
+                            borderRadius: 14,
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            opacity: focused ? 1 : 0.6,
+                        }}
+                    >
+                        {/* <Text style={{
+                            color: 'white',
+                            fontSize: 12,
+                            fontWeight: 'bold',
+                            textAlign: 'center'
+                        }}>
+                            {profileData.name ? profileData.name.charAt(0).toUpperCase() : 'U'}
+                        </Text> */}
+                    </LinearGradient>
                 )
             }}
         />

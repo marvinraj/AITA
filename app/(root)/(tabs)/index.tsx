@@ -107,7 +107,7 @@ export default function HomeScreen() {
                   alignItems: 'center',
               }}
             >
-              <Ionicons name="map" size={21} color="white" />
+              <Ionicons name="map-outline" size={21} color="white" />
             </LinearGradient>
           </TouchableOpacity>
           
