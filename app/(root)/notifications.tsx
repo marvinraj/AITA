@@ -1,7 +1,8 @@
 import { Entypo } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Text, TouchableOpacity, View, Switch, FlatList } from 'react-native';
+import { Alert, FlatList, Switch, Text, TouchableOpacity, View } from 'react-native';
+import { notificationService } from '../../lib/services/notificationService';
 
 const NotificationsScreen = () => {
     const router = useRouter();
@@ -163,6 +164,60 @@ const NotificationsScreen = () => {
         </View>
     );
 
+    const renderManagementSection = () => (
+        <View className="mb-8">
+            <Text className="text-secondaryFont text-sm font-InterRegular uppercase tracking-wider px-4 mb-3">
+                Manage Notifications
+            </Text>
+            <TouchableOpacity 
+                className="flex-row items-center px-4 py-4 bg-primaryBG"
+                onPress={clearAllNotifications}
+            >
+                <View className="flex-1">
+                    <Text className="text-primaryFont text-base font-InterRegular mb-1">
+                        Clear all notifications
+                    </Text>
+                    <Text className="text-secondaryFont text-xs font-InterRegular">
+                        Remove all notifications from activity page
+                    </Text>
+                </View>
+                <Entypo name="chevron-right" size={22} color="#888" />
+            </TouchableOpacity>
+        </View>
+    );
+
+    const clearAllNotifications = async () => {
+        try {
+            Alert.alert(
+                'Clear All Notifications',
+                'Are you sure you want to clear all notifications from the Activity page? This action cannot be undone.',
+                [
+                    {
+                        text: 'Cancel',
+                        style: 'cancel'
+                    },
+                    {
+                        text: 'Clear All',
+                        style: 'destructive',
+                        onPress: async () => {
+                            try {
+                                await notificationService.clearAllNotifications();
+                                Alert.alert(
+                                    'Success',
+                                    'All notifications have been cleared from the Activity page.'
+                                );
+                            } catch (error) {
+                                Alert.alert('Error', 'Failed to clear notifications.');
+                            }
+                        }
+                    }
+                ]
+            );
+        } catch (error) {
+            Alert.alert('Error', 'Failed to clear notifications.');
+        }
+    };
+
     return (
         <View className="flex-1 bg-primaryBG">
             {/* Header */}
@@ -177,7 +232,7 @@ const NotificationsScreen = () => {
 
             {/* Settings Content */}
             <FlatList
-                data={['notifications', 'email', 'quietHours']}
+                data={['notifications', 'email', 'quietHours', 'management']}
                 keyExtractor={(item) => item}
                 renderItem={({ item }) => {
                     switch (item) {
@@ -187,6 +242,8 @@ const NotificationsScreen = () => {
                             return renderEmailSection();
                         case 'quietHours':
                             return renderQuietHoursSection();
+                        case 'management':
+                            return renderManagementSection();
                         default:
                             return null;
                     }

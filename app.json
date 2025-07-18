@@ -9,7 +9,17 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "This app needs access to location for smart travel notifications and location-based suggestions.",
+        "NSLocationAlwaysUsageDescription": "This app needs access to location in the background to send you relevant travel notifications when you arrive at destinations.",
+        "NSLocationWhenInUseUsageDescription": "This app needs access to location to provide travel suggestions based on your current location.",
+        "UIBackgroundModes": [
+          "location",
+          "background-fetch",
+          "remote-notification"
+        ]
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -33,7 +43,26 @@
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
         }
-      ]
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/logo.png",
+          "color": "#ffffff",
+          "defaultChannel": "default"
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "This app needs access to location for smart travel notifications and location-based suggestions.",
+          "locationAlwaysPermission": "This app needs access to location in the background to send you relevant travel notifications.",
+          "locationWhenInUsePermission": "This app needs access to location to provide travel suggestions based on your current location.",
+          "isAndroidBackgroundLocationEnabled": true,
+          "isAndroidForegroundServiceEnabled": true
+        }
+      ],
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true

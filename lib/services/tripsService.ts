@@ -1,5 +1,7 @@
 import { CreateTripInput, Trip, UpdateTripInput } from '../../types/database';
 import { supabase } from '../supabase';
+import { notificationService } from './notificationService';
+import { TripNotificationManager } from './tripNotificationManager';
 
 export class TripsService {
   
@@ -52,6 +54,31 @@ export class TripsService {
         throw error;
       }
 
+      // set up notifications for the new trip
+      try {
+        // Send immediate trip creation confirmation
+        await notificationService.sendImmediateNotification(
+          `🎉 Trip Created: ${data.name}`,
+          `Your trip to ${data.destination} has been successfully created! We'll send you reminders as your departure date approaches.`,
+          {
+            type: 'trip_reminder',
+            tripId: data.id,
+            tripName: data.name,
+            destination: data.destination,
+            createdAt: new Date().toISOString()
+          },
+          'normal'
+        );
+
+        // Set up future scheduled notifications
+        await TripNotificationManager.setupTripNotifications(data);
+        await TripNotificationManager.setupLocationNotifications(data);
+        
+        console.log(`✅ Trip notifications set up for: ${data.name}`);
+      } catch (notificationError) {
+        console.warn('Failed to setup notifications for trip:', notificationError);
+      }
+
       return data;
     } catch (error) {
       console.error('Failed to create trip:', error);
@@ -99,6 +126,36 @@ export class TripsService {
       if (error) {
         console.error('Error updating trip:', error);
         throw error;
+      }
+
+      // update notifications if dates or destination changed
+      if (updates.start_date || updates.end_date || updates.destination) {
+        try {
+          // Send immediate trip update confirmation
+          await notificationService.sendImmediateNotification(
+            `✏️ Trip Updated: ${data.name}`,
+            `Your trip to ${data.destination} has been updated. We'll adjust your reminders accordingly.`,
+            {
+              type: 'trip_reminder',
+              tripId: data.id,
+              tripName: data.name,
+              destination: data.destination,
+              updatedAt: new Date().toISOString()
+            },
+            'normal'
+          );
+
+          // cancel existing notifications first
+          await TripNotificationManager.cleanupTripNotifications(tripId);
+
+          // set up new notifications with updated data
+          await TripNotificationManager.setupTripNotifications(data);
+          await TripNotificationManager.setupLocationNotifications(data);
+          
+          console.log(`✅ Trip notifications updated for: ${data.name}`);
+        } catch (notificationError) {
+          console.warn('Failed to update notifications for trip:', notificationError);
+        }
       }
 
       return data;

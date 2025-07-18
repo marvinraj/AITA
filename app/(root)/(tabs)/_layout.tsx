@@ -2,8 +2,9 @@ import { icons } from '@/constants/icons'
 import tailwindConfig from '@/tailwind.config'
 import { Tabs, useRouter } from 'expo-router'
 import React from 'react'
-import { Image } from 'react-native'
+import { Image, Text, View } from 'react-native'
 import resolveConfig from 'tailwindcss/resolveConfig'
+import { useNotifications } from '../../../hooks/useNotifications'
 
 
 const fullConfig = resolveConfig(tailwindConfig)
@@ -12,6 +13,7 @@ const colors = fullConfig.theme?.colors as any
 
 const TabsLayout = () => {
   const router = useRouter();
+  const { unreadCount } = useNotifications();
 
   return (
     <Tabs
@@ -98,7 +100,7 @@ const TabsLayout = () => {
                 title: 'Activity',
                 headerShown: false,
                 tabBarIcon: ({ focused }) => (
-                    <>
+                    <View style={{ position: 'relative' }}>
                         <Image 
                             source={icons.activity} 
                             className='size-7'
@@ -106,7 +108,34 @@ const TabsLayout = () => {
                                 tintColor: focused ? colors.primaryFont : colors.secondaryFont,
                             }}
                         />
-                    </>
+                        {unreadCount > 0 && (
+                            <View
+                                style={{
+                                    position: 'absolute',
+                                    top: -6,
+                                    right: -6,
+                                    backgroundColor: '#F7374F',
+                                    borderRadius: 10,
+                                    minWidth: 20,
+                                    height: 20,
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                    paddingHorizontal: 4,
+                                }}
+                            >
+                                <Text 
+                                    style={{ 
+                                        color: 'white', 
+                                        fontSize: 12, 
+                                        fontWeight: 'bold',
+                                        textAlign: 'center'
+                                    }}
+                                >
+                                    {unreadCount > 99 ? '99+' : unreadCount}
+                                </Text>
+                            </View>
+                        )}
+                    </View>
                 )
             }}
         />
