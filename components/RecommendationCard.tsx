@@ -74,7 +74,7 @@ export const RecommendationCard: React.FC<RecommendationCardProps> = ({
           </Text>
         </View>
         <View className="items-end">
-          <Text className="text-sm">
+          <Text className="text-sm text-primaryFont/60">
             {getRatingStars(item.rating)} {item.rating}
           </Text>
           <Text className={`text-sm font-bold ${getPriceLevelColor(item.priceLevel)}`}>

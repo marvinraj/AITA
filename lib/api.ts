@@ -92,6 +92,34 @@ Destination: ${conversationContext.tripDetails.destination}
 Dates: ${conversationContext.tripDetails.startDate} to ${conversationContext.tripDetails.endDate}
 Travelers: ${conversationContext.tripDetails.companions}
 Interests: ${conversationContext.tripDetails.activities}`;
+
+                // Include current itinerary if available
+                if (conversationContext.tripDetails.currentItinerary && conversationContext.tripDetails.currentItinerary.length > 0) {
+                    console.log('🎯 AI Context: Including', conversationContext.tripDetails.currentItinerary.length, 'itinerary items');
+                    contextualPrompt += `\n\n📋 **Current Itinerary Status:**`;
+                    
+                    // Group items by date for better organization
+                    const itemsByDate = conversationContext.tripDetails.currentItinerary.reduce((acc: any, item: any) => {
+                        if (!acc[item.date]) acc[item.date] = [];
+                        acc[item.date].push(item);
+                        return acc;
+                    }, {});
+                    
+                    Object.entries(itemsByDate).forEach(([date, items]) => {
+                        const dayItems = items as any[];
+                        contextualPrompt += `\n${date}:`;
+                        dayItems.sort((a, b) => (a.time || '00:00').localeCompare(b.time || '00:00'));
+                        dayItems.forEach(item => {
+                            const timeStr = item.time ? ` ${item.time}` : ' TBD';
+                            const locationStr = item.location ? ` at ${item.location}` : '';
+                            contextualPrompt += `\n  ${timeStr}: ${item.title}${locationStr}`;
+                        });
+                    });
+                    
+                    contextualPrompt += `\n\n⚠️ **Important:** Consider existing schedule when making recommendations. Avoid duplicates, suggest nearby activities, and fill gaps in timing.`;
+                } else {
+                    contextualPrompt += `\n\n📋 **Current Itinerary:** Empty - opportunity to suggest comprehensive planning!`;
+                }
             }
 
             if (conversationContext?.userPreferences?.length) {
@@ -134,19 +162,31 @@ Interests: ${conversationContext.tripDetails.activities}`;
         }
     }
 
-    // New method: Generate smart suggestions based on conversation
+    // Generate smart suggestions based on conversation
     async generateSmartSuggestions(messages: Message[], tripContext?: any): Promise<string[]> {
         try {
             const model = this.genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
             
             const recentConversation = messages.slice(-5).map(m => `${m.role}: ${m.text}`).join('\n');
             
+            // Include itinerary context in suggestions
+            let itineraryContext = '';
+            if (tripContext?.itineraryItems && tripContext.itineraryItems.length > 0) {
+                itineraryContext = `\n\nCurrent itinerary summary:`;
+                tripContext.itineraryItems.forEach((item: any) => {
+                    itineraryContext += `\n- ${item.date} ${item.time || 'TBD'}: ${item.title}`;
+                });
+                itineraryContext += `\n\nConsider gaps in schedule and opportunities for nearby activities.`;
+            } else {
+                itineraryContext = `\n\nItinerary is currently empty - great opportunity for comprehensive planning.`;
+            }
+            
             const prompt = `Based on this travel conversation and trip to ${tripContext?.destination || 'their destination'}, suggest 3 helpful follow-up questions or topics the user might want to explore:
 
 Recent conversation:
-${recentConversation}
+${recentConversation}${itineraryContext}
 
-Provide exactly 3 short, actionable suggestions (max 8 words each) that would be useful next steps. Format as a simple list.`;
+Provide exactly 3 short, actionable suggestions (max 8 words each) that would be useful next steps. Consider current itinerary status and suggest complementary activities. Format as a simple list.`;
 
             const result = await model.generateContent(prompt);
             const suggestions = result.response.text().split('\n')
@@ -160,7 +200,7 @@ Provide exactly 3 short, actionable suggestions (max 8 words each) that would be
         }
     }
 
-    // New method: Generate structured recommendations
+    // Generate structured recommendations
     async generateStructuredRecommendations(messages: Message[], tripContext?: any): Promise<any> {
         try {
             const model = this.genAI.getGenerativeModel({ model: "gemini-1.5-flash" });

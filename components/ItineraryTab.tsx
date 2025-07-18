@@ -11,13 +11,14 @@ import DatePicker from './DatePicker';
 interface ItineraryTabProps {
   trip: Trip;
   onTripUpdate?: (updatedTrip: Trip) => void; // Callback for when trip is updated
+  onItineraryChange?: () => void; // Callback for when itinerary items change
 }
 
 export interface ItineraryTabRef {
   refreshItinerary: () => Promise<void>;
 }
 
-export default forwardRef<ItineraryTabRef, ItineraryTabProps>(function ItineraryTab({ trip, onTripUpdate }, ref) {
+export default forwardRef<ItineraryTabRef, ItineraryTabProps>(function ItineraryTab({ trip, onTripUpdate, onItineraryChange }, ref) {
   const [selectedDate, setSelectedDate] = useState<string | undefined>(undefined);
   const [expandedDays, setExpandedDays] = useState<Set<string>>(new Set());
   const [dailyItineraries, setDailyItineraries] = useState<DailyItinerary[]>([]);
@@ -222,6 +223,11 @@ export default forwardRef<ItineraryTabRef, ItineraryTabProps>(function Itinerary
   const handleActivityAdded = async () => {
     console.log('Activity added, refreshing itinerary data');
     await loadItineraryData();
+    
+    // Notify parent that itinerary has changed
+    if (onItineraryChange) {
+      onItineraryChange();
+    }
   };
 
   return (

@@ -12,6 +12,15 @@ export interface TripContext {
   endDate: string;
   companions: string;
   activities: string;
+  // NEW: Include itinerary context for smarter AI recommendations
+  itineraryItems?: Array<{
+    date: string;
+    time: string;
+    title: string;
+    description?: string;
+    location?: string;
+    category: string;
+  }>;
 }
 
 interface UseAIChatOptions {
@@ -91,15 +100,52 @@ export function useAIChat({
         return;
       }
       // Create system message with trip context
-      const systemMessage = `You are AITA, a helpful AI travel assistant. The user is planning a trip with the following details:
+      let systemMessage = `You are AITA, a helpful AI travel assistant. The user is planning a trip with the following details:
 
 🌍 Destination: ${context.destination}
 📅 Travel Dates: ${formatDate(context.startDate)} to ${formatDate(context.endDate)}
 👥 Companions: ${formatCompanions(context.companions)}
 🎯 Preferred Activities: ${context.activities.split(',').join(', ')}
-✈️ Trip Name: ${context.tripName}
+✈️ Trip Name: ${context.tripName}`;
 
-Please provide personalized travel advice and recommendations based on this information. Be proactive in suggesting activities, places to visit, and practical travel tips for their specific trip. Keep responses helpful, friendly, and tailored to their preferences.`;
+      // Include current itinerary information if available
+      if (context.itineraryItems && context.itineraryItems.length > 0) {
+        systemMessage += `\n\n📋 **Current Itinerary:**`;
+        
+        // Group items by date
+        const itemsByDate = context.itineraryItems.reduce((acc, item) => {
+          if (!acc[item.date]) acc[item.date] = [];
+          acc[item.date].push(item);
+          return acc;
+        }, {} as Record<string, typeof context.itineraryItems>);
+        
+        // Format itinerary by date
+        Object.entries(itemsByDate).forEach(([date, items]) => {
+          const formattedDate = formatDate(date);
+          systemMessage += `\n\n**${formattedDate}:**`;
+          
+          items.sort((a, b) => (a.time || '00:00').localeCompare(b.time || '00:00'));
+          items.forEach(item => {
+            const timeStr = item.time ? ` at ${item.time}` : '';
+            const locationStr = item.location ? ` (📍 ${item.location})` : '';
+            systemMessage += `\n• ${item.time || 'TBD'}: ${item.title}${locationStr}`;
+            if (item.description) {
+              systemMessage += ` - ${item.description}`;
+            }
+          });
+        });
+        
+        systemMessage += `\n\n**Important:** When making recommendations, consider what's already planned to:
+- Avoid duplicate suggestions
+- Fill gaps in the schedule  
+- Suggest nearby activities to existing planned items
+- Consider timing and logistics
+- Recommend complementary experiences`;
+      } else {
+        systemMessage += `\n\n📋 **Current Itinerary:** No activities planned yet - perfect opportunity to help create an amazing itinerary!`;
+      }
+
+      systemMessage += `\n\nPlease provide personalized travel advice and recommendations based on this information. Be proactive in suggesting activities, places to visit, and practical travel tips for their specific trip. Keep responses helpful, friendly, and tailored to their preferences.`;
 
       // Add system message
       await aiChatService.addMessage({
@@ -115,11 +161,18 @@ Please provide personalized travel advice and recommendations based on this info
         ? `${activitiesList.slice(0, 3).join(', ')} and more`
         : activitiesList.join(', ');
 
-      const welcomeMessage = `Welcome to your ${context.destination} trip planning! 🎉
+      let welcomeMessage = `Welcome to your ${context.destination} trip planning! 🎉
 
-I see you're planning a ${formatCompanions(context.companions)} trip from ${formatDate(context.startDate)} to ${formatDate(context.endDate)}, with interest in ${activityText}.
+I see you're planning a ${formatCompanions(context.companions)} trip from ${formatDate(context.startDate)} to ${formatDate(context.endDate)}, with interest in ${activityText}.`;
 
-I'm here to help you create an amazing itinerary! What would you like to know about ${context.destination}? I can help with:
+      // Include itinerary status in welcome message
+      if (context.itineraryItems && context.itineraryItems.length > 0) {
+        welcomeMessage += `\n\nI can see you already have ${context.itineraryItems.length} activities planned in your itinerary! I'll keep those in mind when making new recommendations to help you build the perfect schedule.`;
+      } else {
+        welcomeMessage += `\n\nYour itinerary is currently empty - a blank canvas for an amazing adventure!`;
+      }
+
+      welcomeMessage += `\n\nI'm here to help you create an amazing itinerary! What would you like to know about ${context.destination}? I can help with:
 • Specific attractions and activities
 • Local food recommendations  
 • Transportation tips
@@ -270,7 +323,8 @@ What interests you most about your upcoming trip?`;
           startDate: tripContext.startDate,
           endDate: tripContext.endDate,
           companions: tripContext.companions,
-          activities: tripContext.activities
+          activities: tripContext.activities,
+          currentItinerary: tripContext.itineraryItems || []
         } : undefined,
         currentFocus: 'planning' as const
       };

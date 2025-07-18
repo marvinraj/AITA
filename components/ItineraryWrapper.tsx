@@ -9,6 +9,7 @@ interface ItineraryWrapperProps {
   trip: Trip | null;                    // from chatAI (can be null)
   height: number;                       // height constraint from chatAI
   onTripUpdate?: (updatedTrip: Trip) => void; // optional callback to update chatAI state
+  onItineraryChange?: () => void;       // callback when itinerary items change
 }
 
 export interface ItineraryWrapperRef {
@@ -18,7 +19,8 @@ export interface ItineraryWrapperRef {
 export default forwardRef<ItineraryWrapperRef, ItineraryWrapperProps>(function ItineraryWrapper({ 
   trip, 
   height, 
-  onTripUpdate 
+  onTripUpdate,
+  onItineraryChange
 }, ref) {
   
   const itineraryTabRef = useRef<ItineraryTabRef>(null);
@@ -80,6 +82,7 @@ export default forwardRef<ItineraryWrapperRef, ItineraryWrapperProps>(function I
             ref={itineraryTabRef}
             trip={trip}
             onTripUpdate={handleTripUpdate}
+            onItineraryChange={onItineraryChange}
           />
         ) : (
           <ItineraryMapView 

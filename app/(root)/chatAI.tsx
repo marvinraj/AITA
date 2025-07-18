@@ -16,6 +16,26 @@ import { Trip } from '../../types/database';
 // interface for trip context passed from smart form
 // re-exporting from hook for consistency
 
+// This enhancement gives the AI real-time awareness of the user's itinerary:
+//
+// REAL-TIME CONTEXT:
+// - Loads current itinerary items when chat initializes
+// - Refreshes AI context whenever items are added/deleted
+// - Includes schedule info in all AI conversations
+//
+// SMART RECOMMENDATIONS:
+// - AI avoids suggesting duplicate activities
+// - Fills gaps in the schedule intelligently  
+// - Suggests nearby activities to existing plans
+// - Considers timing and logistics in recommendations
+//
+// USER BENEFITS:
+// - Much more relevant and contextual suggestions
+// - Better trip optimization and planning
+// - Reduced duplicate recommendations
+// - Smarter scheduling assistance
+// ================================
+
 //  constants
 const HEADER_HEIGHT = 55;
 const DIVIDER_HEIGHT = 4;
@@ -50,6 +70,10 @@ const chatAI = () => {
   const [trip, setTrip] = useState<Trip | null>(null);
   const [tripLoading, setTripLoading] = useState(true);
   
+  // Add state for itinerary items to provide AI context
+  const [itineraryItems, setItineraryItems] = useState<any[]>([]);
+  const [itineraryLoading, setItineraryLoading] = useState(false);
+  
   // Modal state for adding to itinerary
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedRecommendation, setSelectedRecommendation] = useState<any>(null);
@@ -58,8 +82,19 @@ const chatAI = () => {
   const tripContext: TripContext | undefined = useMemo(() => {
     console.log('Evaluating tripContext with:', {
       fromNavigation: { tripName, destination, startDate, endDate, companions, activities },
-      fromTrip: trip ? { name: trip.name, destination: trip.destination, start_date: trip.start_date } : null
+      fromTrip: trip ? { name: trip.name, destination: trip.destination, start_date: trip.start_date } : null,
+      itineraryItemsCount: itineraryItems.length
     });
+    
+    // Format itinerary items for AI context
+    const formattedItineraryItems = itineraryItems.map(item => ({
+      date: item.date,
+      time: item.time,
+      title: item.title,
+      description: item.description,
+      location: item.location,
+      category: item.category
+    }));
     
     // First try to use navigation parameters (from smart form)
     if (tripName && destination && startDate && endDate && companions && activities) {
@@ -69,7 +104,8 @@ const chatAI = () => {
         startDate,
         endDate,
         companions,
-        activities
+        activities,
+        itineraryItems: formattedItineraryItems
       };
     }
     
@@ -81,34 +117,40 @@ const chatAI = () => {
         startDate: trip.start_date,
         endDate: trip.end_date,
         companions: trip.companions,
-        activities: trip.activities
+        activities: trip.activities,
+        itineraryItems: formattedItineraryItems
       };
     }
     
     return undefined;
-  }, [tripName, destination, startDate, endDate, companions, activities, trip]);
+  }, [tripName, destination, startDate, endDate, companions, activities, trip, itineraryItems]);
 
   // Add debugging for tripContext
   useEffect(() => {
-    console.log('TripContext updated:', tripContext?.tripName || 'undefined');
-  }, [tripContext, trip, tripLoading]);
+    console.log('TripContext updated:', {
+      tripName: tripContext?.tripName || 'undefined',
+      itineraryItemsCount: tripContext?.itineraryItems?.length || 0,
+      itineraryItems: tripContext?.itineraryItems?.map(item => `${item.date} ${item.time}: ${item.title}`).join(', ') || 'none'
+    });
+  }, [tripContext, trip, tripLoading, itineraryItems]);
   
   // use persistent AI chat hook - automatically loads/creates chat for this trip
-  // Only initialize when we have either navigation params or loaded trip data
+  // Only initialize when we have either navigation params or loaded trip data AND itinerary data
   const shouldInitializeChat = useMemo(() => {
     // If we have navigation params, we can initialize immediately
     if (tripName && destination && startDate && endDate && companions && activities) {
       return true;
     }
-    // If we're loading from existing trip, wait for trip data to load
-    const canInitialize = !tripLoading && trip !== null;
+    // If we're loading from existing trip, wait for both trip and itinerary data to load
+    const canInitialize = !tripLoading && !itineraryLoading && trip !== null;
     console.log('Chat initialization decision:', {
       tripLoading,
+      itineraryLoading,
       hasTrip: !!trip,
       canInitialize
     });
     return canInitialize;
-  }, [tripName, destination, startDate, endDate, companions, activities, tripLoading, trip]);
+  }, [tripName, destination, startDate, endDate, companions, activities, tripLoading, itineraryLoading, trip]);
 
   const {
     chat,
@@ -169,12 +211,40 @@ const chatAI = () => {
     loadTrip();
   }, [tripId]);
 
+  // NEW: Load itinerary items for AI context
+  const loadItineraryItems = async () => {
+    if (!tripId) return;
+    
+    try {
+      setItineraryLoading(true);
+      console.log('Loading itinerary items for AI context...');
+      const items = await itineraryService.getItineraryByTrip(tripId);
+      console.log('Loaded itinerary items:', items.length);
+      setItineraryItems(items);
+    } catch (error) {
+      console.error('Failed to load itinerary items:', error);
+      setItineraryItems([]); // Set empty array on error
+    } finally {
+      setItineraryLoading(false);
+    }
+  };
+
+  // Load itinerary items when trip is loaded
+  useEffect(() => {
+    if (trip) {
+      loadItineraryItems();
+    }
+  }, [trip]);
+
   // Handle trip updates from ItineraryWrapper (e.g., when dates are edited)
   const handleTripUpdate = (updatedTrip: Trip) => {
     console.log('ChatAI: Trip updated from itinerary', updatedTrip);
     
     // Update local trip state
     setTrip(updatedTrip);
+    
+    // Refresh itinerary items when trip is updated
+    loadItineraryItems();
     
     // TODO: Could also update AI chat context if trip context changes
     // This would refresh the AI with new trip information
@@ -296,6 +366,9 @@ const chatAI = () => {
       console.log('Refreshing itinerary after adding item...');
       await itineraryWrapperRef.current?.refreshItinerary();
       
+      // NEW: Refresh itinerary items for AI context
+      await loadItineraryItems();
+      
       Alert.alert(
         'Added to Itinerary! 🎉',
         `"${item.name}" has been added to your ${selectedDate} itinerary.`,
@@ -379,6 +452,7 @@ const chatAI = () => {
             trip={trip} 
             height={topHeight} 
             onTripUpdate={handleTripUpdate}
+            onItineraryChange={loadItineraryItems}
           />
           
           {/* OLD: DynamicItinerary - kept for rollback */}
