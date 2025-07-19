@@ -218,7 +218,7 @@ export default function TripDetailsPage() {
         elevation: 5,
         paddingHorizontal: 16
       }}>
-        <LiveTripHeader trip={trip} onTripUpdate={setTrip} />
+        <LiveTripHeader trip={trip} onTripUpdate={setTrip} onMapPress={handleMapPress} />
       </View>
 
       {/* trip tabs (same as LiveTripTab) */}
@@ -269,29 +269,6 @@ export default function TripDetailsPage() {
         alignItems: 'center',
         gap: 16,
       }}>
-        {/* Map button */}
-        <TouchableOpacity onPress={handleMapPress}>
-          <LinearGradient
-            colors={['#4B70F5', '#1D267D', '#03346E', '#021526']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={{
-                width: 60,
-                height: 60,
-                borderRadius: 30,
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.3,
-                shadowRadius: 4,
-                elevation: 6,
-                justifyContent: 'center',
-                alignItems: 'center',
-            }}
-          >
-            <Ionicons name="map" size={21} color="white" />
-          </LinearGradient>
-        </TouchableOpacity>
-        
         {/* AI Chat button */}
         <TouchableOpacity onPress={handleChatPress}>
           <View style={{
