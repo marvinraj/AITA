@@ -4,23 +4,31 @@ import React, { useEffect, useState } from 'react';
 import { ImageBackground, Text, TouchableOpacity, View } from 'react-native';
 import { useWeather } from '../hooks/useWeather';
 import { DestinationImage, imageService } from '../lib/services/imageService';
+import { tripsService } from '../lib/services/tripsService';
 import { weatherService } from '../lib/services/weatherService';
 import { Trip } from '../types/database';
 import EditTripModal from './EditTripModal';
+import TripSelectModal from './TripSelectModal';
 
 interface LiveTripHeaderProps {
   trip: Trip;
   weather?: string; // Optional weather override (for backward compatibility)
   onTripUpdate?: (updatedTrip: Trip) => void; // Callback for when trip is updated
+  onTripChange?: (trip: Trip) => void; // Callback for when trip is changed via selection
 }
 
-export default function LiveTripHeader({ trip, weather: weatherOverride, onTripUpdate }: LiveTripHeaderProps) {
+export default function LiveTripHeader({ trip, weather: weatherOverride, onTripUpdate, onTripChange }: LiveTripHeaderProps) {
   const { weatherData, isLoading: isLoadingWeather } = useWeather(
     weatherOverride ? undefined : trip.destination
   );
   
   // Modal state
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showTripSelectModal, setShowTripSelectModal] = useState(false);
+  
+  // Trip selection state
+  const [availableTrips, setAvailableTrips] = useState<Trip[]>([]);
+  const [loadingTrips, setLoadingTrips] = useState(false);
   
   // Destination image state
   const [destinationImage, setDestinationImage] = useState<DestinationImage | null>(null);
@@ -105,6 +113,28 @@ export default function LiveTripHeader({ trip, weather: weatherOverride, onTripU
     setShowEditModal(true);
   };
 
+  // Handle trip selection
+  const handleTripSelect = async () => {
+    setLoadingTrips(true);
+    try {
+      const trips = await tripsService.getAllTrips();
+      setAvailableTrips(trips);
+      setShowTripSelectModal(true);
+    } catch (error) {
+      console.error('Error loading trips:', error);
+    } finally {
+      setLoadingTrips(false);
+    }
+  };
+
+  // Handle trip change
+  const handleTripChange = (selectedTrip: Trip) => {
+    setShowTripSelectModal(false);
+    if (onTripChange) {
+      onTripChange(selectedTrip);
+    }
+  };
+
   // Handle trip update from modal
   const handleTripUpdate = (updatedTrip: Trip) => {
     if (onTripUpdate) {
@@ -169,8 +199,22 @@ export default function LiveTripHeader({ trip, weather: weatherOverride, onTripU
                         <Ionicons name="ellipsis-horizontal" size={18} color="rgba(255, 255, 255, 0.6)" />
                       </TouchableOpacity>
                   </View>
-                  {/* trip name */}
-                  <Text className="text-4xl font-UrbanistSemiBold mb-4 text-[#ECDFCC]">{trip.name}</Text>
+                  {/* trip name with selection button */}
+                  <View className="flex-row items-center mb-4">
+                    <Text className="text-4xl font-UrbanistSemiBold text-[#ECDFCC] flex-1">{trip.name}</Text>
+                    <TouchableOpacity
+                      onPress={handleTripSelect}
+                      className="ml-3 p-2 bg-primaryFont/30 rounded-lg"
+                      activeOpacity={0.7}
+                      disabled={loadingTrips}
+                    >
+                      <Ionicons 
+                        name={loadingTrips ? "refresh" : "swap-vertical"} 
+                        size={18} 
+                        color="rgba(255, 255, 255, 0.8)" 
+                      />
+                    </TouchableOpacity>
+                  </View>
                   {/* weather, location */}
                   <View className="flex-row items-center">
                       <View className="flex-row items-center mr-2 bg-primaryFont/20 rounded-lg px-3 py-1">
@@ -214,8 +258,22 @@ export default function LiveTripHeader({ trip, weather: weatherOverride, onTripU
                         <Ionicons name="ellipsis-horizontal" size={18} color="rgba(255, 255, 255, 0.6)" />
                       </TouchableOpacity>
                   </View>
-                  {/* trip name */}
-                  <Text className="text-4xl font-UrbanistSemiBold mb-4 text-[#ECDFCC]">{trip.name}</Text>
+                  {/* trip name with selection button */}
+                  <View className="flex-row items-center mb-4">
+                    <Text className="text-4xl font-UrbanistSemiBold text-[#ECDFCC] flex-1">{trip.name}</Text>
+                    <TouchableOpacity
+                      onPress={handleTripSelect}
+                      className="ml-3 p-2 bg-primaryFont/20 rounded-lg"
+                      activeOpacity={0.7}
+                      disabled={loadingTrips}
+                    >
+                      <Ionicons 
+                        name={loadingTrips ? "refresh" : "swap-vertical"} 
+                        size={18} 
+                        color="rgba(255, 255, 255, 0.8)" 
+                      />
+                    </TouchableOpacity>
+                  </View>
                   {/* weather, location */}
                   <View className="flex-row items-center">
                       <View className="flex-row items-center mr-2 bg-primaryFont/20 rounded-lg px-3 py-1">
@@ -241,6 +299,15 @@ export default function LiveTripHeader({ trip, weather: weatherOverride, onTripU
         trip={trip}
         onClose={() => setShowEditModal(false)}
         onTripUpdate={handleTripUpdate}
+      />
+
+      {/* Trip Select Modal */}
+      <TripSelectModal
+        visible={showTripSelectModal}
+        trips={availableTrips}
+        currentTripId={trip.id}
+        onSelect={handleTripChange}
+        onCancel={() => setShowTripSelectModal(false)}
       />
     </View>
   );

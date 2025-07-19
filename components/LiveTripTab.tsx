@@ -81,6 +81,12 @@ export default function LiveTripTab({ onTripChange, onChatPress, onMapPress }: L
     onTripChange?.(updatedTrip);
   };
 
+  // Handle trip selection change from the header
+  const handleTripChange = (selectedTrip: Trip) => {
+    setCurrentTrip(selectedTrip);
+    onTripChange?.(selectedTrip);
+  };
+
   // Handle chat button press
   const handleChatPress = () => {
     if (onChatPress) {
@@ -134,7 +140,11 @@ export default function LiveTripTab({ onTripChange, onChatPress, onMapPress }: L
         shadowRadius: 8,
         elevation: 10,
       }}>
-        <LiveTripHeader trip={currentTrip} onTripUpdate={handleTripUpdate} />
+        <LiveTripHeader 
+          trip={currentTrip} 
+          onTripUpdate={handleTripUpdate} 
+          onTripChange={handleTripChange}
+        />
       </View>
       
       {/* live trip tabs */}
