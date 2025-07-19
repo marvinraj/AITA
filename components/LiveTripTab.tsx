@@ -144,6 +144,7 @@ export default function LiveTripTab({ onTripChange, onChatPress, onMapPress }: L
           trip={currentTrip} 
           onTripUpdate={handleTripUpdate} 
           onTripChange={handleTripChange}
+          onMapPress={handleMapPress}
         />
       </View>
       

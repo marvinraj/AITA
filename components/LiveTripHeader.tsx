@@ -15,9 +15,10 @@ interface LiveTripHeaderProps {
   weather?: string; // Optional weather override (for backward compatibility)
   onTripUpdate?: (updatedTrip: Trip) => void; // Callback for when trip is updated
   onTripChange?: (trip: Trip) => void; // Callback for when trip is changed via selection
+  onMapPress?: () => void; // Callback for when map button is pressed
 }
 
-export default function LiveTripHeader({ trip, weather: weatherOverride, onTripUpdate, onTripChange }: LiveTripHeaderProps) {
+export default function LiveTripHeader({ trip, weather: weatherOverride, onTripUpdate, onTripChange, onMapPress }: LiveTripHeaderProps) {
   const { weatherData, isLoading: isLoadingWeather } = useWeather(
     weatherOverride ? undefined : trip.destination
   );
@@ -184,37 +185,14 @@ export default function LiveTripHeader({ trip, weather: weatherOverride, onTripU
             />
             
             {/* Content */}
-            <View className="flex-row items-center justify-between relative z-10">
-              <View className="flex-1 justify-between">
-                  {/* date and 3 dots - same row */}
-                  <View className="flex-row items-center justify-between mb-1">
-                      <Text className="text-sm font-UrbanistSemiBold tracking-wide text-primaryFont/40">
-                        {trip.status === 'active' ? formatCurrentDate() : formatTripDates()}
-                      </Text>
-                      <TouchableOpacity
-                        onPress={handleEditTrip}
-                        className="p-2 -mr-2 -mt-2"
-                        activeOpacity={0.7}
-                      >
-                        <Ionicons name="ellipsis-horizontal" size={18} color="rgba(255, 255, 255, 0.6)" />
-                      </TouchableOpacity>
-                  </View>
-                  {/* trip name with selection button */}
-                  <View className="flex-row items-center mb-4">
-                    <Text className="text-4xl font-UrbanistSemiBold text-[#ECDFCC] flex-1">{trip.name}</Text>
-                    <TouchableOpacity
-                      onPress={handleTripSelect}
-                      className="ml-3 p-2 bg-primaryFont/30 rounded-lg"
-                      activeOpacity={0.7}
-                      disabled={loadingTrips}
-                    >
-                      <Ionicons 
-                        name={loadingTrips ? "refresh" : "swap-vertical"} 
-                        size={18} 
-                        color="rgba(255, 255, 255, 0.8)" 
-                      />
-                    </TouchableOpacity>
-                  </View>
+            <View className="flex-row items-start justify-between relative z-10">
+              <View className="flex-1 pr-4">
+                  {/* date */}
+                  <Text className="text-sm font-UrbanistSemiBold tracking-wide text-primaryFont/40 mb-1">
+                    {trip.status === 'active' ? formatCurrentDate() : formatTripDates()}
+                  </Text>
+                  {/* trip name */}
+                  <Text className="text-4xl font-UrbanistSemiBold text-[#ECDFCC] mb-4">{trip.name}</Text>
                   {/* weather, location */}
                   <View className="flex-row items-center">
                       <View className="flex-row items-center mr-2 bg-primaryFont/20 rounded-lg px-3 py-1">
@@ -228,6 +206,37 @@ export default function LiveTripHeader({ trip, weather: weatherOverride, onTripU
                         </View>
                       )}
                   </View>
+              </View>
+              {/* Action buttons column */}
+              <View className="items-center">
+                <TouchableOpacity
+                  onPress={handleEditTrip}
+                  className="p-2 mb-4"
+                  activeOpacity={0.7}
+                >
+                  <Ionicons name="ellipsis-horizontal" size={18} color="rgba(255, 255, 255, 255)" />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={handleTripSelect}
+                  className="p-2 bg-primaryFont/80 rounded-lg mb-2"
+                  activeOpacity={0.7}
+                  disabled={loadingTrips}
+                >
+                  <Ionicons 
+                    name={loadingTrips ? "refresh" : "swap-vertical"} 
+                    size={18} 
+                    color="rgba(255, 255, 255)" 
+                  />
+                </TouchableOpacity>
+                {onMapPress && (
+                  <TouchableOpacity
+                    onPress={onMapPress}
+                    className="p-2 bg-primaryFont/80 rounded-lg"
+                    activeOpacity={0.7}
+                  >
+                    <Ionicons name="map" size={18} color="rgba(255, 255, 255)" />
+                  </TouchableOpacity>
+                )}
               </View>
             </View>
           </ImageBackground>
@@ -243,37 +252,14 @@ export default function LiveTripHeader({ trip, weather: weatherOverride, onTripU
               paddingHorizontal: 16,
             }}
           >
-            <View className="flex-row items-center justify-between">
-              <View className="flex-1 justify-between">
-                  {/* date and 3 dots - same row */}
-                  <View className="flex-row items-center justify-between mb-1">
-                      <Text className="text-sm font-UrbanistSemiBold tracking-wide text-primaryFont/40">
-                        {trip.status === 'active' ? formatCurrentDate() : formatTripDates()}
-                      </Text>
-                      <TouchableOpacity
-                        onPress={handleEditTrip}
-                        className="p-2 -mr-2 -mt-2"
-                        activeOpacity={0.7}
-                      >
-                        <Ionicons name="ellipsis-horizontal" size={18} color="rgba(255, 255, 255, 0.6)" />
-                      </TouchableOpacity>
-                  </View>
-                  {/* trip name with selection button */}
-                  <View className="flex-row items-center mb-4">
-                    <Text className="text-4xl font-UrbanistSemiBold text-[#ECDFCC] flex-1">{trip.name}</Text>
-                    <TouchableOpacity
-                      onPress={handleTripSelect}
-                      className="ml-3 p-2 bg-primaryFont/20 rounded-lg"
-                      activeOpacity={0.7}
-                      disabled={loadingTrips}
-                    >
-                      <Ionicons 
-                        name={loadingTrips ? "refresh" : "swap-vertical"} 
-                        size={18} 
-                        color="rgba(255, 255, 255, 0.8)" 
-                      />
-                    </TouchableOpacity>
-                  </View>
+            <View className="flex-row items-start justify-between">
+              <View className="flex-1 pr-4">
+                  {/* date */}
+                  <Text className="text-sm font-UrbanistSemiBold tracking-wide text-primaryFont/40 mb-1">
+                    {trip.status === 'active' ? formatCurrentDate() : formatTripDates()}
+                  </Text>
+                  {/* trip name */}
+                  <Text className="text-4xl font-UrbanistSemiBold text-[#ECDFCC] mb-4">{trip.name}</Text>
                   {/* weather, location */}
                   <View className="flex-row items-center">
                       <View className="flex-row items-center mr-2 bg-primaryFont/20 rounded-lg px-3 py-1">
@@ -287,6 +273,37 @@ export default function LiveTripHeader({ trip, weather: weatherOverride, onTripU
                         </View>
                       )}
                   </View>
+              </View>
+              {/* Action buttons column */}
+              <View className="items-center">
+                <TouchableOpacity
+                  onPress={handleEditTrip}
+                  className="p-2 bg-primaryFont/30 rounded-lg mb-2"
+                  activeOpacity={0.7}
+                >
+                  <Ionicons name="ellipsis-horizontal" size={18} color="rgba(255, 255, 255, 0.6)" />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={handleTripSelect}
+                  className="p-2 bg-primaryFont/30 rounded-lg mb-2"
+                  activeOpacity={0.7}
+                  disabled={loadingTrips}
+                >
+                  <Ionicons 
+                    name={loadingTrips ? "refresh" : "swap-vertical"} 
+                    size={18} 
+                    color="rgba(255, 255, 255, 0.8)" 
+                  />
+                </TouchableOpacity>
+                {onMapPress && (
+                  <TouchableOpacity
+                    onPress={onMapPress}
+                    className="p-2 bg-primaryFont/30 rounded-lg"
+                    activeOpacity={0.7}
+                  >
+                    <Ionicons name="map" size={16} color="rgba(255, 255, 255, 0.8)" />
+                  </TouchableOpacity>
+                )}
               </View>
             </View>
           </LinearGradient>
