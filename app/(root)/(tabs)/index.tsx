@@ -104,14 +104,15 @@ export default function HomeScreen() {
               borderRadius: 35,
               justifyContent: 'center',
               alignItems: 'center',
-              shadowColor: '#F7374F', // fff,
+              shadowColor: '#fff', // fff,
               shadowOffset: { width: 0, height: 0 },
-              shadowOpacity: 0.45,
+              shadowOpacity: 0.3,
               shadowRadius: 8,
               elevation: 15,
             }}>
               <LinearGradient
-                colors={['#22092C', '#321E1E', '#a01a1a', '#09122C']}
+                colors={['#16213e', '#EF4444']} 
+                // '#16213e', '#EF4444'
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 style={{
@@ -122,7 +123,7 @@ export default function HomeScreen() {
                   alignItems: 'center',
                 }}
               >
-                <Ionicons name="sparkles-outline" size={21} color="#FFFFFF" />
+                <Ionicons name="sparkles" size={21} color="#FFFFFF" />
               </LinearGradient>
             </View>
           </TouchableOpacity>

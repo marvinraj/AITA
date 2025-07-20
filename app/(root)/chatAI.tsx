@@ -520,7 +520,7 @@ const chatAI = () => {
           {/* Back button in circular background */}
           <TouchableOpacity 
             onPress={handleBackNavigation}
-            className="w-10 h-10 rounded-full bg-secondaryBG/30 backdrop-blur-sm justify-center items-center"
+            className="w-10 h-10 rounded-full bg-secondaryBG/60 backdrop-blur-sm justify-center items-center"
             style={{
               shadowColor: '#000',
               shadowOffset: { width: 0, height: 2 },
@@ -534,7 +534,7 @@ const chatAI = () => {
           
           {/* Destination in bubble background */}
           <View 
-            className="bg-secondaryBG/20 backdrop-blur-sm rounded-full px-4 py-2 flex-1 mx-3 justify-center items-center"            style={{
+            className="bg-secondaryBG/60 backdrop-blur-sm rounded-full px-4 py-2 flex-1 mx-3 justify-center items-center"            style={{
               shadowColor: '#000',
               shadowOffset: { width: 0, height: 6 },
               shadowOpacity: 0.25,
@@ -550,7 +550,7 @@ const chatAI = () => {
           {/* Menu button in circular background */}
           <TouchableOpacity 
             onPress={handleOpenEditTripModal}
-            className="w-10 h-10 rounded-full bg-secondaryBG/30 backdrop-blur-sm justify-center items-center"
+            className="w-10 h-10 rounded-full bg-secondaryBG/60 backdrop-blur-sm justify-center items-center"
             style={{
               shadowColor: '#000',
               shadowOffset: { width: 0, height: 2 },

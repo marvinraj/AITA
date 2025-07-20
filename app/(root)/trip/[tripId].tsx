@@ -2,6 +2,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import EditTripModal from '../../../components/EditTripModal';
 import ItineraryTab from '../../../components/ItineraryTab';
 import LiveTripHeader from '../../../components/LiveTripHeader';
@@ -283,18 +284,19 @@ export default function TripDetailsPage() {
               elevation: 15,
             }}>
               <LinearGradient
-                colors={['#22092C', '#321E1E', '#a01a1a', '#09122C']}
+                colors={['#16213e', '#EF4444']} 
+                // '#16213e', '#EF4444'
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 style={{
-                    width: 60,
-                    height: 60,
-                    borderRadius: 30,
-                    justifyContent: 'center',
-                    alignItems: 'center',
+                  width: 60,
+                  height: 60,
+                  borderRadius: 30,
+                  justifyContent: 'center',
+                  alignItems: 'center',
                 }}
               >
-                <Text className="text-sm text-white font-UrbanistSemiBold">AITA</Text>
+                <Ionicons name="sparkles" size={21} color="#FFFFFF" />
               </LinearGradient>
             </View>
         </TouchableOpacity>
