@@ -1,8 +1,9 @@
 import { useFocusEffect } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { Alert, Image, ImageBackground, RefreshControl, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Image, ImageBackground, Modal, RefreshControl, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { DestinationImage, imageService } from '../lib/services/imageService';
 import { tripsService } from '../lib/services/tripsService';
 import { Trip } from '../types/database';
@@ -10,10 +11,13 @@ import { Trip } from '../types/database';
 export default function FutureTripsTab() {
   const router = useRouter();
   const [trips, setTrips] = useState<Trip[]>([]);
+  const [filteredTrips, setFilteredTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [tripImages, setTripImages] = useState<Map<string, DestinationImage>>(new Map());
+  const [showFilterModal, setShowFilterModal] = useState(false);
+  const [selectedFilter, setSelectedFilter] = useState<'all' | 'planning' | 'active' | 'completed'>('all');
 
   // Reload trips when component gains focus (when user returns from creating a trip)
   useFocusEffect(
@@ -22,6 +26,40 @@ export default function FutureTripsTab() {
     }, [])
   );
 
+  // Apply filter to trips
+  const applyFilter = (tripsToFilter: Trip[], filter: 'all' | 'planning' | 'active' | 'completed') => {
+    let filtered = tripsToFilter;
+    
+    if (filter !== 'all') {
+      filtered = tripsToFilter.filter(trip => (trip.status || 'planning') === filter);
+    }
+    
+    setFilteredTrips(filtered);
+  };
+
+  // Handle filter selection
+  const handleFilterSelect = (filter: 'all' | 'planning' | 'active' | 'completed') => {
+    setSelectedFilter(filter);
+    applyFilter(trips, filter);
+    setShowFilterModal(false);
+  };
+
+  // Get filter button text
+  const getFilterButtonText = () => {
+    switch (selectedFilter) {
+      case 'all':
+        return 'All';
+      case 'planning':
+        return 'Planning';
+      case 'active':
+        return 'Active';
+      case 'completed':
+        return 'Completed';
+      default:
+        return 'All';
+    }
+  };
+
   const loadTrips = async () => {
     try {
       setLoading(true);
@@ -29,6 +67,7 @@ export default function FutureTripsTab() {
       
       const allTrips = await tripsService.getAllTrips();
       setTrips(allTrips);
+      applyFilter(allTrips, selectedFilter);
       
       // Load destination images for all trips
       loadTripImages(allTrips);
@@ -122,24 +161,18 @@ export default function FutureTripsTab() {
 
   return (
     <View className="flex-1 bg-primaryBG px-4 pt-6">
-      {/* Header
+      {/* Header with Filter Button */}
       <View className="flex-row items-center justify-between mb-6">
         <Text className="text-2xl font-BellezaRegular text-primaryFont">My Travels</Text>
         <TouchableOpacity
-          className=""
-          onPress={handleCreateTrip}
+          className="flex-row items-center bg-secondaryBG border border-border rounded-lg px-3 py-2"
+          onPress={() => setShowFilterModal(true)}
           activeOpacity={0.8}
         >
-         <Image
-            source={require('../assets/icons/add.png')} 
-            style={{ 
-              width: 18, 
-              height: 18, 
-              tintColor: loading ? '#888' : 'white' 
-            }}  
-         />
+          <Ionicons name="filter" size={16} color="white" style={{ marginRight: 6 }} />
+          <Text className="text-primaryFont text-sm font-UrbanistRegular">{getFilterButtonText()}</Text>
         </TouchableOpacity>
-      </View> */}
+      </View>
 
       {/* Error handling */}
       {error && (
@@ -153,20 +186,31 @@ export default function FutureTripsTab() {
         <View className="flex-1 items-center justify-center">
           <Text className="text-secondaryFont">Loading your trips...</Text>
         </View>
-      ) : trips.length === 0 ? (
+      ) : filteredTrips.length === 0 ? (
         /* Empty state */
         <View className="flex-1 items-center justify-center px-8">
-          <Text className="text-xl font-UrbanistSemiBold text-primaryFont mb-2">No trips yet</Text>
-          <Text className="text-secondaryFont text-center mb-6">
-            Start planning your next adventure by creating your first trip!
-          </Text>
-          <TouchableOpacity
-            className="bg-accentFont px-6 py-3 rounded-xl"
-            onPress={handleCreateTrip}
-            activeOpacity={0.8}
-          >
-            <Text className="text-primaryBG font-UrbanistSemiBold">Create Your First Trip</Text>
-          </TouchableOpacity>
+          {selectedFilter === 'all' ? (
+            <>
+              <Text className="text-xl font-UrbanistSemiBold text-primaryFont mb-2">No trips yet</Text>
+              <Text className="text-secondaryFont text-center mb-6">
+                Start planning your next adventure by creating your first trip!
+              </Text>
+              <TouchableOpacity
+                className="bg-accentFont px-6 py-3 rounded-xl"
+                onPress={handleCreateTrip}
+                activeOpacity={0.8}
+              >
+                <Text className="text-primaryBG font-UrbanistSemiBold">Create Your First Trip</Text>
+              </TouchableOpacity>
+            </>
+          ) : (
+            <>
+              <Text className="text-xl font-UrbanistSemiBold text-primaryFont mb-2">No {selectedFilter} trips</Text>
+              <Text className="text-secondaryFont text-center mb-6">
+                No trips found with status: {selectedFilter}
+              </Text>
+            </>
+          )}
         </View>
       ) : (
         /* Trips list */
@@ -182,7 +226,7 @@ export default function FutureTripsTab() {
             />
           }
         >
-          {trips.map((trip, index) => (
+          {filteredTrips.map((trip, index) => (
             <View key={trip.id}>
               <TouchableOpacity
                 className="rounded-xl py-2 px-2 mb-2 shadow-sm"
@@ -193,8 +237,8 @@ export default function FutureTripsTab() {
                   {/* Destination image on the left */}
                   <View
                     style={{
-                      width: 85,
-                      height: 85,
+                      width: 100,
+                      height: 100,
                       borderRadius: 8,
                       marginRight: 16,
                       flexShrink: 0,
@@ -254,11 +298,6 @@ export default function FutureTripsTab() {
                           📍 {trip.destination || 'Destination not set'}
                         </Text>
                       </View>
-                      <View className={`px-2 py-1 rounded-full ${getStatusColor(trip.status || 'planning')}`}>
-                        <Text className="text-primaryFont/70 text-xs font-UrbanistRegular capitalize">
-                          {trip.status || 'planning'}
-                        </Text>
-                      </View>
                     </View>
 
                     {/* Trip details */}
@@ -269,28 +308,81 @@ export default function FutureTripsTab() {
                         </Text>
                       </View>
                     </View>
-
-                    {/* Activities preview */}
-                    {/* {trip.activities && (
-                      <View className="mt-2 pt-2 border-t border-border/50">
-                        <Text className="text-secondaryFont text-sm">
-                          🎯 {trip.activities.split(',').slice(0, 3).join(', ')}
-                          {trip.activities.split(',').length > 3 && '...'}
-                        </Text>
-                      </View>
-                    )} */}
                   </View>
                 </View>
               </TouchableOpacity>
               
               {/* Divider - only show if not the last item */}
-              {index < trips.length - 1 && (
+              {index < filteredTrips.length - 1 && (
                 <View className="h-[1px] bg-divider/70 mx-4 mb-3" />
               )}
             </View>
           ))}
         </ScrollView>
       )}
+
+      {/* Filter Modal */}
+      <Modal
+        visible={showFilterModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowFilterModal(false)}
+      >
+        <TouchableOpacity
+          style={{ flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
+          activeOpacity={1}
+          onPress={() => setShowFilterModal(false)}
+        >
+          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
+            <TouchableOpacity activeOpacity={1}>
+              <View className="bg-secondaryBG border border-border rounded-xl p-6 w-64">
+                <Text className="text-xl font-UrbanistSemiBold text-primaryFont mb-4 text-center">
+                  Filter Trips
+                </Text>
+                
+                {/* Filter Options */}
+                {[
+                  { key: 'all', label: 'All Trips', count: trips.length },
+                  { key: 'planning', label: 'Planning', count: trips.filter(t => (t.status || 'planning') === 'planning').length },
+                  { key: 'active', label: 'Active', count: trips.filter(t => t.status === 'active').length },
+                  { key: 'completed', label: 'Completed', count: trips.filter(t => t.status === 'completed').length }
+                ].map((option) => (
+                  <TouchableOpacity
+                    key={option.key}
+                    className={`flex-row items-center justify-between p-3 rounded-lg mb-2 ${
+                      selectedFilter === option.key ? 'bg-accentFont/20 border border-accentFont/40' : 'bg-primaryBG/50'
+                    }`}
+                    onPress={() => handleFilterSelect(option.key as any)}
+                    activeOpacity={0.8}
+                  >
+                    <View className="flex-row items-center">
+                      <View className={`w-4 h-4 rounded-full border-2 mr-3 ${
+                        selectedFilter === option.key ? 'bg-accentFont border-accentFont' : 'border-secondaryFont'
+                      }`}>
+                        {selectedFilter === option.key && (
+                          <View className="w-2 h-2 bg-white rounded-full m-0.5" />
+                        )}
+                      </View>
+                      <Text className="text-primaryFont font-UrbanistRegular">{option.label}</Text>
+                    </View>
+                    <View className="bg-primaryBG/70 px-2 py-1 rounded-full">
+                      <Text className="text-secondaryFont text-xs">{option.count}</Text>
+                    </View>
+                  </TouchableOpacity>
+                ))}
+                
+                <TouchableOpacity
+                  className="bg-primaryBG border border-border rounded-lg p-3 mt-2"
+                  onPress={() => setShowFilterModal(false)}
+                  activeOpacity={0.8}
+                >
+                  <Text className="text-secondaryFont text-center font-UrbanistRegular">Cancel</Text>
+                </TouchableOpacity>
+              </View>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </View>
   );
 }
