@@ -78,14 +78,16 @@ export default forwardRef<ItineraryWrapperRef, ItineraryWrapperProps>(function I
       style={{ height }}
     >
       {/* Content */}
-      <View className={`flex-1 ${hasOverlayHeader ? 'pt-20' : 'py-0'}`}>
+      <View className="flex-1">
         {viewMode === 'itinerary' ? (
-          <ItineraryTab 
-            ref={itineraryTabRef}
-            trip={trip}
-            onTripUpdate={handleTripUpdate}
-            onItineraryChange={onItineraryChange}
-          />
+          <View className={`flex-1 ${hasOverlayHeader ? 'pt-20' : ''}`}>
+            <ItineraryTab 
+              ref={itineraryTabRef}
+              trip={trip}
+              onTripUpdate={handleTripUpdate}
+              onItineraryChange={onItineraryChange}
+            />
+          </View>
         ) : (
           <ItineraryMapView 
             trip={trip}

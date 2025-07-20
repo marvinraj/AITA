@@ -291,7 +291,7 @@ export default function ItineraryMapView({ trip, height }: ItineraryMapViewProps
         </MapView>
 
         {/* Floating Date Filter Button */}
-        <View className="absolute top-4 right-4 z-10">
+        <View className="absolute top-24 right-4 z-10">
           <TouchableOpacity
             onPress={() => setShowDateDropdown(!showDateDropdown)}
             className="px-4 py-4 rounded-full justify-center items-center shadow-lg bg-primaryFont"
