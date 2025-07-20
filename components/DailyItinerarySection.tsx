@@ -162,7 +162,7 @@ export default function DailyItinerarySection({
                   {/* Timeline indicator */}
                   <View className="items-center mr-3 mt-1">
                     {/* Number circle */}
-                    <View className="w-8 h-8 rounded-full bg-[#311010] items-center justify-center">
+                    <View className="w-6 h-6 rounded-full bg-[#311010] items-center justify-center">
                       <Text className="text-primaryFont/50 text-xs font-UrbanistSemiBold">
                         {index + 1}
                       </Text>
