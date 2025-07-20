@@ -20,7 +20,7 @@ const HEADER_HEIGHT = 55;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 const MODAL_MIN_HEIGHT = 200; // Minimum height for the chat modal
 const MODAL_MAX_HEIGHT = SCREEN_HEIGHT * 0.8; // Maximum height (80% of screen)
-const MODAL_DEFAULT_HEIGHT = SCREEN_HEIGHT * 0.6; // Default height (60% of screen)
+const MODAL_DEFAULT_HEIGHT = SCREEN_HEIGHT * 0.4; // Default height (40% of screen)
 const MODAL_COLLAPSED_HEIGHT = 80; // Height when collapsed but still visible
 
 const chatAI = () => {
@@ -190,8 +190,7 @@ const chatAI = () => {
     onEnd: () => {
       const finalHeight = modalHeightAnimated.value;
       
-      // If dragged below collapse threshold, collapse to collapsed height (similar to discover page)
-      if (finalHeight < MODAL_COLLAPSED_HEIGHT + 20) {
+      if (finalHeight < MODAL_COLLAPSED_HEIGHT + 200) {
         modalHeightAnimated.value = withSpring(MODAL_COLLAPSED_HEIGHT, {
           damping: 20,
           stiffness: 90,
