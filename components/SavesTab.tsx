@@ -98,7 +98,7 @@ export default function SavesTab({ trip }: SavesTabProps) {
       onPress={() => handlePlacePress(item)}
       activeOpacity={0.7}
     >
-      <View className="bg-secondaryBG rounded-lg p-3 m-2 border border-border flex-1">
+      <View className="bg-transparent rounded-lg py-2 px-2 m-2  flex-1">
         <View className="w-full h-32 rounded-lg mb-3 bg-inputBG justify-center items-center">
           {item.image_url ? (
             <Image
@@ -116,9 +116,9 @@ export default function SavesTab({ trip }: SavesTabProps) {
               {item.name}
             </Text>
           </View>
-          <Text className="text-secondaryFont text-xs mb-2" numberOfLines={2}>
+          {/* <Text className="text-secondaryFont text-xs mb-2" numberOfLines={2}>
             {item.address}
-          </Text>
+          </Text> */}
           {item.rating && (
             <View className="flex-row items-center mb-2">
               <View className="flex-row mr-2">{getRatingStars(item.rating)}</View>
