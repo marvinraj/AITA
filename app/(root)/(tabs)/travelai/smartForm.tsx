@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { Alert, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Modal, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import { Place, placesService } from '../../../../lib/services/placesService';
 import { tripsService } from '../../../../lib/services/tripsService';
@@ -44,6 +44,8 @@ const SmartForm = () => {
     // calendar modal state
     const [showCalendar, setShowCalendar] = useState(false);
     const [range, setRange] = useState<{start: string, end: string}>({ start: '', end: '' });
+    // activities modal state
+    const [showActivitiesModal, setShowActivitiesModal] = useState(false);
     // loading state for trip creation
     const [isCreatingTrip, setIsCreatingTrip] = useState(false);
 
@@ -127,7 +129,16 @@ const SmartForm = () => {
         }
     };
 
-    // function to handle form submission
+    // function to handle first step submission (opens activities modal)
+    const handleContinue = () => {
+        if (!destination || !range.start || !range.end) {
+            Alert.alert('Missing Information', 'Please fill in all required fields before continuing.');
+            return;
+        }
+        setShowActivitiesModal(true);
+    };
+
+    // function to handle final form submission (from activities modal)
     const handleSubmit = async () => {
         try {
             setIsCreatingTrip(true);
@@ -168,15 +179,14 @@ const SmartForm = () => {
         }
     };
 
-    // Calculate form completion progress
+    // Calculate form completion progress (without activities)
     const getFormProgress = () => {
         let completed = 0;
-        const total = 4; // destination, dates, companions, activities
+        const total = 3; // destination, dates, companions (activities moved to modal)
         
         if (destination) completed++;
         if (range.start && range.end) completed++;
         if (companions) completed++; // companions always has a default value
-        if (activities.length > 0) completed++;
         
         return (completed / total) * 100;
     };
@@ -257,7 +267,7 @@ const SmartForm = () => {
                             Progress: {Math.round(getFormProgress())}%
                         </Text>
                         <Text className="text-xs text-secondaryFont/70">
-                            {Math.round(getFormProgress() / 25)} of 4 completed
+                            {Math.round(getFormProgress() / 33.33)} of 3 completed
                         </Text>
                     </View>
                     <View className="w-full bg-secondaryBG rounded-full h-2">
@@ -417,32 +427,102 @@ const SmartForm = () => {
                     </TouchableOpacity>
                     ))}
                 </View>
-                {/* activities */}
-                <Text className="text-primaryFont font-UrbanistSemiBold mb-2">How do you want to spend your time?</Text>
-                <View className="flex-row flex-wrap gap-2 mb-6">
-                    {activityOptions.map((activity) => (
-                    <TouchableOpacity
-                        key={activity}
-                        className={`px-4 py-2 rounded-full border ${activities.includes(activity) ? 'bg-accentFont/50 border-accentFont/50' : 'bg-secondaryBG border-border'}`}
-                        onPress={() => toggleActivity(activity)}
-                        activeOpacity={0.8}
-                    >
-                        <Text className={`font-UrbanistSemiBold ${activities.includes(activity) ? 'text-primaryFont' : 'text-primaryFont'}`}>{activity}</Text>
-                    </TouchableOpacity>
-                    ))}
-                </View>
-                {/* submit button */}
+
+                {/* continue button */}
                 <TouchableOpacity
-                    className={`px-8 py-3 rounded-xl w-full items-center mb-4 ${(!destination || !range.start || !range.end || activities.length === 0 || isCreatingTrip) ? 'bg-accentFont/30' : 'bg-accentFont/50'}`}
-                    onPress={handleSubmit}
-                    disabled={!destination || !range.start || !range.end || activities.length === 0 || isCreatingTrip}
+                    className={`px-8 py-3 rounded-xl w-full items-center mb-4 ${(!destination || !range.start || !range.end) ? 'bg-accentFont/30' : 'bg-accentFont/50'}`}
+                    onPress={handleContinue}
+                    disabled={!destination || !range.start || !range.end}
                     activeOpacity={0.8}
                 >
                     <Text className="text-primaryBG font-UrbanistSemiBold">
-                        {isCreatingTrip ? 'Creating Trip...' : 'Continue'}
+                        Continue
                     </Text>
                 </TouchableOpacity>
             </ScrollView>
+
+            {/* Activities Selection Modal */}
+            <Modal
+                visible={showActivitiesModal}
+                animationType="slide"
+                presentationStyle="pageSheet"
+                onRequestClose={() => setShowActivitiesModal(false)}
+            >
+                <View className="flex-1 bg-primaryBG">
+                    {/* Modal Header */}
+                    <View className="pt-12 px-4 pb-4 border-b border-border">
+                        <View className="flex-row items-center justify-between">
+                            <Text className="text-2xl font-BellezaRegular text-primaryFont">What's your travel vibe?</Text>
+                            <TouchableOpacity
+                                onPress={() => setShowActivitiesModal(false)}
+                                accessibilityLabel="Close activities modal"
+                                activeOpacity={0.8}
+                            >
+                                <Text className="text-2xl text-secondaryFont">✕</Text>
+                            </TouchableOpacity>
+                        </View>
+                        
+                        <Text className="text-secondaryFont mt-2 font-UrbanistRegular">
+                            How do you want to spend your time in {destination}?
+                        </Text>
+                    </View>
+
+                    <ScrollView className="flex-1 px-4 pt-8" showsVerticalScrollIndicator={false}>
+                        {/* activities */}
+                        <Text className="text-primaryFont font-UrbanistSemiBold mb-4 text-lg">Select one or more</Text>
+                        <View className="flex-row flex-wrap gap-3 mb-8">
+                            {activityOptions.map((activity) => (
+                                <TouchableOpacity
+                                    key={activity}
+                                    className={`px-6 py-3 rounded-full border ${activities.includes(activity) ? 'bg-accentFont/50 border-accentFont/50' : 'bg-secondaryBG border-border'}`}
+                                    onPress={() => toggleActivity(activity)}
+                                    activeOpacity={0.8}
+                                >
+                                    <Text className={`font-UrbanistSemiBold ${activities.includes(activity) ? 'text-primaryFont' : 'text-primaryFont'}`}>
+                                        {activity}
+                                    </Text>
+                                </TouchableOpacity>
+                            ))}
+                        </View>
+
+                        {/* Selected activities count */}
+                        {activities.length > 0 && (
+                            <View className="bg-secondaryBG/50 rounded-xl p-4 mb-6">
+                                <Text className="text-primaryFont font-UrbanistSemiBold mb-2">
+                                    Selected Activities ({activities.length})
+                                </Text>
+                                <Text className="text-secondaryFont text-sm">
+                                    {activities.join(', ')}
+                                </Text>
+                            </View>
+                        )}
+
+                        {/* Create Trip Button */}
+                        <TouchableOpacity
+                            className={`px-8 py-4 rounded-xl w-full items-center mb-8 ${(activities.length === 0 || isCreatingTrip) ? 'bg-accentFont/30' : 'bg-accentFont/70'}`}
+                            onPress={handleSubmit}
+                            disabled={activities.length === 0 || isCreatingTrip}
+                            activeOpacity={0.8}
+                        >
+                            <Text className="text-primaryBG font-UrbanistSemiBold text-lg">
+                                {isCreatingTrip ? 'Creating Your Trip...' : 'Create My Trip'}
+                            </Text>
+                        </TouchableOpacity>
+
+                        {/* Skip Option
+                        <TouchableOpacity
+                            className="px-8 py-3 rounded-xl w-full items-center mb-4 border border-border"
+                            onPress={handleSubmit}
+                            disabled={isCreatingTrip}
+                            activeOpacity={0.8}
+                        >
+                            <Text className="text-secondaryFont font-UrbanistRegular">
+                                Skip for now
+                            </Text>
+                        </TouchableOpacity> */}
+                    </ScrollView>
+                </View>
+            </Modal>
         </View>
     );
 };

@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import { Alert, Text, TouchableOpacity, View } from 'react-native';
 import Animated, {
@@ -143,7 +144,7 @@ export default function DailyItinerarySection({
           
           {/* Dropdown arrow */}
           <Animated.View style={animatedArrowStyle}>
-            <Text className="text-secondaryFont text-lg">▼</Text>
+            <Ionicons name="chevron-down" size={20} color="rgba(255, 255, 255, 0.6)" />
           </Animated.View>
         </View>
       </TouchableOpacity>
