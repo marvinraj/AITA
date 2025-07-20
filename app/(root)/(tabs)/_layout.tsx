@@ -53,6 +53,11 @@ const TabsLayout = () => {
                     </>
                 )
             }}
+            listeners={{
+                tabPress: (e) => {
+                    router.push('/(root)/(tabs)');
+                }
+            }}
         />
         <Tabs.Screen
             name="discover"

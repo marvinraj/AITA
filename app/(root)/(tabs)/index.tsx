@@ -1,9 +1,10 @@
 import FutureTripsTab from '@/components/FutureTripsTab';
 import LiveTripTab from '@/components/LiveTripTab';
 import { Ionicons } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { useState } from "react";
+import React, { useState } from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { Trip } from '../../../types/database';
 
@@ -13,6 +14,13 @@ export default function HomeScreen() {
   // state to manage the active tab
   const [activeTab, setActiveTab] = useState<'live' | 'future'>('live');
   const [currentTrip, setCurrentTrip] = useState<Trip | null>(null);
+
+  // Reset to live tab when screen is focused (when home tab is pressed)
+  useFocusEffect(
+    React.useCallback(() => {
+      setActiveTab('live');
+    }, [])
+  );
 
   // Handle chat button press
   const handleChatPress = () => {
@@ -50,7 +58,7 @@ export default function HomeScreen() {
             className={`flex justify-center items-center h-14 px-4 py-2 rounded-full mr-2 ${activeTab === 'live' ? 'bg-secondaryBG' : ''}`}
             onPress={() => setActiveTab('live')}
           >
-            <Text className={`font-UrbanistSemiBold text-sm text-center ${activeTab === 'live' ? 'text-primaryFont' : 'text-secondaryFont'}`}>Live Travel</Text>
+            <Text className={`font-UrbanistSemiBold text-sm text-center ${activeTab === 'live' ? 'text-primaryFont' : 'text-secondaryFont'}`}>Live Trip</Text>
           </TouchableOpacity>
           <TouchableOpacity
             className={`flex justify-center items-center h-14 px-4 py-2 rounded-full ${activeTab === 'future' ? 'bg-secondaryBG' : ''}`}
