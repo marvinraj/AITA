@@ -181,14 +181,22 @@ const chatAI = () => {
     },
     onActive: (event, context: { startHeight: number }) => {
       const newHeight = context.startHeight - event.translationY; // Negative because dragging up increases height
-      const constrainedHeight = Math.max(MODAL_MIN_HEIGHT, Math.min(newHeight, MODAL_MAX_HEIGHT));
+      const constrainedHeight = Math.max(0, Math.min(newHeight, MODAL_MAX_HEIGHT)); // Allow going to 0 for closing
       modalHeightAnimated.value = constrainedHeight;
     },
     onEnd: () => {
       const finalHeight = modalHeightAnimated.value;
-      // Snap to predefined heights or close if dragged too low
-      if (finalHeight < MODAL_MIN_HEIGHT * 0.7) {
-        // Snap to minimum height instead of closing
+      // Close modal if dragged below threshold
+      if (finalHeight < MODAL_MIN_HEIGHT * 0.5) {
+        modalHeightAnimated.value = withSpring(0, {
+          damping: 20,
+          stiffness: 90,
+        });
+        // Save the default height so it reopens at a reasonable size
+        runOnJS(updateModalHeight)(MODAL_DEFAULT_HEIGHT);
+        runOnJS(() => setTimeout(() => setModalVisible(false), 300));
+      } else if (finalHeight < MODAL_MIN_HEIGHT * 0.7) {
+        // Snap to minimum height
         modalHeightAnimated.value = withSpring(MODAL_MIN_HEIGHT, {
           damping: 20,
           stiffness: 90,
@@ -297,23 +305,19 @@ const chatAI = () => {
   // Show/hide chat modal
   const showChatModal = () => {
     setModalVisible(true);
-    modalHeightAnimated.value = withSpring(modalHeight, { damping: 20, stiffness: 90 });
-    backdropOpacity.value = withSpring(0.5, { damping: 20, stiffness: 90 });
+    // Use the saved modalHeight if available, otherwise use default
+    const targetHeight = modalHeight > 0 ? modalHeight : MODAL_DEFAULT_HEIGHT;
+    modalHeightAnimated.value = withSpring(targetHeight, { damping: 20, stiffness: 90 });
   };
 
   const hideChatModal = () => {
     modalHeightAnimated.value = withSpring(0, { damping: 20, stiffness: 90 });
-    backdropOpacity.value = withSpring(0, { damping: 20, stiffness: 90 });
     setTimeout(() => setModalVisible(false), 300);
   };
 
-  // Toggle chat modal visibility
-  const toggleChatModal = () => {
-    if (modalVisible) {
-      hideChatModal();
-    } else {
-      showChatModal();
-    }
+  // Show chat modal - button always shows the modal when pressed
+  const handleChatButtonPress = () => {
+    showChatModal();
   };
 
   // ----- MESSAGE HANDLING -----
@@ -573,7 +577,7 @@ const chatAI = () => {
 
         {/* Floating AI Chat Button */}
         <TouchableOpacity
-          onPress={toggleChatModal}
+          onPress={handleChatButtonPress}
           style={{
             position: 'absolute',
             bottom: 35,
@@ -596,50 +600,29 @@ const chatAI = () => {
         >
           {/* <Ionicons name="chatbubble" size={18} color="white" /> */}
           <Text style={{ color: 'white', fontSize: 14, fontWeight: '600' }}>
-            {modalVisible ? "Minimize" : "Back to chat"}
+            Back to chat
           </Text>
         </TouchableOpacity>
 
-        {/* Chat Modal - Always visible with drag functionality */}
-        <>
-          {/* Backdrop */}
-          <Animated.View
-            style={[
-              {
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                backgroundColor: 'transparent',
-                zIndex: 2000,
-              },
-              animatedBackdropStyle,
-            ]}
-          >
-            <TouchableOpacity 
-              style={{ flex: 1 }} 
-              onPress={hideChatModal}
-              activeOpacity={1}
-            />
-          </Animated.View>
-
-          {/* Modal Content */}
-          <Animated.View
-            style={[
-              {
-                position: 'absolute',
-                left: 0,
-                right: 0,
-                bottom: 0,
-                backgroundColor: '#e3dede',
-                borderTopLeftRadius: 20,
-                borderTopRightRadius: 20,
-                zIndex: 2001,
-              },
-              animatedModalStyle,
-            ]}
-          >
+        {/* Chat Modal - Conditionally visible with drag functionality */}
+        {modalVisible && (
+          <>
+            {/* Modal Content - No backdrop */}
+            <Animated.View
+              style={[
+                {
+                  position: 'absolute',
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  backgroundColor: '#e3dede',
+                  borderTopLeftRadius: 20,
+                  borderTopRightRadius: 20,
+                  zIndex: 2001,
+                },
+                animatedModalStyle,
+              ]}
+            >
             {/* Modal Handle */}
             <PanGestureHandler onGestureEvent={modalGestureHandler}>
               <Animated.View className="items-center py-2 bg-transparent">
@@ -812,6 +795,7 @@ const chatAI = () => {
             </KeyboardAvoidingView>
           </Animated.View>
         </>
+        )}
 
         {/* Add to Itinerary Modal */}
         <AddToItineraryModal
