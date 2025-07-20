@@ -14,33 +14,12 @@ import { ItineraryService } from '../../lib/services/itineraryService';
 import { TripsService } from '../../lib/services/tripsService';
 import { Trip } from '../../types/database';
 
-// interface for trip context passed from smart form
-// re-exporting from hook for consistency
-
-// This enhancement gives the AI real-time awareness of the user's itinerary:
-//
-// REAL-TIME CONTEXT:
-// - Loads current itinerary items when chat initializes
-// - Refreshes AI context whenever items are added/deleted
-// - Includes schedule info in all AI conversations
-//
-// SMART RECOMMENDATIONS:
-// - AI avoids suggesting duplicate activities
-// - Fills gaps in the schedule intelligently  
-// - Suggests nearby activities to existing plans
-// - Considers timing and logistics in recommendations
-//
-// USER BENEFITS:
-// - Much more relevant and contextual suggestions
-// - Better trip optimization and planning
-// - Reduced duplicate recommendations
-// - Smarter scheduling assistance
-// ================================
-
 //  constants
 const HEADER_HEIGHT = 55;
-const DIVIDER_HEIGHT = 4;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
+const MODAL_MIN_HEIGHT = 200; // Minimum height for the chat modal
+const MODAL_MAX_HEIGHT = SCREEN_HEIGHT * 0.8; // Maximum height (80% of screen)
+const MODAL_DEFAULT_HEIGHT = SCREEN_HEIGHT * 0.6; // Default height (60% of screen)
 
 const chatAI = () => {
   // get all trip context from navigation parameters (passed when navigating to this screen)
@@ -156,6 +135,9 @@ const chatAI = () => {
     return canInitialize;
   }, [tripName, destination, startDate, endDate, companions, activities, tripLoading, itineraryLoading, trip]);
 
+  // Add a ref to prevent multiple initializations
+  const chatInitializedRef = useRef(false);
+
   const {
     chat,
     messages,
@@ -167,20 +149,78 @@ const chatAI = () => {
     isTyping
   } = useAIChat({
     tripId: tripId || '',
-    autoLoad: shouldInitializeChat,
+    autoLoad: shouldInitializeChat && !chatInitializedRef.current,
     tripContext
   });
+
+  // Track when chat is initialized to prevent duplicate initialization
+  useEffect(() => {
+    if (shouldInitializeChat && !chatInitializedRef.current) {
+      chatInitializedRef.current = true;
+      console.log('Chat initialized for trip:', tripId);
+    }
+  }, [shouldInitializeChat, tripId]);
   
-  // state to manage the height of the top panel
-  const initialTopHeight = (SCREEN_HEIGHT - HEADER_HEIGHT) * 0.2;
-  const [topHeight, setTopHeight] = useState(initialTopHeight);
+  // state to manage the height of the chat modal
+  const [modalVisible, setModalVisible] = useState(true);
+  const [modalHeight, setModalHeight] = useState(MODAL_DEFAULT_HEIGHT);
   
-  // Animated values for smooth gesture handling
-  const topHeightAnimated = useSharedValue(initialTopHeight);
-  const gestureStartHeight = useSharedValue(0);
+  // Animated values for smooth modal handling
+  const modalHeightAnimated = useSharedValue(MODAL_DEFAULT_HEIGHT);
+  const backdropOpacity = useSharedValue(0.5);
+
+  // Function to update modal height from animated value
+  const updateModalHeight = (newHeight: number) => {
+    setModalHeight(newHeight);
+  };
+
+  // Modal gesture handler for resizing
+  const modalGestureHandler = useAnimatedGestureHandler({
+    onStart: (_, context: { startHeight: number }) => {
+      context.startHeight = modalHeightAnimated.value;
+    },
+    onActive: (event, context: { startHeight: number }) => {
+      const newHeight = context.startHeight - event.translationY; // Negative because dragging up increases height
+      const constrainedHeight = Math.max(MODAL_MIN_HEIGHT, Math.min(newHeight, MODAL_MAX_HEIGHT));
+      modalHeightAnimated.value = constrainedHeight;
+    },
+    onEnd: () => {
+      const finalHeight = modalHeightAnimated.value;
+      // Snap to predefined heights or close if dragged too low
+      if (finalHeight < MODAL_MIN_HEIGHT * 0.7) {
+        // Snap to minimum height instead of closing
+        modalHeightAnimated.value = withSpring(MODAL_MIN_HEIGHT, {
+          damping: 20,
+          stiffness: 90,
+        });
+        runOnJS(updateModalHeight)(MODAL_MIN_HEIGHT);
+      } else {
+        // Use spring animation for smooth finish
+        modalHeightAnimated.value = withSpring(finalHeight, {
+          damping: 20,
+          stiffness: 90,
+        });
+        // Update React state
+        runOnJS(updateModalHeight)(finalHeight);
+      }
+    },
+  });
+
+  // Animated style for the modal
+  const animatedModalStyle = useAnimatedStyle(() => {
+    return {
+      height: modalHeightAnimated.value,
+    };
+  });
+
+  // Animated style for backdrop
+  const animatedBackdropStyle = useAnimatedStyle(() => {
+    return {
+      opacity: backdropOpacity.value,
+    };
+  });
   
-  // ref to store the initial height during gesture
-  const initialTopHeightRef = useRef(initialTopHeight);
+  // ref to store the initial height during gesture - removed as no longer needed
   // state to manage the input text
   const [input, setInput] = useState("");
   // ref for scrollview
@@ -254,54 +294,71 @@ const chatAI = () => {
     // This would refresh the AI with new trip information
   };
 
-  // Function to update React state from animated value
-  const updateTopHeight = (newHeight: number) => {
-    setTopHeight(newHeight);
+  // Show/hide chat modal
+  const showChatModal = () => {
+    setModalVisible(true);
+    modalHeightAnimated.value = withSpring(modalHeight, { damping: 20, stiffness: 90 });
+    backdropOpacity.value = withSpring(0.5, { damping: 20, stiffness: 90 });
   };
 
-  // Smooth gesture handler using reanimated
-  const gestureHandler = useAnimatedGestureHandler({
-    onStart: (_, context: { startHeight: number }) => {
-      context.startHeight = topHeightAnimated.value;
-      gestureStartHeight.value = topHeightAnimated.value;
-    },
-    onActive: (event, context: { startHeight: number }) => {
-      const newHeight = context.startHeight + event.translationY;
-      const constrainedHeight = Math.max(100, Math.min(newHeight, SCREEN_HEIGHT - HEADER_HEIGHT - 100 - DIVIDER_HEIGHT));
-      topHeightAnimated.value = constrainedHeight;
-    },
-    onEnd: (event) => {
-      const finalHeight = topHeightAnimated.value;
-      // Use spring animation for smooth finish
-      topHeightAnimated.value = withSpring(finalHeight, {
-        damping: 20,
-        stiffness: 90,
-      });
-      // Update React state for layout calculations
-      runOnJS(updateTopHeight)(finalHeight);
-    },
-  });
+  const hideChatModal = () => {
+    modalHeightAnimated.value = withSpring(0, { damping: 20, stiffness: 90 });
+    backdropOpacity.value = withSpring(0, { damping: 20, stiffness: 90 });
+    setTimeout(() => setModalVisible(false), 300);
+  };
 
-  // Animated style for the top panel
-  const animatedTopPanelStyle = useAnimatedStyle(() => {
-    return {
-      height: topHeightAnimated.value,
-    };
-  });
+  // Toggle chat modal visibility
+  const toggleChatModal = () => {
+    if (modalVisible) {
+      hideChatModal();
+    } else {
+      showChatModal();
+    }
+  };
 
   // ----- MESSAGE HANDLING -----
 
   // Function to handle sending messages (now uses persistent storage)
+  const [sending, setSending] = useState(false); // Add sending state to prevent rapid-fire sends
+  
   const handleSend = async () => {
-    if (input.trim() === "" || loading || !isReady) return;
+    if (input.trim() === "" || loading || !isReady || sending) return;
     
     try {
+      setSending(true);
       await sendMessage(input);
       setInput(""); // Clear input after successful send
       setShowSuggestions(false); // Hide suggestions after sending
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error sending message:', error);
-      // Error handling is already done in the hook
+      
+      // Handle specific database constraint error
+      if (error?.code === '23505' && error?.message?.includes('ai_messages_chat_id_message_order_key')) {
+        console.warn('Duplicate message order detected, retrying...');
+        // Wait a bit and retry once
+        setTimeout(async () => {
+          try {
+            await sendMessage(input);
+            setInput("");
+            setShowSuggestions(false);
+          } catch (retryError) {
+            console.error('Retry failed:', retryError);
+            Alert.alert(
+              'Message Error', 
+              'There was an issue sending your message. Please try again.',
+              [{ text: 'OK' }]
+            );
+          }
+        }, 500);
+      } else {
+        Alert.alert(
+          'Message Error', 
+          'Failed to send message. Please try again.',
+          [{ text: 'OK' }]
+        );
+      }
+    } finally {
+      setSending(false);
     }
   };
 
@@ -467,204 +524,258 @@ const chatAI = () => {
           </TouchableOpacity>
         </View>
         
-        {/* panels */}
-        <Animated.View
-          className="bg-slate-100 overflow-hidden mb-1 rounded-b-3xl"
-          style={[animatedTopPanelStyle]}
-        >
-          {/* NEW: Using ItineraryWrapper with real ItineraryTab functionality */}
+        {/* Full screen itinerary */}
+        <View className="flex-1">
           <ItineraryWrapper 
             ref={itineraryWrapperRef}
             trip={trip} 
-            height={topHeight} 
+            height={SCREEN_HEIGHT - HEADER_HEIGHT}
             onTripUpdate={handleTripUpdate}
             onItineraryChange={loadItineraryItems}
           />
-          
-          {/* OLD: DynamicItinerary - kept for rollback */}
-          {/* <DynamicItinerary trip={trip} height={topHeight} /> */}
-        </Animated.View>
-        
-        {/* divider */}
-        <PanGestureHandler onGestureEvent={gestureHandler}>
-            <Animated.View className="h-6 bg-transparent items-center justify-center w-full">
-              <View
-                className="h-2.5 rounded-full px-4"
-                  style={{
-                    width: '92%',
-                    alignSelf: 'center',
-                    backgroundColor: '#0B0705',
-                    borderWidth: 1,
-                    borderColor: '#0B0705',
-                    shadowColor: '#7C3AED',
-                    shadowOpacity: 0.8,
-                    shadowRadius: 15,
-                    shadowOffset: { width: 0, height: 2 },
-                    elevation: 4,
-                  }}
-              />
-            </Animated.View>
-        </PanGestureHandler>
+        </View>
 
-        {/* chat interface */}
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          keyboardVerticalOffset={HEADER_HEIGHT}
-          className="flex-1 w-full"
+        {/* Floating AI Chat Button */}
+        <TouchableOpacity
+          onPress={toggleChatModal}
+          style={{
+            position: 'absolute',
+            bottom: 35,
+            right: 24,
+            zIndex: 1000,
+            paddingHorizontal: 16,
+            paddingVertical: 12,
+            borderRadius: 25,
+            backgroundColor: '#F7374F',
+            justifyContent: 'center',
+            alignItems: 'center',
+            shadowColor: '#F7374F',
+            shadowOffset: { width: 0, height: 0 },
+            shadowOpacity: 0.45,
+            shadowRadius: 8,
+            elevation: 15,
+            flexDirection: 'row',
+            gap: 8,
+          }}
         >
-          <View className="flex-1 bg-primaryBG overflow-hidden justify-end mt-1 rounded-t-3xl"> 
-            {/* chat messages area */}
-            <ScrollView
-              ref={scrollViewRef}
-              className="flex-1 px-4 pb-4 w-full"
-              contentContainerStyle={{ justifyContent: 'flex-end', flexGrow: 1 }}
-              onContentSizeChange={() => scrollViewRef.current?.scrollToEnd({ animated: true })}
-              bounces={false}
-              alwaysBounceVertical={false}
-              overScrollMode="never"
-            >
-              {loading && messages.length === 0 ? (
-                <View className="flex-1 justify-center items-center">
-                  <Text className="text-secondaryFont">Loading chat...</Text>
-                </View>
-              ) : error ? (
-                <View className="flex-1 justify-center items-center">
-                  <Text className="text-red-400 text-center">{error}</Text>
-                </View>
-              ) : (
-                messages
-                  .filter((msg) => msg.role !== 'system')
-                  .map((msg) => (
-                  <View key={msg.id} className={`w-full items-${msg.role === 'user' ? 'end' : 'start'} mb-4`}>
-                    <View className={`rounded-2xl px-4 py-3 max-w-[90%] ${msg.role === 'user' ? 'bg-accentFont' : 'bg-secondaryBG'}` }>
-                      {msg.role === 'assistant' ? (
-                        <>
-                          {/* Check if message has structured data */}
-                          {msg.structured_data ? (
-                            <StructuredResponse
-                              data={JSON.parse(msg.structured_data)}
-                              onAddToItinerary={handleAddToItinerary}
-                            />
-                          ) : (
-                            <Markdown
-                              style={{
-                                body: { color: '#FFFFFF', fontSize: 16 },
-                                strong: { color: '#FFFFFF', fontWeight: 'bold' },
-                                em: { color: '#FFFFFF', fontStyle: 'italic' },
-                                text: { color: '#FFFFFF' },
-                                paragraph: { marginBottom: 8 },
-                                list: { color: '#FFFFFF' },
-                                listItem: { color: '#FFFFFF' },
-                                bullet: { color: '#FFFFFF' }
-                              }}
-                            >
-                              {msg.content || ''}
-                            </Markdown>
-                          )}
-                        </>
-                      ) : (
-                        <Text className={`text-base ${msg.role === 'user' ? 'text-primaryBG' : 'text-primaryFont'}`}>
-                          {msg.content || ''}
-                        </Text>
-                      )}
-                    </View>
-                    <Text className="text-xs text-secondaryFont mt-1 ml-2 mr-2">
-                      {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </Text>
-                  </View>
-                ))
-              )}
-              
-              {/* Typing indicator */}
-              {isTyping && (
-                <View className="w-full items-start mb-4">
-                  <View className="rounded-2xl px-4 py-3 bg-secondaryBG">
-                    <Text className="text-base text-primaryFont">
-                      AITA is typing...
-                    </Text>
-                  </View>
-                </View>
-              )}
-              
-              {/* Smart suggestions */}
-              {showSuggestions && suggestions.length > 0 && !loading && (
-                <View className="w-full mb-4">
-                  <Text className="text-sm text-secondaryFont mb-2 ml-2">💡 Suggested questions:</Text>
-                  {suggestions.map((suggestion, index) => (
-                    <TouchableOpacity 
-                      key={index}
-                      className="bg-inputBG rounded-xl px-3 py-2 mb-2 mr-2"
-                      onPress={() => handleSuggestionTap(suggestion)}
-                    >
-                      <Text className="text-primaryFont text-sm">{suggestion}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              )}
-            </ScrollView>
-            
-            {/* Suggestions button - Above input area */}
-            <View className="px-4 py-2 bg-primaryBG/90">
-              <View className="flex-row items-center justify-between">
-                <TouchableOpacity
-                  onPress={handleGenerateSuggestions}
-                  disabled={loading || !isReady || messages.length === 0}
-                  className={`flex-row items-center px-3 py-2 rounded-xl ${
-                    loading || !isReady || messages.length === 0 
-                      ? 'bg-blue-950' 
-                      : 'bg-accentFont'
-                  }`}
-                >
-                  <Text className={`text-sm font-medium ${
-                    loading || !isReady || messages.length === 0 
-                      ? 'text-gray-400' 
-                      : 'text-primaryBG'
-                  }`}>
-                    💡 Get Suggestions
-                  </Text>
-                </TouchableOpacity>
-                
-                {showSuggestions && suggestions.length > 0 && (
-                  <TouchableOpacity
-                    onPress={() => setShowSuggestions(false)}
-                    className="px-3 py-2 rounded-xl bg-gray-600"
-                  >
-                    <Text className="text-gray-300 text-sm">Hide</Text>
-                  </TouchableOpacity>
-                )}
-              </View>
-            </View>
-            
-            {/* input area */}
-            <View className="bg-primaryBG mb-5">
-              {/* Input row */}
-              <View className="flex-row items-center px-4 py-4">
-                <TextInput
-                  className="flex-1 bg-transparent rounded-2xl px-4 py-4 mr-3 text-base text-primaryFont border border-border"
-                  placeholder={trip?.destination ? `Ask about your trip to ${trip.destination}...` : "Ask AITA anything about your trip..."}
-                  placeholderTextColor="#828282"
-                  returnKeyType="send"
-                  value={input}
-                  onChangeText={setInput}
-                  onSubmitEditing={handleSend}
-                  editable={!loading && isReady}
+          {/* <Ionicons name="chatbubble" size={18} color="white" /> */}
+          <Text style={{ color: 'white', fontSize: 14, fontWeight: '600' }}>
+            {modalVisible ? "Minimize" : "Back to chat"}
+          </Text>
+        </TouchableOpacity>
+
+        {/* Chat Modal - Always visible with drag functionality */}
+        <>
+          {/* Backdrop */}
+          <Animated.View
+            style={[
+              {
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                backgroundColor: 'transparent',
+                zIndex: 2000,
+              },
+              animatedBackdropStyle,
+            ]}
+          >
+            <TouchableOpacity 
+              style={{ flex: 1 }} 
+              onPress={hideChatModal}
+              activeOpacity={1}
+            />
+          </Animated.View>
+
+          {/* Modal Content */}
+          <Animated.View
+            style={[
+              {
+                position: 'absolute',
+                left: 0,
+                right: 0,
+                bottom: 0,
+                backgroundColor: '#666666',
+                borderTopLeftRadius: 20,
+                borderTopRightRadius: 20,
+                zIndex: 2001,
+              },
+              animatedModalStyle,
+            ]}
+          >
+            {/* Modal Handle */}
+            <PanGestureHandler onGestureEvent={modalGestureHandler}>
+              <Animated.View className="items-center py-3 bg-transparent">
+                <View
+                  style={{
+                    width: 40,
+                    height: 4,
+                    backgroundColor: '#9c9a9a',
+                    borderRadius: 2,
+                  }}
                 />
-                {/* send message button */}
-                <TouchableOpacity 
-                  className={`rounded-full px-4 py-4 justify-center items-center ${loading || !isReady ? 'bg-gray-400' : 'bg-primaryFont'}`} 
-                  onPress={handleSend}
-                  disabled={loading || !isReady}
+              </Animated.View>
+            </PanGestureHandler>
+
+            {/* Chat Interface */}
+            <KeyboardAvoidingView
+              behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+              style={{ flex: 1 }}
+            >
+              <View className="flex-1 bg-primaryBG overflow-hidden justify-end rounded-t-3xl">
+                {/* Chat messages area */}
+                <ScrollView
+                  ref={scrollViewRef}
+                  className="flex-1 px-4 pb-4 w-full"
+                  contentContainerStyle={{ justifyContent: 'flex-end', flexGrow: 1 }}
+                  onContentSizeChange={() => scrollViewRef.current?.scrollToEnd({ animated: true })}
+                  bounces={false}
+                  alwaysBounceVertical={false}
+                  overScrollMode="never"
                 >
-                  {loading ? (
-                    <Text className="text-primaryBG text-lg font-bold">...</Text>
+                  {loading && messages.length === 0 ? (
+                    <View className="flex-1 justify-center items-center">
+                      <Text className="text-secondaryFont">Loading chat...</Text>
+                    </View>
+                  ) : error ? (
+                    <View className="flex-1 justify-center items-center">
+                      <Text className="text-red-400 text-center">{error}</Text>
+                    </View>
                   ) : (
-                    <Ionicons name="arrow-up" size={18} color="#000" />
+                    messages
+                      .filter((msg) => msg.role !== 'system')
+                      .map((msg) => (
+                      <View key={msg.id} className={`w-full items-${msg.role === 'user' ? 'end' : 'start'} mb-4`}>
+                        <View className={`rounded-2xl px-4 py-3 max-w-[90%] ${msg.role === 'user' ? 'bg-accentFont' : 'bg-secondaryBG'}` }>
+                          {msg.role === 'assistant' ? (
+                            <>
+                              {/* Check if message has structured data */}
+                              {msg.structured_data ? (
+                                <StructuredResponse
+                                  data={JSON.parse(msg.structured_data)}
+                                  onAddToItinerary={handleAddToItinerary}
+                                />
+                              ) : (
+                                <Markdown
+                                  style={{
+                                    body: { color: '#FFFFFF', fontSize: 16 },
+                                    strong: { color: '#FFFFFF', fontWeight: 'bold' },
+                                    em: { color: '#FFFFFF', fontStyle: 'italic' },
+                                    text: { color: '#FFFFFF' },
+                                    paragraph: { marginBottom: 8 },
+                                    list: { color: '#FFFFFF' },
+                                    listItem: { color: '#FFFFFF' },
+                                    bullet: { color: '#FFFFFF' }
+                                  }}
+                                >
+                                  {msg.content || ''}
+                                </Markdown>
+                              )}
+                            </>
+                          ) : (
+                            <Text className={`text-base ${msg.role === 'user' ? 'text-primaryBG' : 'text-primaryFont'}`}>
+                              {msg.content || ''}
+                            </Text>
+                          )}
+                        </View>
+                        <Text className="text-xs text-secondaryFont mt-1 ml-2 mr-2">
+                          {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </Text>
+                      </View>
+                    ))
                   )}
-                </TouchableOpacity>
+                  
+                  {/* Typing indicator */}
+                  {isTyping && (
+                    <View className="w-full items-start mb-4">
+                      <View className="rounded-2xl px-4 py-3 bg-secondaryBG">
+                        <Text className="text-base text-primaryFont">
+                          AITA is typing...
+                        </Text>
+                      </View>
+                    </View>
+                  )}
+                  
+                  {/* Smart suggestions */}
+                  {showSuggestions && suggestions.length > 0 && !loading && (
+                    <View className="w-full mb-4">
+                      <Text className="text-sm text-secondaryFont mb-2 ml-2">💡 Suggested questions:</Text>
+                      {suggestions.map((suggestion, index) => (
+                        <TouchableOpacity 
+                          key={index}
+                          className="bg-inputBG rounded-xl px-3 py-2 mb-2 mr-2"
+                          onPress={() => handleSuggestionTap(suggestion)}
+                        >
+                          <Text className="text-primaryFont text-sm">{suggestion}</Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  )}
+                </ScrollView>
+                
+                {/* Suggestions button - Above input area */}
+                <View className="px-4 py-2 bg-primaryBG/90">
+                  <View className="flex-row items-center justify-between">
+                    <TouchableOpacity
+                      onPress={handleGenerateSuggestions}
+                      disabled={loading || !isReady || messages.length === 0}
+                      className={`flex-row items-center px-3 py-2 rounded-xl ${
+                        loading || !isReady || messages.length === 0 
+                          ? 'bg-blue-950' 
+                          : 'bg-accentFont'
+                      }`}
+                    >
+                      <Text className={`text-sm font-medium ${
+                        loading || !isReady || messages.length === 0 
+                          ? 'text-gray-400' 
+                          : 'text-primaryBG'
+                      }`}>
+                        💡 Get Suggestions
+                      </Text>
+                    </TouchableOpacity>
+                    
+                    {showSuggestions && suggestions.length > 0 && (
+                      <TouchableOpacity
+                        onPress={() => setShowSuggestions(false)}
+                        className="px-3 py-2 rounded-xl bg-gray-600"
+                      >
+                        <Text className="text-gray-300 text-sm">Hide</Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                </View>
+                
+                {/* Input area */}
+                <View className="bg-primaryBG mb-5">
+                  <View className="flex-row items-center px-4 py-4">
+                    <TextInput
+                      className="flex-1 bg-transparent rounded-2xl px-4 py-4 mr-3 text-base text-primaryFont border border-border"
+                      placeholder={trip?.destination ? `Ask about your trip to ${trip.destination}...` : "Ask AITA anything about your trip..."}
+                      placeholderTextColor="#828282"
+                      returnKeyType="send"
+                      value={input}
+                      onChangeText={setInput}
+                      onSubmitEditing={handleSend}
+                      editable={!loading && isReady && !sending}
+                    />
+                    <TouchableOpacity 
+                      className={`rounded-full px-4 py-4 justify-center items-center ${loading || !isReady || sending ? 'bg-gray-400' : 'bg-primaryFont'}`} 
+                      onPress={handleSend}
+                      disabled={loading || !isReady || sending}
+                    >
+                      {loading || sending ? (
+                        <Text className="text-primaryBG text-lg font-bold">...</Text>
+                      ) : (
+                        <Ionicons name="arrow-up" size={18} color="#000" />
+                      )}
+                    </TouchableOpacity>
+                  </View>
+                </View>
               </View>
-            </View>
-          </View>
-        </KeyboardAvoidingView>
+            </KeyboardAvoidingView>
+          </Animated.View>
+        </>
 
         {/* Add to Itinerary Modal */}
         <AddToItineraryModal
