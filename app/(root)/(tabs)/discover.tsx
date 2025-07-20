@@ -1,6 +1,10 @@
 import { Ionicons } from '@expo/vector-icons'
-import React, { useEffect, useState } from 'react'
-import { ActivityIndicator, Alert, FlatList, Image, Modal, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { LinearGradient } from 'expo-linear-gradient'
+import React, { useEffect, useRef, useState } from 'react'
+import { ActivityIndicator, Alert, Dimensions, Image, Modal, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { GestureHandlerRootView, PanGestureHandler } from 'react-native-gesture-handler'
+import MapView, { Marker } from 'react-native-maps'
+import Animated, { runOnJS, useAnimatedGestureHandler, useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import PlaceDetailModal from '../../../components/PlaceDetailModal'
 import SearchCategories from '../../../components/SearchCategories'
@@ -10,6 +14,14 @@ import { GooglePlace, googlePlacesService } from '../../../lib/services/googlePl
 import { CreateSavedPlaceInput, SavedPlace, savedPlacesService } from '../../../lib/services/savedPlacesService'
 import { supabase } from '../../../lib/supabase'
 
+// Constants for draggable modal
+const SCREEN_HEIGHT = Dimensions.get('window').height
+const MODAL_MIN_HEIGHT = 80 // Minimum visible height (handle + some content)
+const MODAL_MAX_HEIGHT = SCREEN_HEIGHT * 0.7 // Leave space for navigation
+const MODAL_DEFAULT_HEIGHT = 500 // Start with higher height for better UX
+const MODAL_COLLAPSED_HEIGHT = 80 // Height when collapsed but still visible
+const BOTTOM_TAB_HEIGHT = 84 // Approximate height of bottom navigation
+
 const DiscoverScreen = () => {
   // PlaceDetailModal state
   const [placeDetailModalVisible, setPlaceDetailModalVisible] = useState(false);
@@ -18,12 +30,24 @@ const DiscoverScreen = () => {
   const [searchResults, setSearchResults] = useState<GooglePlace[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [savedPlaces, setSavedPlaces] = useState<string[]>([])
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const [trips, setTrips] = useState<any[]>([])
   const [user, setUser] = useState<any>(null)
   const [recentSearches, setRecentSearches] = useState<string[]>([])
   // Modal state for trip selection
   const [tripModalVisible, setTripModalVisible] = useState(false)
   const [placeToSave, setPlaceToSave] = useState<GooglePlace | null>(null)
+  
+  // Modal state for bottom categories
+  const [categoriesModalVisible, setCategoriesModalVisible] = useState(true)
+  const [modalHeight, setModalHeight] = useState(MODAL_DEFAULT_HEIGHT)
+  const [isModalCollapsed, setIsModalCollapsed] = useState(false)
+  
+  // Animated values for draggable modal
+  const modalHeightAnimated = useSharedValue(MODAL_DEFAULT_HEIGHT)
+  
+  // Map reference for controlling the map
+  const mapRef = useRef<MapView>(null)
   
   // Filter state
   const [filterModalVisible, setFilterModalVisible] = useState(false)
@@ -68,11 +92,98 @@ const DiscoverScreen = () => {
     ]
   }
 
+  // Function to update modal height from animated value
+  const updateModalHeight = (newHeight: number) => {
+    setModalHeight(newHeight)
+  }
+
+  // Modal gesture handler for resizing
+  const modalGestureHandler = useAnimatedGestureHandler({
+    onStart: (_, context: { startHeight: number }) => {
+      context.startHeight = modalHeightAnimated.value
+    },
+    onActive: (event, context: { startHeight: number }) => {
+      const newHeight = context.startHeight - event.translationY
+      const constrainedHeight = Math.max(MODAL_MIN_HEIGHT, Math.min(newHeight, MODAL_MAX_HEIGHT))
+      modalHeightAnimated.value = constrainedHeight
+    },
+    onEnd: () => {
+      const finalHeight = modalHeightAnimated.value
+      
+      // If dragged below collapse threshold, collapse to minimum height
+      if (finalHeight < MODAL_COLLAPSED_HEIGHT + 20) {
+        modalHeightAnimated.value = withSpring(MODAL_COLLAPSED_HEIGHT, { damping: 20, stiffness: 90 })
+        runOnJS(setIsModalCollapsed)(true)
+        runOnJS(updateModalHeight)(MODAL_COLLAPSED_HEIGHT)
+      } else {
+        // Snap to reasonable height and ensure it's expanded
+        const targetHeight = finalHeight < MODAL_DEFAULT_HEIGHT ? MODAL_DEFAULT_HEIGHT : finalHeight
+        modalHeightAnimated.value = withSpring(targetHeight, { damping: 20, stiffness: 90 })
+        runOnJS(setIsModalCollapsed)(false)
+        runOnJS(updateModalHeight)(targetHeight)
+      }
+    },
+  })
+
+  // Animated style for the modal
+  const animatedModalStyle = useAnimatedStyle(() => {
+    return {
+      height: modalHeightAnimated.value,
+    }
+  })
+
+  // Show/hide modal functions
+  const showCategoriesModal = () => {
+    setCategoriesModalVisible(true)
+    setIsModalCollapsed(false)
+    const targetHeight = modalHeight > MODAL_COLLAPSED_HEIGHT ? modalHeight : MODAL_DEFAULT_HEIGHT
+    modalHeightAnimated.value = withSpring(targetHeight, { damping: 20, stiffness: 90 })
+  }
+
+  const hideCategoriesModal = () => {
+    modalHeightAnimated.value = withSpring(0, { damping: 20, stiffness: 90 })
+    setTimeout(() => {
+      setCategoriesModalVisible(false)
+      setIsModalCollapsed(false)
+    }, 300)
+  }
+
+  const expandModal = () => {
+    setIsModalCollapsed(false)
+    modalHeightAnimated.value = withSpring(MODAL_DEFAULT_HEIGHT, { damping: 20, stiffness: 90 })
+    setModalHeight(MODAL_DEFAULT_HEIGHT)
+  }
+
+  const collapseModal = () => {
+    setIsModalCollapsed(true)
+    modalHeightAnimated.value = withSpring(MODAL_COLLAPSED_HEIGHT, { damping: 20, stiffness: 90 })
+    setModalHeight(MODAL_COLLAPSED_HEIGHT)
+  }
+
+  const fitMarkersToMap = () => {
+    if (mapRef.current && searchResults.length > 0) {
+      const coordinates = searchResults.map(place => ({
+        latitude: place.geometry.location.lat,
+        longitude: place.geometry.location.lng,
+      }));
+      
+      mapRef.current.fitToCoordinates(coordinates, {
+        edgePadding: { top: 100, right: 50, bottom: 300, left: 50 },
+        animated: true,
+      });
+    }
+  }
+
   useEffect(() => {
     getCurrentUser()
     loadSavedPlaces()
     loadRecentSearches()
     loadTrips()
+    
+    // Initialize modal animation
+    if (categoriesModalVisible) {
+      modalHeightAnimated.value = MODAL_DEFAULT_HEIGHT
+    }
   }, [])
 
   const loadTrips = async () => {
@@ -267,63 +378,64 @@ const DiscoverScreen = () => {
     
     return (
       <TouchableOpacity 
-        className="bg-secondaryBG rounded-lg p-4 mb-3 border border-border"
+        key={item.place_id}
+        className="bg-white/5 rounded-xl p-3 mb-3 border border-white/10"
+        style={{ width: '48%' }}
         onPress={() => {
           setSelectedPlaceDetail(item);
           setPlaceDetailModalVisible(true);
         }}
       >
-        <View className="flex-row items-start">
-          {/* Place Image */}
-          <View className="w-20 h-20 rounded-lg mr-3 bg-inputBG justify-center items-center">
-            {item.photos && item.photos.length > 0 ? (
-              <Image
-                source={{ uri: getPhotoUrl(item.photos[0].photo_reference) }}
-                className="w-full h-full rounded-lg"
-                resizeMode="cover"
-              />
-            ) : (
-              <Ionicons name="image-outline" size={24} color={colors.secondaryFont} />
-            )}
-          </View>
-
-          {/* Place Details */}
-          <View className="flex-1">
-            <Text className="text-primaryFont font-semibold text-lg mb-1" numberOfLines={2}>
-              {item.name}
-            </Text>
-            <Text className="text-secondaryFont text-sm mb-2" numberOfLines={2}>
-              {item.formatted_address}
-            </Text>
-            {/* Rating */}
-            {item.rating && (
-              <View className="flex-row items-center mb-2">
-                <View className="flex-row mr-2">
-                  {getRatingStars(item.rating)}
-                </View>
-                <Text className="text-secondaryFont text-sm">
-                  {item.rating} ({item.user_ratings_total || 0} reviews)
-                </Text>
-              </View>
-            )}
-            {/* Place Type */}
-            <Text className="text-accentFont text-sm capitalize">
-              {item.types[0]?.replace(/_/g, ' ')}
-            </Text>
-          </View>
-
-          {/* Save Button */}
-          <TouchableOpacity
-            onPress={() => handleSavePlace(item)}
-            className={`p-2 rounded-lg ${isPlaceSaved ? 'bg-accentFont' : 'bg-inputBG'} self-start`}
-          >
-            <Ionicons
-              name={isPlaceSaved ? "heart" : "heart-outline"}
-              size={20}
-              color={isPlaceSaved ? colors.primaryFont : colors.secondaryFont}
+        {/* Place Image */}
+        <View className="w-full h-32 rounded-lg mb-2 bg-white/10 justify-center items-center">
+          {item.photos && item.photos.length > 0 ? (
+            <Image
+              source={{ uri: getPhotoUrl(item.photos[0].photo_reference) }}
+              className="w-full h-full rounded-lg"
+              resizeMode="cover"
             />
-          </TouchableOpacity>
+          ) : (
+            <Ionicons name="image-outline" size={28} color="rgba(255,255,255,0.5)" />
+          )}
         </View>
+
+        {/* Place Details */}
+        <View className="flex-1">
+          <Text className="text-white font-semibold text-base mb-1" numberOfLines={2}>
+            {item.name}
+          </Text>
+          
+          {/* Rating */}
+          {item.rating && (
+            <View className="flex-row items-center mb-1">
+              <View className="flex-row mr-1">
+                {getRatingStars(item.rating)}
+              </View>
+              <Text className="text-gray-300 text-xs">
+                {item.rating}
+              </Text>
+            </View>
+          )}
+          
+          {/* Place Type */}
+          <Text className="text-blue-300 text-xs capitalize mb-2">
+            {item.types[0]?.replace(/_/g, ' ')}
+          </Text>
+        </View>
+
+        {/* Save Button */}
+        <TouchableOpacity
+          onPress={() => handleSavePlace(item)}
+          className={`absolute top-2 right-2 p-1.5 rounded-full ${
+            isPlaceSaved ? 'bg-red-500' : 'bg-white/20'
+          }`}
+        >
+          <Ionicons
+            name={isPlaceSaved ? "heart" : "heart-outline"}
+            size={16}
+            color={isPlaceSaved ? "white" : "rgba(255,255,255,0.7)"}
+          />
+        </TouchableOpacity>
       </TouchableOpacity>
     )
   }
@@ -341,128 +453,239 @@ const DiscoverScreen = () => {
   )
 
   return (
-    <SafeAreaView className="flex-1 bg-primaryBG">
-      <View className="flex-1 px-4">
-        {/* PlaceDetailModal Integration (moved to top level) */}
-        <PlaceDetailModal
-          visible={placeDetailModalVisible}
-          place={selectedPlaceDetail}
-          onClose={() => {
-            setPlaceDetailModalVisible(false);
-            setSelectedPlaceDetail(null);
-          }}
-          getPhotoUrl={getPhotoUrl}
-        />
-        {/* Header */}
-        <View className="flex-row justify-between items-center py-4">
-          <Text className="text-primaryFont text-2xl font-BellezaRegular">Discover</Text>
-          <TouchableOpacity
-            onPress={() => setFilterModalVisible(true)}
-            className="relative"
-          >
-            <Ionicons name="filter" size={24} color={colors.primaryFont} />
-            {getActiveFiltersCount() > 0 && (
-              <View className="absolute -top-2 -right-2 bg-accentFont rounded-full w-5 h-5 justify-center items-center">
-                <Text className="text-white text-xs font-bold">
-                  {getActiveFiltersCount()}
-                </Text>
-              </View>
-            )}
-          </TouchableOpacity>
-        </View>
-
-        {/* Search Bar */}
-        <View className="flex-row items-center bg-inputBG rounded-lg px-4 py-3 mb-4">
-          <Ionicons name="search" size={20} color={colors.secondaryFont} />
-          <TextInput
-            value={searchQuery}
-            onChangeText={(text) => {
-              setSearchQuery(text)
-              // Clear results when search query is empty
-              if (text.trim() === '') {
-                setSearchResults([])
-              }
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <View className="flex-1 bg-primaryBG">
+          {/* PlaceDetailModal Integration */}
+          <PlaceDetailModal
+            visible={placeDetailModalVisible}
+            place={selectedPlaceDetail}
+            onClose={() => {
+              setPlaceDetailModalVisible(false);
+              setSelectedPlaceDetail(null);
             }}
-            placeholder="Search for places..."
-            placeholderTextColor={colors.secondaryFont}
-            className="flex-1 text-primaryFont ml-3"
-            onSubmitEditing={() => handleSearch(searchQuery)}
+            getPhotoUrl={getPhotoUrl}
           />
-          {searchQuery.length > 0 && (
-            <TouchableOpacity onPress={() => {
-              setSearchQuery('')
-              setSearchResults([])
-            }}>
-              <Ionicons name="close" size={20} color={colors.secondaryFont} />
+          
+          {/* Full Screen Map */}
+          <MapView
+            ref={mapRef}
+            style={{ flex: 1 }}
+            initialRegion={{
+              latitude: 37.78825,
+              longitude: -122.4324,
+              latitudeDelta: 0.0922,
+              longitudeDelta: 0.0421,
+            }}
+          >
+            {/* Map Markers for Search Results */}
+            {searchResults.map((place) => (
+              <Marker
+                key={place.place_id}
+                coordinate={{
+                  latitude: place.geometry.location.lat,
+                  longitude: place.geometry.location.lng,
+                }}
+                title={place.name}
+                description={place.formatted_address}
+                onPress={() => {
+                  setSelectedPlaceDetail(place);
+                  setPlaceDetailModalVisible(true);
+                }}
+              />
+            ))}
+          </MapView>
+          
+          {/* Floating Search Bar and Filter - Overlay on Map */}
+          <View className="absolute left-4 right-4 z-10" style={{ top: 60 }}>
+            {/* Search Bar with Filter */}
+            <View className="flex-row items-center space-x-5">
+              <View className="flex-1 flex-row items-center bg-primaryBG/70 backdrop-blur-sm rounded-lg px-4 py-3 shadow-lg">
+                <Ionicons name="search" size={20} color={colors.secondaryFont} />
+                <TextInput
+                  value={searchQuery}
+                  onChangeText={(text) => {
+                    setSearchQuery(text)
+                    if (text.trim() === '') {
+                      setSearchResults([])
+                      setSelectedCategory(null)
+                    } else {
+                      // Clear selected category when manually typing
+                      setSelectedCategory(null)
+                    }
+                  }}
+                  placeholder="Search for places..."
+                  placeholderTextColor={colors.secondaryFont}
+                  className="flex-1 text-primaryFont ml-3"
+                  onSubmitEditing={() => handleSearch(searchQuery)}
+                />
+                {searchQuery.length > 0 && (
+                  <TouchableOpacity onPress={() => {
+                    setSearchQuery('')
+                    setSearchResults([])
+                    setSelectedCategory(null)
+                  }}>
+                    <Ionicons name="close" size={20} color={colors.secondaryFont} />
+                  </TouchableOpacity>
+                )}
+              </View>
+              
+              {/* Filter Button */}
+              <TouchableOpacity
+                onPress={() => setFilterModalVisible(true)}
+                className="relative bg-primaryBG/70 backdrop-blur-sm p-3 ml-3 rounded-lg shadow-lg"
+              >
+                <Ionicons name="filter" size={20} color={colors.secondaryFont} />
+                {getActiveFiltersCount() > 0 && (
+                  <View className="absolute -top-2 -right-2 bg-accentFont rounded-full w-5 h-5 justify-center items-center">
+                    <Text className="text-white text-xs font-bold">
+                      {getActiveFiltersCount()}
+                    </Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Floating Categories Button */}
+          {(!categoriesModalVisible || isModalCollapsed) && (
+            <TouchableOpacity
+              onPress={() => isModalCollapsed ? expandModal() : showCategoriesModal()}
+              className="absolute bottom-6 right-4 bg-accentFont rounded-full w-14 h-14 justify-center items-center shadow-lg"
+              style={{
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.3,
+                shadowRadius: 8,
+                elevation: 8,
+                bottom: BOTTOM_TAB_HEIGHT + 24, // Position above navigation
+              }}
+            >
+              <Ionicons name="grid" size={24} color="white" />
             </TouchableOpacity>
           )}
-        </View>
 
-        {/* Search Categories */}
-        {searchResults.length === 0 && !isLoading && (
-          <SearchCategories onCategorySelect={(query) => {
-            setSearchQuery(query)
-            handleSearch(query)
-          }} />
-        )}
+          {/* Draggable Bottom Categories Modal */}
+          {categoriesModalVisible && (
+            <Animated.View
+              style={[
+                {
+                  position: 'absolute',
+                  left: 0,
+                  right: 0,
+                  bottom: 0, // Start from the very bottom of the screen
+                  borderTopLeftRadius: 20,
+                  borderTopRightRadius: 20,
+                  zIndex: 1000,
+                  shadowColor: '#000',
+                  shadowOffset: { width: 0, height: -4 },
+                  shadowOpacity: 0.25,
+                  shadowRadius: 12,
+                  elevation: 20,
+                  overflow: 'hidden',
+                },
+                animatedModalStyle,
+              ]}
+            >
+              {/* Background Gradient */}
+              <LinearGradient
+                colors={['rgba(15, 20, 31, 0.98)', 'rgba(24, 32, 45, 0.98)', 'rgba(12, 17, 26, 0.99)']}
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                }}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 0, y: 1 }}
+              />
 
-        {/* Recent Searches */}
-        {searchResults.length === 0 && !isLoading && (
-          <View className="mb-4">
-            <Text className="text-primaryFont text-lg font-semibold mb-3">Recent Searches</Text>
-            <FlatList
-              data={recentSearches}
-              renderItem={renderRecentSearch}
-              keyExtractor={(item) => item}
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ paddingHorizontal: 4 }}
-            />
-          </View>
-        )}
+              {/* Draggable Handle */}
+              <PanGestureHandler onGestureEvent={modalGestureHandler}>
+                <Animated.View className="items-center py-3 bg-transparent relative">
+                  <View
+                    style={{
+                      width: 40,
+                      height: 4,
+                      backgroundColor: '#9CA3AF',
+                      borderRadius: 2,
+                      marginBottom: 4,
+                    }}
+                  />
+                  {isModalCollapsed && (
+                    <TouchableOpacity
+                      onPress={expandModal}
+                      className="flex-row items-center px-4 py-2 bg-white/10 rounded-full mt-2"
+                    >
+                      <Text className="text-white text-sm font-medium mr-2">Explore Places</Text>
+                      <Ionicons name="chevron-up" size={16} color="white" />
+                    </TouchableOpacity>
+                  )}
+                </Animated.View>
+              </PanGestureHandler>
+              
+              {/* Modal Content - Hidden when collapsed */}
+              {!isModalCollapsed && (
+                <ScrollView 
+                  className="flex-1 px-4 pb-2" 
+                  style={{ paddingBottom: BOTTOM_TAB_HEIGHT }}
+                  showsVerticalScrollIndicator={false}
+                  bounces={false}
+                >
+                  {/* Categories Header */}
+                  <View className="mb-3">
+                    <Text className="text-white text-xl font-semibold text-center">
+                      Explore Places
+                    </Text>
+                    <Text className="text-gray-300 text-sm text-center mt-1">
+                      Discover amazing locations around you
+                    </Text>
+                  </View>
 
-        {/* Loading */}
-        {isLoading && (
-          <View className="flex-1 justify-center items-center">
-            <ActivityIndicator size="large" color={colors.accentFont} />
-            <Text className="text-secondaryFont mt-2">Searching places...</Text>
-          </View>
-        )}
+                {/* Categories Content */}
+                <SearchCategories 
+                  selectedCategory={selectedCategory}
+                  onCategorySelect={(query, categoryId) => {
+                    setSearchQuery(query)
+                    setSelectedCategory(categoryId)
+                    handleSearch(query)
+                  }} 
+                />
+                
+                {/* Search Results in Modal if any */}
+                {searchResults.length > 0 && !isLoading && (
+                  <View className="mt-4">
+                    {/* <Text className="text-white text-lg font-semibold mb-3">Search Results</Text> */}
+                    <View className="flex-row flex-wrap justify-between">
+                      {searchResults.slice(0, 6).map((item, index) => (
+                        renderSearchResult({ item })
+                      ))}
+                    </View>
+                    <TouchableOpacity 
+                      className="bg-accentFont rounded-lg py-3 items-center mt-4"
+                      onPress={() => {
+                        collapseModal();
+                        // Fit all markers in the map view
+                        setTimeout(() => fitMarkersToMap(), 300);
+                      }}
+                    >
+                      <Text className="text-white font-semibold">View All Results on Map ({searchResults.length})</Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+                
+                {/* Loading */}
+                {isLoading && (
+                  <View className="items-center py-8">
+                    <ActivityIndicator size="large" color={colors.accentFont} />
+                    <Text className="text-gray-300 mt-2">Searching places...</Text>
+                  </View>
+                )}
+              </ScrollView>
+              )}
+            </Animated.View>
+          )}
 
-        {/* Search Results */}
-        {searchResults.length > 0 && !isLoading && (
-          <FlatList
-            data={searchResults}
-            renderItem={renderSearchResult}
-            keyExtractor={(item) => item.place_id}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ paddingBottom: 20 }}
-          />
-        )}
-
-        {/* No Results */}
-        {searchResults.length === 0 && !isLoading && searchQuery.length > 0 && (
-          <View className="flex-1 justify-center items-center">
-            <Ionicons name="search-outline" size={64} color={colors.secondaryFont} />
-            <Text className="text-secondaryFont text-lg mt-4">No places found</Text>
-            <Text className="text-secondaryFont text-center mt-2">
-              Try searching for restaurants, hotels, or attractions
-            </Text>
-          </View>
-        )}
-
-        {/* Welcome Message */}
-        {searchResults.length === 0 && !isLoading && searchQuery.length === 0 && (
-          <View className="flex-1 justify-center items-center px-8">
-            <Ionicons name="compass-outline" size={64} color={colors.accentFont} />
-            <Text className="text-primaryFont text-xl font-semibold mt-4 text-center">
-              Discover Amazing Places
-            </Text>
-            <Text className="text-secondaryFont text-center mt-2">
-              Search for restaurants, hotels, attractions, and more. Save your favorite places for easy access.
-            </Text>
-          </View>
-        )}
         {/* TripSelectModal Integration */}
         <TripSelectModal
           visible={tripModalVisible}
@@ -677,8 +900,8 @@ const DiscoverScreen = () => {
             </View>
           </SafeAreaView>
         </Modal>
-      </View>
-    </SafeAreaView>
+        </View>
+    </GestureHandlerRootView>
   )
 }
 

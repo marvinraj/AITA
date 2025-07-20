@@ -1,57 +1,55 @@
-import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
-import { colors } from '../constants/colors';
 
 export interface SearchCategory {
   id: string;
   name: string;
-  icon: keyof typeof Ionicons.glyphMap;
   query: string;
 }
 
 interface SearchCategoriesProps {
-  onCategorySelect: (query: string) => void;
+  selectedCategory?: string | null;
+  onCategorySelect: (query: string, categoryId: string) => void;
 }
 
 const searchCategories: SearchCategory[] = [
-  { id: 'restaurants', name: 'Restaurants', icon: 'restaurant', query: 'restaurants' },
-  { id: 'hotels', name: 'Hotels', icon: 'bed', query: 'hotels' },
-  { id: 'attractions', name: 'Attractions', icon: 'camera', query: 'tourist attractions' },
-  { id: 'shopping', name: 'Shopping', icon: 'bag', query: 'shopping malls' },
-  { id: 'entertainment', name: 'Entertainment', icon: 'musical-notes', query: 'entertainment' },
-  { id: 'museums', name: 'Museums', icon: 'library', query: 'museums' },
-  { id: 'parks', name: 'Parks', icon: 'leaf', query: 'parks' },
-  { id: 'cafes', name: 'Cafes', icon: 'cafe', query: 'cafes' },
+  { id: 'restaurants', name: 'Restaurants', query: 'restaurants' },
+  { id: 'hotels', name: 'Hotels', query: 'hotels' },
+  { id: 'attractions', name: 'Attractions', query: 'tourist attractions' },
+  { id: 'shopping', name: 'Shopping', query: 'shopping malls' },
+  { id: 'entertainment', name: 'Entertainment', query: 'entertainment' },
+  { id: 'museums', name: 'Museums', query: 'museums' },
+  { id: 'parks', name: 'Parks', query: 'parks' },
+  { id: 'cafes', name: 'Cafes', query: 'cafes' },
 ];
 
-export default function SearchCategories({ onCategorySelect }: SearchCategoriesProps) {
+export default function SearchCategories({ selectedCategory, onCategorySelect }: SearchCategoriesProps) {
   return (
     <View className="mb-4">
-      <Text className="text-primaryFont text-lg font-semibold mb-3">Browse Categories</Text>
+      {/* <Text className="text-white text-lg font-semibold mb-3">Browse Categories</Text> */}
       <ScrollView 
         horizontal 
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={{ paddingHorizontal: 4 }}
       >
-        {searchCategories.map((category) => (
-          <TouchableOpacity
-            key={category.id}
-            onPress={() => onCategorySelect(category.query)}
-            className="items-center mr-4 bg-inputBG rounded-lg p-3 min-w-[80px]"
-          >
-            <View className="w-12 h-12 rounded-full bg-accentFont/20 items-center justify-center mb-2">
-              <Ionicons 
-                name={category.icon} 
-                size={24} 
-                color={colors.accentFont} 
-              />
-            </View>
-            <Text className="text-primaryFont text-xs text-center font-medium">
-              {category.name}
-            </Text>
-          </TouchableOpacity>
-        ))}
+        {searchCategories.map((category) => {
+          const isSelected = selectedCategory === category.id;
+          return (
+            <TouchableOpacity
+              key={category.id}
+              onPress={() => onCategorySelect(category.query, category.id)}
+              className={`items-center mr-3 rounded-lg px-4 py-3 ${
+                isSelected ? 'bg-blue-500' : 'bg-white/10'
+              }`}
+            >
+              <Text className={`text-sm text-center font-medium ${
+                isSelected ? 'text-white' : 'text-white'
+              }`}>
+                {category.name}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
       </ScrollView>
     </View>
   );
