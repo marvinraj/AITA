@@ -511,27 +511,63 @@ const chatAI = () => {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <View className="flex-1 bg-primaryBG">
-        {/* header */}
-        <View className="flex-row justify-between px-4 bg-primaryBG pt-4 border-b-2 border-border/50" style={{ height: HEADER_HEIGHT }}>
-          <TouchableOpacity onPress={handleBackNavigation}>
-            <Ionicons name="arrow-back" size={24} color="#fff" />
+        {/* Transparent header with bubble elements */}
+        <View className="absolute top-0 left-0 right-0 z-50 flex-row justify-between items-center px-4 pt-4 pb-4" style={{ height: HEADER_HEIGHT + 32 }}>
+          {/* Back button in circular background */}
+          <TouchableOpacity 
+            onPress={handleBackNavigation}
+            className="w-10 h-10 rounded-full bg-secondaryBG/30 backdrop-blur-sm justify-center items-center"
+            style={{
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.25,
+              shadowRadius: 3.84,
+              elevation: 5,
+            }}
+          >
+            <Ionicons name="arrow-back" size={20} color="#fff" />
           </TouchableOpacity>
-          <Text className="font-InterBold text-xl text-primaryFont">
-            {tripLoading ? 'Loading...' : trip?.destination || 'AI Assistant'}
-          </Text>
-          <TouchableOpacity onPress={handleOpenEditTripModal}>
-            <Ionicons name="ellipsis-horizontal" size={24} color="#fff" />
+          
+          {/* Destination in bubble background */}
+          <View 
+            className="bg-secondaryBG/20 backdrop-blur-sm rounded-full px-4 py-2 flex-1 mx-3 justify-center items-center"            style={{
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 6 },
+              shadowOpacity: 0.25,
+              shadowRadius: 3.84,
+              elevation: 5,
+            }}
+          >
+            <Text className="font-InterBold text-sm text-white text-center" numberOfLines={1} ellipsizeMode="tail">
+              {tripLoading ? 'Loading...' : trip?.destination || 'AI Assistant'}
+            </Text>
+          </View>
+          
+          {/* Menu button in circular background */}
+          <TouchableOpacity 
+            onPress={handleOpenEditTripModal}
+            className="w-10 h-10 rounded-full bg-secondaryBG/30 backdrop-blur-sm justify-center items-center"
+            style={{
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.25,
+              shadowRadius: 3.84,
+              elevation: 5,
+            }}
+          >
+            <Ionicons name="ellipsis-horizontal" size={20} color="#fff" />
           </TouchableOpacity>
         </View>
         
-        {/* Full screen itinerary */}
+        {/* Full screen itinerary with transparent header overlay */}
         <View className="flex-1">
           <ItineraryWrapper 
             ref={itineraryWrapperRef}
             trip={trip} 
-            height={SCREEN_HEIGHT - HEADER_HEIGHT}
+            height={SCREEN_HEIGHT}
             onTripUpdate={handleTripUpdate}
             onItineraryChange={loadItineraryItems}
+            hasOverlayHeader={true}
           />
         </View>
 
@@ -596,7 +632,7 @@ const chatAI = () => {
                 left: 0,
                 right: 0,
                 bottom: 0,
-                backgroundColor: '#666666',
+                backgroundColor: '#e3dede',
                 borderTopLeftRadius: 20,
                 borderTopRightRadius: 20,
                 zIndex: 2001,
@@ -606,7 +642,7 @@ const chatAI = () => {
           >
             {/* Modal Handle */}
             <PanGestureHandler onGestureEvent={modalGestureHandler}>
-              <Animated.View className="items-center py-3 bg-transparent">
+              <Animated.View className="items-center py-2 bg-transparent">
                 <View
                   style={{
                     width: 40,
@@ -627,7 +663,7 @@ const chatAI = () => {
                 {/* Chat messages area */}
                 <ScrollView
                   ref={scrollViewRef}
-                  className="flex-1 px-4 pb-4 w-full"
+                  className="flex-1 px-4 pb-4 pt-4 w-full"
                   contentContainerStyle={{ justifyContent: 'flex-end', flexGrow: 1 }}
                   onContentSizeChange={() => scrollViewRef.current?.scrollToEnd({ animated: true })}
                   bounces={false}

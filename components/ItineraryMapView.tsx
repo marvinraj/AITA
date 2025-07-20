@@ -18,6 +18,7 @@ export default function ItineraryMapView({ trip, height }: ItineraryMapViewProps
   const [availableDates, setAvailableDates] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [fetchingLocations, setFetchingLocations] = useState(false);
+  const [showDateDropdown, setShowDateDropdown] = useState(false);
   const mapRef = useRef<MapView>(null);
 
   useEffect(() => {
@@ -214,51 +215,6 @@ export default function ItineraryMapView({ trip, height }: ItineraryMapViewProps
 
   return (
     <View className="flex-1" style={{ height }}>
-      {/* Date Filter */}
-      <View className="p-3 bg-primaryBG border-b border-border">
-        <Text className="text-xs font-InterBold mb-2 text-primaryFont">Filter by Date:</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <TouchableOpacity
-            onPress={() => handleDateSelection('all')}
-            className={`mr-2 px-3 py-1.5 rounded-full ${
-              selectedDate === 'all' ? '' : ''
-            }`}
-            style={{ 
-              backgroundColor: selectedDate === 'all' ? colors.accentFont : colors.inputBG,
-              borderWidth: selectedDate === 'all' ? 0 : 1,
-              borderColor: colors.border
-            }}
-          >
-            <Text className="text-xs font-InterBold" style={{ 
-              color: selectedDate === 'all' ? colors.primaryBG : colors.primaryFont 
-            }}>
-              All Days
-            </Text>
-          </TouchableOpacity>
-          
-          {availableDates.map(date => (
-            <TouchableOpacity
-              key={date}
-              onPress={() => handleDateSelection(date)}
-              className={`mr-2 px-3 py-1.5 rounded-full ${
-                selectedDate === date ? '' : ''
-              }`}
-              style={{ 
-                backgroundColor: selectedDate === date ? colors.accentFont : colors.inputBG,
-                borderWidth: selectedDate === date ? 0 : 1,
-                borderColor: colors.border
-              }}
-            >
-              <Text className="text-xs font-InterBold" style={{ 
-                color: selectedDate === date ? colors.primaryBG : colors.primaryFont 
-              }}>
-                {new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-      </View>
-
       {/* Map */}
       <View className="flex-1 relative">
         <MapView
@@ -333,6 +289,84 @@ export default function ItineraryMapView({ trip, height }: ItineraryMapViewProps
               );
             })}
         </MapView>
+
+        {/* Floating Date Filter Button */}
+        <View className="absolute top-4 right-4 z-10">
+          <TouchableOpacity
+            onPress={() => setShowDateDropdown(!showDateDropdown)}
+            className="px-4 py-4 rounded-full justify-center items-center shadow-lg bg-primaryFont"
+          >
+            <Ionicons name="calendar" size={18} color={colors.primaryBG} />
+          </TouchableOpacity>
+
+          {/* Date Dropdown */}
+          {showDateDropdown && (
+            <View 
+              className="absolute top-14 right-0 rounded-xl border shadow-lg min-w-32"
+              style={{ 
+                backgroundColor: colors.primaryBG,
+                borderColor: colors.border,
+                maxHeight: 300,
+              }}
+            >
+              <ScrollView 
+                style={{ maxHeight: 250 }}
+                showsVerticalScrollIndicator={false}
+                bounces={false}
+              >
+                <TouchableOpacity
+                  onPress={() => {
+                    handleDateSelection('all');
+                    setShowDateDropdown(false);
+                  }}
+                  className="px-4 py-3 border-b"
+                  style={{ 
+                    backgroundColor: selectedDate === 'all' ? colors.accentFont + '20' : 'transparent',
+                    borderBottomColor: colors.border
+                  }}
+                >
+                  <Text 
+                    className="text-sm font-InterBold"
+                    style={{ 
+                      color: selectedDate === 'all' ? colors.accentFont : colors.primaryFont 
+                    }}
+                  >
+                    All Days
+                  </Text>
+                </TouchableOpacity>
+                
+                {availableDates.map((date, index) => (
+                  <TouchableOpacity
+                    key={date}
+                    onPress={() => {
+                      handleDateSelection(date);
+                      setShowDateDropdown(false);
+                    }}
+                    className="px-4 py-3"
+                    style={{ 
+                      backgroundColor: selectedDate === date ? colors.accentFont + '20' : 'transparent',
+                      borderBottomColor: colors.border,
+                      borderBottomWidth: index < availableDates.length - 1 ? 1 : 0
+                    }}
+                  >
+                    <Text 
+                      className="text-sm font-InterBold"
+                      style={{ 
+                        color: selectedDate === date ? colors.accentFont : colors.primaryFont 
+                      }}
+                    >
+                      {new Date(date).toLocaleDateString('en-US', { 
+                        weekday: 'short',
+                        month: 'short', 
+                        day: 'numeric' 
+                      })}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+          )}
+        </View>
 
         {/* No Items Message */}
         {filteredItems.length === 0 && (

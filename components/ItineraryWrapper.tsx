@@ -10,6 +10,7 @@ interface ItineraryWrapperProps {
   height: number;                       // height constraint from chatAI
   onTripUpdate?: (updatedTrip: Trip) => void; // optional callback to update chatAI state
   onItineraryChange?: () => void;       // callback when itinerary items change
+  hasOverlayHeader?: boolean;           // whether there's a transparent header overlapping the content
 }
 
 export interface ItineraryWrapperRef {
@@ -20,7 +21,8 @@ export default forwardRef<ItineraryWrapperRef, ItineraryWrapperProps>(function I
   trip, 
   height, 
   onTripUpdate,
-  onItineraryChange
+  onItineraryChange,
+  hasOverlayHeader = false
 }, ref) {
   
   const itineraryTabRef = useRef<ItineraryTabRef>(null);
@@ -76,7 +78,7 @@ export default forwardRef<ItineraryWrapperRef, ItineraryWrapperProps>(function I
       style={{ height }}
     >
       {/* Content */}
-      <View className="flex-1 px-4">
+      <View className={`flex-1 ${hasOverlayHeader ? 'pt-20' : 'py-0'}`}>
         {viewMode === 'itinerary' ? (
           <ItineraryTab 
             ref={itineraryTabRef}
@@ -93,7 +95,7 @@ export default forwardRef<ItineraryWrapperRef, ItineraryWrapperProps>(function I
       </View>
 
       {/* Toggle Icons - Bottom Right Corner */}
-      <View className="absolute top-12 right-3 flex-row bg-secondaryBG rounded-full border border-border shadow-lg">
+      <View className="absolute top-40 right-4 flex-col bg-secondaryBG rounded-full border border-border shadow-lg">
         <TouchableOpacity
           onPress={() => setViewMode('itinerary')}
           className={`px-4 py-4 rounded-full ${

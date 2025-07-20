@@ -128,7 +128,7 @@ export default function DailyItinerarySection({
       {/* Day Header - Clickable */}
       <TouchableOpacity
         onPress={handleToggle}
-        className="flex-row items-center justify-between px-4 py-6 bg-secondaryBG/50 rounded-3xl"
+        className="flex-row items-center justify-between px-4 py-6 rounded-3xl"
       >
         <Text className="text-primaryFont font-UrbanistSemiBold text-2xl">
           {dayHeader}
