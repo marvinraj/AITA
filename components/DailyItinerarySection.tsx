@@ -128,7 +128,7 @@ export default function DailyItinerarySection({
       {/* Day Header - Clickable */}
       <TouchableOpacity
         onPress={handleToggle}
-        className="flex-row items-center justify-between px-4 py-6 rounded-3xl"
+        className="flex-row items-center justify-between px-2 py-6 rounded-3xl"
       >
         <Text className="text-primaryFont font-UrbanistSemiBold text-2xl">
           {dayHeader}
@@ -152,7 +152,7 @@ export default function DailyItinerarySection({
       {/* Animated Content */}
       <Animated.View 
         style={[animatedContentStyle, { overflow: 'hidden' }]}
-        className="px-4"
+        className="px-2"
       >
         <View className={`${isExpanded ? 'block' : 'hidden'}`}>
           {items.length > 0 ? (

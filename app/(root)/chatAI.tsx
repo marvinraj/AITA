@@ -552,7 +552,7 @@ const chatAI = () => {
           {/* Menu button in circular background */}
           <TouchableOpacity 
             onPress={handleOpenEditTripModal}
-            className="py-3 rounded-full bg-secondaryBG/60 backdrop-blur-sm justify-center items-center"
+            className="p-3 rounded-full bg-secondaryBG/60 backdrop-blur-sm justify-center items-center"
             style={{
               shadowColor: '#000',
               shadowOffset: { width: 0, height: 2 },
