@@ -11,6 +11,7 @@ import SearchCategories from '../../../components/SearchCategories'
 import TripSelectModal from '../../../components/TripSelectModal'
 import { colors } from '../../../constants/colors'
 import { GooglePlace, googlePlacesService } from '../../../lib/services/googlePlacesService'
+import { Place, placesService } from '../../../lib/services/placesService'
 import { CreateSavedPlaceInput, SavedPlace, savedPlacesService } from '../../../lib/services/savedPlacesService'
 import { supabase } from '../../../lib/supabase'
 
@@ -37,6 +38,14 @@ const DiscoverScreen = () => {
   // Modal state for trip selection
   const [tripModalVisible, setTripModalVisible] = useState(false)
   const [placeToSave, setPlaceToSave] = useState<GooglePlace | null>(null)
+  
+  // Location state
+  const [currentLocation, setCurrentLocation] = useState('Current Location')
+  const [locationModalVisible, setLocationModalVisible] = useState(false)
+  const [locationInput, setLocationInput] = useState('')
+  const [locationSuggestions, setLocationSuggestions] = useState<Place[]>([])
+  const [showLocationSuggestions, setShowLocationSuggestions] = useState(false)
+  const [searchingLocations, setSearchingLocations] = useState(false)
   
   // Modal state for bottom categories
   const [categoriesModalVisible, setCategoriesModalVisible] = useState(true)
@@ -210,12 +219,15 @@ const DiscoverScreen = () => {
     setRecentSearches(['restaurants', 'hotels', 'attractions', 'museums'])
   }
 
-  const handleSearch = async (query: string) => {
+  const handleSearch = async (query: string, location?: string) => {
     if (!query.trim()) return
 
     setIsLoading(true)
     try {
-      let results = await googlePlacesService.searchGooglePlaces(query)
+      // Use the provided location or current location for search
+      const searchLocation = location || (currentLocation !== 'Current Location' ? currentLocation : undefined)
+      const searchQueryWithLocation = searchLocation ? `${query} in ${searchLocation}` : query
+      let results = await googlePlacesService.searchGooglePlaces(searchQueryWithLocation)
       
       // Apply filters
       results = applyFilters(results)
@@ -232,6 +244,70 @@ const DiscoverScreen = () => {
     } finally {
       setIsLoading(false)
     }
+  }
+
+  const handleLocationSelect = () => {
+    if (locationInput.trim()) {
+      setCurrentLocation(locationInput.trim())
+      setLocationModalVisible(false)
+      setLocationInput('')
+      setLocationSuggestions([])
+      setShowLocationSuggestions(false)
+      
+      // Re-run search with new location if there's an active search
+      if (searchQuery.trim()) {
+        handleSearch(searchQuery, locationInput.trim())
+      }
+    }
+  }
+
+  // Handle location search with API autocomplete (similar to smart form)
+  const handleLocationSearch = async (query: string) => {
+    setLocationInput(query)
+    
+    if (query.length < 2) {
+      setLocationSuggestions([])
+      setShowLocationSuggestions(false)
+      return
+    }
+
+    setSearchingLocations(true)
+    try {
+      console.log('Searching for locations with query:', query)
+      const results = await placesService.searchPlaces(query)
+      console.log('Location search results received:', results.length, 'places')
+      
+      // For locations, we want cities, countries, and places
+      setLocationSuggestions(results.slice(0, 8)) // Show up to 8 suggestions
+      setShowLocationSuggestions(results.length > 0)
+    } catch (error) {
+      console.error('Error searching locations:', error)
+      setLocationSuggestions([])
+      setShowLocationSuggestions(false)
+    } finally {
+      setSearchingLocations(false)
+    }
+  }
+
+  // Handle location suggestion selection
+  const handleLocationSuggestionSelect = (place: Place) => {
+    setCurrentLocation(place.name)
+    setLocationInput(place.name)
+    setShowLocationSuggestions(false)
+    setLocationSuggestions([])
+    setLocationModalVisible(false)
+    
+    // Re-run search with new location if there's an active search
+    if (searchQuery.trim()) {
+      handleSearch(searchQuery, place.name)
+    }
+  }
+
+  const handleLocationCancel = () => {
+    setLocationModalVisible(false)
+    setLocationInput('')
+    setLocationSuggestions([])
+    setShowLocationSuggestions(false)
   }
 
   const applyFilters = (results: GooglePlace[]): GooglePlace[] => {
@@ -547,7 +623,7 @@ const DiscoverScreen = () => {
           </View>
 
           {/* Floating Categories Button */}
-          {(!categoriesModalVisible || isModalCollapsed) && (
+          {/* {(!categoriesModalVisible || isModalCollapsed) && (
             <TouchableOpacity
               onPress={() => isModalCollapsed ? expandModal() : showCategoriesModal()}
               className="absolute bottom-6 right-4 bg-accentFont rounded-full w-14 h-14 justify-center items-center shadow-lg"
@@ -562,7 +638,7 @@ const DiscoverScreen = () => {
             >
               <Ionicons name="grid" size={24} color="white" />
             </TouchableOpacity>
-          )}
+          )} */}
 
           {/* Draggable Bottom Categories Modal */}
           {categoriesModalVisible && (
@@ -617,7 +693,7 @@ const DiscoverScreen = () => {
                       onPress={expandModal}
                       className="flex-row items-center px-4 py-2 bg-white/10 rounded-full mt-2"
                     >
-                      <Text className="text-white text-sm font-medium mr-2">Explore Places</Text>
+                      <Text className="text-white text-sm font-medium mr-2">Discover Places</Text>
                       <Ionicons name="chevron-up" size={16} color="white" />
                     </TouchableOpacity>
                   )}
@@ -634,11 +710,26 @@ const DiscoverScreen = () => {
                 >
                   {/* Categories Header */}
                   <View className="mb-3">
-                    <Text className="text-white text-xl font-semibold text-center">
-                      Explore Places
-                    </Text>
-                    <Text className="text-gray-300 text-sm text-center mt-1">
-                      Discover amazing locations around you
+                    <View className="flex-row justify-between items-center mb-3">
+                      <Text className="text-white text-xl font-semibold">
+                        Discover Places
+                      </Text>
+                      
+                      {/* Location Selector */}
+                      <TouchableOpacity 
+                        onPress={() => setLocationModalVisible(true)}
+                        className="flex-row items-center bg-white/10 rounded-full px-3 py-2 border border-white/20"
+                      >
+                        <Ionicons name="location-outline" size={14} color="white" />
+                        <Text className="text-white text-sm ml-1 mr-1" numberOfLines={1}>
+                          {currentLocation.length > 12 ? currentLocation.substring(0, 12) + '...' : currentLocation}
+                        </Text>
+                        <Ionicons name="chevron-down" size={14} color="white" />
+                      </TouchableOpacity>
+                    </View>
+                    
+                    <Text className="text-gray-300 text-sm text-center">
+                      Explore amazing locations around you
                     </Text>
                   </View>
 
@@ -895,6 +986,129 @@ const DiscoverScreen = () => {
               >
                 <Text className="text-white font-semibold text-lg">
                   Apply Filters ({getActiveFiltersCount()})
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </SafeAreaView>
+        </Modal>
+
+        {/* Location Selection Modal */}
+        <Modal
+          visible={locationModalVisible}
+          animationType="slide"
+          presentationStyle="pageSheet"
+          onRequestClose={handleLocationCancel}
+        >
+          <SafeAreaView className="flex-1 bg-primaryBG">
+            {/* Location Modal Header */}
+            <View className="flex-row justify-between items-center px-4 py-3 border-b border-border">
+              <Text className="text-primaryFont text-xl font-bold">Select Location</Text>
+              <TouchableOpacity onPress={handleLocationCancel}>
+                <Ionicons name="close" size={24} color={colors.primaryFont} />
+              </TouchableOpacity>
+            </View>
+
+            <View className="flex-1 px-4 py-6">
+              <Text className="text-primaryFont text-lg font-semibold mb-4">
+                Select Location
+              </Text>
+              <Text className="text-secondaryFont text-sm mb-4">
+                Search for cities, countries, or specific places to discover nearby attractions
+              </Text>
+              
+              <TextInput
+                className="bg-inputBG border border-border rounded-lg px-4 py-3 text-primaryFont text-base mb-4"
+                placeholder="e.g., New York, Tokyo, London..."
+                placeholderTextColor={colors.secondaryFont}
+                value={locationInput}
+                onChangeText={handleLocationSearch}
+                autoFocus={true}
+                returnKeyType="done"
+                onSubmitEditing={handleLocationSelect}
+                onFocus={() => {
+                  if (locationSuggestions.length > 0) {
+                    setShowLocationSuggestions(true)
+                  }
+                }}
+              />
+
+              {/* Location Suggestions */}
+              {showLocationSuggestions && (
+                <View className="bg-inputBG border border-border rounded-lg mb-4 max-h-64">
+                  <ScrollView showsVerticalScrollIndicator={false} nestedScrollEnabled={true}>
+                    {searchingLocations ? (
+                      <View className="px-4 py-3">
+                        <Text className="text-secondaryFont text-sm">Searching locations...</Text>
+                      </View>
+                    ) : locationSuggestions.length > 0 ? (
+                      locationSuggestions.map((place) => (
+                        <TouchableOpacity
+                          key={place.id}
+                          className="px-4 py-3 border-b border-border/30 last:border-b-0"
+                          onPress={() => handleLocationSuggestionSelect(place)}
+                          activeOpacity={0.7}
+                        >
+                          <View className="flex-row items-start">
+                            <View className="w-8 h-8 rounded-full bg-accentFont/20 items-center justify-center mr-3 mt-0.5">
+                              <Text className="text-sm">📍</Text>
+                            </View>
+                            <View className="flex-1">
+                              <Text className="text-primaryFont font-semibold text-base">
+                                {place.name || 'Unknown Place'}
+                              </Text>
+                              {place.address && (
+                                <Text className="text-secondaryFont text-sm mt-0.5" numberOfLines={2}>
+                                  {place.address}
+                                </Text>
+                              )}
+                              {place.type && (
+                                <Text className="text-secondaryFont/70 text-xs mt-1 capitalize">
+                                  {place.type.replace(/_/g, ' ')}
+                                </Text>
+                              )}
+                            </View>
+                          </View>
+                        </TouchableOpacity>
+                      ))
+                    ) : (
+                      <View className="px-4 py-3">
+                        <Text className="text-secondaryFont text-sm">No locations found. Try searching for cities, countries, or places.</Text>
+                      </View>
+                    )}
+                  </ScrollView>
+                </View>
+              )}
+
+              <TouchableOpacity
+                onPress={handleLocationSelect}
+                disabled={!locationInput.trim()}
+                className={`rounded-lg py-3 items-center ${
+                  locationInput.trim() 
+                    ? 'bg-accentFont' 
+                    : 'bg-gray-400'
+                }`}
+              >
+                <Text className="text-white font-semibold text-lg">
+                  Set Location
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() => {
+                  setCurrentLocation('Current Location');
+                  setLocationModalVisible(false);
+                  setLocationInput('');
+                  setLocationSuggestions([]);
+                  setShowLocationSuggestions(false);
+                  // Re-run search with current location if there's an active search
+                  if (searchQuery.trim()) {
+                    handleSearch(searchQuery);
+                  }
+                }}
+                className="rounded-lg py-3 items-center mt-3 bg-white/10 border border-white/20"
+              >
+                <Text className="text-white font-semibold text-lg">
+                  Use Current Location
                 </Text>
               </TouchableOpacity>
             </View>

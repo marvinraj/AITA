@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Dimensions, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
@@ -20,6 +21,7 @@ const SCREEN_HEIGHT = Dimensions.get('window').height;
 const MODAL_MIN_HEIGHT = 200; // Minimum height for the chat modal
 const MODAL_MAX_HEIGHT = SCREEN_HEIGHT * 0.8; // Maximum height (80% of screen)
 const MODAL_DEFAULT_HEIGHT = SCREEN_HEIGHT * 0.6; // Default height (60% of screen)
+const MODAL_COLLAPSED_HEIGHT = 80; // Height when collapsed but still visible
 
 const chatAI = () => {
   // get all trip context from navigation parameters (passed when navigating to this screen)
@@ -164,6 +166,7 @@ const chatAI = () => {
   // state to manage the height of the chat modal
   const [modalVisible, setModalVisible] = useState(true);
   const [modalHeight, setModalHeight] = useState(MODAL_DEFAULT_HEIGHT);
+  const [isModalCollapsed, setIsModalCollapsed] = useState(false);
   
   // Animated values for smooth modal handling
   const modalHeightAnimated = useSharedValue(MODAL_DEFAULT_HEIGHT);
@@ -181,35 +184,29 @@ const chatAI = () => {
     },
     onActive: (event, context: { startHeight: number }) => {
       const newHeight = context.startHeight - event.translationY; // Negative because dragging up increases height
-      const constrainedHeight = Math.max(0, Math.min(newHeight, MODAL_MAX_HEIGHT)); // Allow going to 0 for closing
+      const constrainedHeight = Math.max(MODAL_COLLAPSED_HEIGHT, Math.min(newHeight, MODAL_MAX_HEIGHT)); // Allow collapse to MODAL_COLLAPSED_HEIGHT
       modalHeightAnimated.value = constrainedHeight;
     },
     onEnd: () => {
       const finalHeight = modalHeightAnimated.value;
-      // Close modal if dragged below threshold
-      if (finalHeight < MODAL_MIN_HEIGHT * 0.5) {
-        modalHeightAnimated.value = withSpring(0, {
+      
+      // If dragged below collapse threshold, collapse to collapsed height (similar to discover page)
+      if (finalHeight < MODAL_COLLAPSED_HEIGHT + 20) {
+        modalHeightAnimated.value = withSpring(MODAL_COLLAPSED_HEIGHT, {
           damping: 20,
           stiffness: 90,
         });
-        // Save the default height so it reopens at a reasonable size
-        runOnJS(updateModalHeight)(MODAL_DEFAULT_HEIGHT);
-        runOnJS(() => setTimeout(() => setModalVisible(false), 300));
-      } else if (finalHeight < MODAL_MIN_HEIGHT * 0.7) {
-        // Snap to minimum height
-        modalHeightAnimated.value = withSpring(MODAL_MIN_HEIGHT, {
-          damping: 20,
-          stiffness: 90,
-        });
-        runOnJS(updateModalHeight)(MODAL_MIN_HEIGHT);
+        runOnJS(setIsModalCollapsed)(true);
+        runOnJS(updateModalHeight)(MODAL_COLLAPSED_HEIGHT);
       } else {
-        // Use spring animation for smooth finish
-        modalHeightAnimated.value = withSpring(finalHeight, {
+        // Snap to reasonable height and ensure it's expanded
+        const targetHeight = finalHeight < MODAL_DEFAULT_HEIGHT ? MODAL_DEFAULT_HEIGHT : finalHeight;
+        modalHeightAnimated.value = withSpring(targetHeight, {
           damping: 20,
           stiffness: 90,
         });
-        // Update React state
-        runOnJS(updateModalHeight)(finalHeight);
+        runOnJS(setIsModalCollapsed)(false);
+        runOnJS(updateModalHeight)(targetHeight);
       }
     },
   });
@@ -313,6 +310,12 @@ const chatAI = () => {
   const hideChatModal = () => {
     modalHeightAnimated.value = withSpring(0, { damping: 20, stiffness: 90 });
     setTimeout(() => setModalVisible(false), 300);
+  };
+
+  const expandModal = () => {
+    setIsModalCollapsed(false);
+    modalHeightAnimated.value = withSpring(MODAL_DEFAULT_HEIGHT, { damping: 20, stiffness: 90 });
+    setModalHeight(MODAL_DEFAULT_HEIGHT);
   };
 
   // Show chat modal - button always shows the modal when pressed
@@ -520,7 +523,7 @@ const chatAI = () => {
           {/* Back button in circular background */}
           <TouchableOpacity 
             onPress={handleBackNavigation}
-            className="w-10 h-10 rounded-full bg-secondaryBG/60 backdrop-blur-sm justify-center items-center"
+            className="p-3 rounded-full bg-secondaryBG/60 backdrop-blur-sm justify-center items-center"
             style={{
               shadowColor: '#000',
               shadowOffset: { width: 0, height: 2 },
@@ -534,7 +537,7 @@ const chatAI = () => {
           
           {/* Destination in bubble background */}
           <View 
-            className="bg-secondaryBG/60 backdrop-blur-sm rounded-full px-4 py-2 flex-1 mx-3 justify-center items-center"            style={{
+            className="bg-secondaryBG/60 backdrop-blur-sm rounded-full px-4 py-3 flex-1 mx-3 justify-center items-center"            style={{
               shadowColor: '#000',
               shadowOffset: { width: 0, height: 6 },
               shadowOpacity: 0.25,
@@ -550,7 +553,7 @@ const chatAI = () => {
           {/* Menu button in circular background */}
           <TouchableOpacity 
             onPress={handleOpenEditTripModal}
-            className="w-10 h-10 rounded-full bg-secondaryBG/60 backdrop-blur-sm justify-center items-center"
+            className="py-3 rounded-full bg-secondaryBG/60 backdrop-blur-sm justify-center items-center"
             style={{
               shadowColor: '#000',
               shadowOffset: { width: 0, height: 2 },
@@ -575,39 +578,40 @@ const chatAI = () => {
           />
         </View>
 
-        {/* Floating AI Chat Button */}
-        <TouchableOpacity
-          onPress={handleChatButtonPress}
-          style={{
-            position: 'absolute',
-            bottom: 35,
-            right: 24,
-            zIndex: 1000,
-            paddingHorizontal: 16,
-            paddingVertical: 12,
-            borderRadius: 25,
-            backgroundColor: '#F7374F',
-            justifyContent: 'center',
-            alignItems: 'center',
-            shadowColor: '#F7374F',
-            shadowOffset: { width: 0, height: 0 },
-            shadowOpacity: 0.45,
-            shadowRadius: 8,
-            elevation: 15,
-            flexDirection: 'row',
-            gap: 8,
-          }}
-        >
-          {/* <Ionicons name="chatbubble" size={18} color="white" /> */}
-          <Text style={{ color: 'white', fontSize: 14, fontWeight: '600' }}>
-            Back to chat
-          </Text>
-        </TouchableOpacity>
+        {/* Floating AI Chat Button - Show when modal is hidden or collapsed */}
+        {/* {(!modalVisible || isModalCollapsed) && (
+          <TouchableOpacity
+            onPress={() => isModalCollapsed ? expandModal() : handleChatButtonPress()}
+            style={{
+              position: 'absolute',
+              bottom: 35,
+              right: 24,
+              zIndex: 1000,
+              paddingHorizontal: 16,
+              paddingVertical: 12,
+              borderRadius: 25,
+              backgroundColor: '#F7374F',
+              justifyContent: 'center',
+              alignItems: 'center',
+              shadowColor: '#F7374F',
+              shadowOffset: { width: 0, height: 0 },
+              shadowOpacity: 0.45,
+              shadowRadius: 8,
+              elevation: 15,
+              flexDirection: 'row',
+              gap: 8,
+            }}
+          >
+            <Text style={{ color: 'white', fontSize: 14, fontWeight: '600' }}>
+              {isModalCollapsed ? 'Open Chat' : 'Back to chat'}
+            </Text>
+          </TouchableOpacity>
+        )} */}
 
         {/* Chat Modal - Conditionally visible with drag functionality */}
         {modalVisible && (
           <>
-            {/* Modal Content - No backdrop */}
+            {/* Modal Content - Similar to discover page */}
             <Animated.View
               style={[
                 {
@@ -615,34 +619,64 @@ const chatAI = () => {
                   left: 0,
                   right: 0,
                   bottom: 0,
-                  backgroundColor: '#e3dede',
                   borderTopLeftRadius: 20,
                   borderTopRightRadius: 20,
-                  zIndex: 2001,
+                  zIndex: 1000,
+                  shadowColor: '#000',
+                  shadowOffset: { width: 0, height: -4 },
+                  shadowOpacity: 0.25,
+                  shadowRadius: 12,
+                  elevation: 20,
+                  overflow: 'hidden',
                 },
                 animatedModalStyle,
               ]}
             >
+              {/* Background Gradient - Same as discover page */}
+              <LinearGradient
+                colors={['rgba(15, 20, 31, 0.98)', 'rgba(24, 32, 45, 0.98)', 'rgba(12, 17, 26, 0.99)']}
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                }}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 0, y: 1 }}
+              />
+
             {/* Modal Handle */}
             <PanGestureHandler onGestureEvent={modalGestureHandler}>
-              <Animated.View className="items-center py-2 bg-transparent">
+              <Animated.View className="items-center py-3 bg-transparent relative">
                 <View
                   style={{
                     width: 40,
                     height: 4,
-                    backgroundColor: '#9c9a9a',
+                    backgroundColor: '#9CA3AF',
                     borderRadius: 2,
+                    marginBottom: 4,
                   }}
                 />
+                {isModalCollapsed && (
+                  <TouchableOpacity
+                    onPress={expandModal}
+                    className="flex-row items-center px-4 py-2 bg-white/10 rounded-full mt-2"
+                  >
+                    <Text className="text-white text-sm font-medium mr-2">Open Chat</Text>
+                    <Ionicons name="chevron-up" size={16} color="white" />
+                  </TouchableOpacity>
+                )}
               </Animated.View>
             </PanGestureHandler>
 
-            {/* Chat Interface */}
-            <KeyboardAvoidingView
-              behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-              style={{ flex: 1 }}
-            >
-              <View className="flex-1 bg-primaryBG overflow-hidden justify-end rounded-t-3xl">
+            {/* Chat Interface - Hidden when collapsed */}
+            {!isModalCollapsed && (
+              <KeyboardAvoidingView
+                behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+                style={{ flex: 1 }}
+              >
+                <View className="flex-1 overflow-hidden justify-end">
                 {/* Chat messages area */}
                 <ScrollView
                   ref={scrollViewRef}
@@ -655,7 +689,7 @@ const chatAI = () => {
                 >
                   {loading && messages.length === 0 ? (
                     <View className="flex-1 justify-center items-center">
-                      <Text className="text-secondaryFont">Loading chat...</Text>
+                      <Text className="text-gray-300">Loading chat...</Text>
                     </View>
                   ) : error ? (
                     <View className="flex-1 justify-center items-center">
@@ -666,7 +700,7 @@ const chatAI = () => {
                       .filter((msg) => msg.role !== 'system')
                       .map((msg) => (
                       <View key={msg.id} className={`w-full items-${msg.role === 'user' ? 'end' : 'start'} mb-4`}>
-                        <View className={`rounded-2xl px-4 py-3 max-w-[90%] ${msg.role === 'user' ? 'bg-accentFont' : 'bg-secondaryBG'}` }>
+                        <View className={`rounded-2xl px-4 py-3 max-w-[90%] ${msg.role === 'user' ? 'bg-blue-500' : 'bg-white/10 border border-white/20'}` }>
                           {msg.role === 'assistant' ? (
                             <>
                               {/* Check if message has structured data */}
@@ -693,12 +727,12 @@ const chatAI = () => {
                               )}
                             </>
                           ) : (
-                            <Text className={`text-base ${msg.role === 'user' ? 'text-primaryBG' : 'text-primaryFont'}`}>
+                            <Text className="text-base text-white">
                               {msg.content || ''}
                             </Text>
                           )}
                         </View>
-                        <Text className="text-xs text-secondaryFont mt-1 ml-2 mr-2">
+                        <Text className="text-xs text-gray-400 mt-1 ml-2 mr-2">
                           {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </Text>
                       </View>
@@ -708,8 +742,8 @@ const chatAI = () => {
                   {/* Typing indicator */}
                   {isTyping && (
                     <View className="w-full items-start mb-4">
-                      <View className="rounded-2xl px-4 py-3 bg-secondaryBG">
-                        <Text className="text-base text-primaryFont">
+                      <View className="rounded-2xl px-4 py-3 bg-white/10 border border-white/20">
+                        <Text className="text-base text-white">
                           AITA is typing...
                         </Text>
                       </View>
@@ -719,14 +753,14 @@ const chatAI = () => {
                   {/* Smart suggestions */}
                   {showSuggestions && suggestions.length > 0 && !loading && (
                     <View className="w-full mb-4">
-                      <Text className="text-sm text-secondaryFont mb-2 ml-2">💡 Suggested questions:</Text>
+                      <Text className="text-sm text-gray-300 mb-2 ml-2">💡 Suggested questions:</Text>
                       {suggestions.map((suggestion, index) => (
                         <TouchableOpacity 
                           key={index}
-                          className="bg-inputBG rounded-xl px-3 py-2 mb-2 mr-2"
+                          className="bg-white/5 border border-white/10 rounded-xl px-3 py-2 mb-2 mr-2"
                           onPress={() => handleSuggestionTap(suggestion)}
                         >
-                          <Text className="text-primaryFont text-sm">{suggestion}</Text>
+                          <Text className="text-white text-sm">{suggestion}</Text>
                         </TouchableOpacity>
                       ))}
                     </View>
@@ -734,21 +768,21 @@ const chatAI = () => {
                 </ScrollView>
                 
                 {/* Suggestions button - Above input area */}
-                <View className="px-4 py-2 bg-primaryBG/90">
+                <View className="px-4 py-2">
                   <View className="flex-row items-center justify-between">
                     <TouchableOpacity
                       onPress={handleGenerateSuggestions}
                       disabled={loading || !isReady || messages.length === 0}
                       className={`flex-row items-center px-3 py-2 rounded-xl ${
                         loading || !isReady || messages.length === 0 
-                          ? 'bg-blue-950' 
-                          : 'bg-accentFont'
+                          ? 'bg-gray-600' 
+                          : 'bg-blue-500'
                       }`}
                     >
                       <Text className={`text-sm font-medium ${
                         loading || !isReady || messages.length === 0 
                           ? 'text-gray-400' 
-                          : 'text-primaryBG'
+                          : 'text-white'
                       }`}>
                         💡 Get Suggestions
                       </Text>
@@ -757,7 +791,7 @@ const chatAI = () => {
                     {showSuggestions && suggestions.length > 0 && (
                       <TouchableOpacity
                         onPress={() => setShowSuggestions(false)}
-                        className="px-3 py-2 rounded-xl bg-gray-600"
+                        className="px-3 py-2 rounded-xl bg-white/10"
                       >
                         <Text className="text-gray-300 text-sm">Hide</Text>
                       </TouchableOpacity>
@@ -766,12 +800,12 @@ const chatAI = () => {
                 </View>
                 
                 {/* Input area */}
-                <View className="bg-primaryBG mb-5">
+                <View className="mb-5">
                   <View className="flex-row items-center px-4 py-4">
                     <TextInput
-                      className="flex-1 bg-transparent rounded-2xl px-4 py-4 mr-3 text-base text-primaryFont border border-border"
+                      className="flex-1 bg-white/5 border border-white/20 rounded-2xl px-4 py-4 mr-3 text-base text-white"
                       placeholder={trip?.destination ? `Ask about your trip to ${trip.destination}...` : "Ask AITA anything about your trip..."}
-                      placeholderTextColor="#828282"
+                      placeholderTextColor="#9CA3AF"
                       returnKeyType="send"
                       value={input}
                       onChangeText={setInput}
@@ -779,7 +813,7 @@ const chatAI = () => {
                       editable={!loading && isReady && !sending}
                     />
                     <TouchableOpacity 
-                      className={`rounded-full px-4 py-4 justify-center items-center ${loading || !isReady || sending ? 'bg-gray-400' : 'bg-primaryFont'}`} 
+                      className={`rounded-full px-4 py-4 justify-center items-center ${loading || !isReady || sending ? 'bg-secondaryFont' : 'bg-primaryFont'}`} 
                       onPress={handleSend}
                       disabled={loading || !isReady || sending}
                     >
@@ -793,6 +827,7 @@ const chatAI = () => {
                 </View>
               </View>
             </KeyboardAvoidingView>
+            )}
           </Animated.View>
         </>
         )}
