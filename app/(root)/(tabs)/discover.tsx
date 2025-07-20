@@ -718,7 +718,7 @@ const DiscoverScreen = () => {
                       {/* Location Selector */}
                       <TouchableOpacity 
                         onPress={() => setLocationModalVisible(true)}
-                        className="flex-row items-center bg-white/10 rounded-full px-3 py-2 border border-white/20"
+                        className="flex-row items-center bg-transparent rounded-full px-3 py-2 border border-white/20"
                       >
                         <Ionicons name="location-outline" size={14} color="white" />
                         <Text className="text-white text-sm ml-1 mr-1" numberOfLines={1}>
@@ -727,10 +727,10 @@ const DiscoverScreen = () => {
                         <Ionicons name="chevron-down" size={14} color="white" />
                       </TouchableOpacity>
                     </View>
-                    
+{/*                     
                     <Text className="text-gray-300 text-sm text-center">
                       Explore amazing locations around you
-                    </Text>
+                    </Text> */}
                   </View>
 
                 {/* Categories Content */}
