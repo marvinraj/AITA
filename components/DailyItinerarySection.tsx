@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
-import { Alert, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Image, Text, TouchableOpacity, View } from 'react-native';
 import Animated, {
   Extrapolate,
   interpolate,
@@ -170,7 +170,7 @@ export default function DailyItinerarySection({
                     
                     {/* Connecting line - only show if not the last item */}
                     {index < items.length - 1 && (
-                      <View className="w-0.5 h-16 bg-[#311010] mt-2" />
+                      <View className="w-0.5 h-20 bg-[#311010] mt-2" />
                     )}
                   </View>
                   
@@ -245,6 +245,8 @@ interface ItineraryItemCardProps {
 }
 
 function ItineraryItemCard({ item, onPress, onDelete, isDeleting = false }: ItineraryItemCardProps) {
+  const [imageError, setImageError] = useState(false);
+  
   // Format time display
   const formatTime = (time?: string) => {
     if (!time) return '';
@@ -301,9 +303,18 @@ function ItineraryItemCard({ item, onPress, onDelete, isDeleting = false }: Itin
       activeOpacity={0.7}
       disabled={isDeleting}
     >
-      {/* Category Icon */}
-      <View className="w-10 h-10 rounded-full bg-secondaryBG/70 items-center justify-center mr-3">
-        <Text className="text-lg">{getCategoryIcon(item.category)}</Text>
+      {/* Category Icon or Activity Image */}
+      <View className="w-24 h-24 rounded-xl bg-secondaryBG/70 items-center justify-center mr-4 overflow-hidden">
+        {item.image_url && !imageError ? (
+          <Image
+            source={{ uri: item.image_url }}
+            className="w-full h-full"
+            resizeMode="cover"
+            onError={() => setImageError(true)}
+          />
+        ) : (
+          <Text className="text-4xl">{getCategoryIcon(item.category)}</Text>
+        )}
       </View>
       
       {/* Content */}
