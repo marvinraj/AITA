@@ -136,8 +136,16 @@ export default function TravelChecklistDropdown({ tripId }: TravelChecklistDropd
   // Save inline edit
   const handleInlineEdit = async (itemId: string, newText: string) => {
     if (!newText.trim()) {
-      setEditingItemId(null);
-      setEditingItemText('');
+      // If text is empty, delete the item instead of keeping it
+      try {
+        await deleteItem(itemId);
+        setEditingItemId(null);
+        setEditingItemText('');
+      } catch (err) {
+        Alert.alert('Error', 'Failed to delete item. Please try again.');
+        setEditingItemId(null);
+        setEditingItemText('');
+      }
       return;
     }
     
@@ -149,6 +157,18 @@ export default function TravelChecklistDropdown({ tripId }: TravelChecklistDropd
       Alert.alert('Error', 'Failed to update item. Please try again.');
       setEditingItemId(null);
       setEditingItemText('');
+    }
+  };
+
+  // Handle backspace to delete items when input is empty
+  const handleKeyPress = (checklistName: string) => {
+    if (newItem === '' && activeChecklistName === checklistName) {
+      // Get the last item in this checklist
+      const checklistItems = getItemsByCategory(checklistName);
+      if (checklistItems.length > 0) {
+        const lastItem = checklistItems[checklistItems.length - 1];
+        handleDeleteItem(lastItem.id);
+      }
     }
   };
 
@@ -227,6 +247,11 @@ export default function TravelChecklistDropdown({ tripId }: TravelChecklistDropd
                     maxLength={100}
                     onSubmitEditing={() => {
                       if (isActive) handleAddItem();
+                    }}
+                    onKeyPress={(event) => {
+                      if (event.nativeEvent.key === 'Backspace' && isActive) {
+                        handleKeyPress(checklistName);
+                      }
                     }}
                     returnKeyType="done"
                     editable={!loading}
@@ -340,7 +365,7 @@ export default function TravelChecklistDropdown({ tripId }: TravelChecklistDropd
       )}
 
       {/* divider */}
-      <View className="h-[1px] bg-divider w-full mb-6" />
+      <View className="h-[1px]  w-full mb-12" />
 
       {/* Modal for add/edit checklist or item */}
       <Modal

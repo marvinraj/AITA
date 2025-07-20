@@ -209,7 +209,12 @@ export default function NotesDropdown({ tripId }: NotesDropdownProps) {
             ) : (
               <View className="w-full flex-row flex-wrap justify-between">
                 {notes.map((item) => (
-                  <View key={item.id} className="bg-secondaryBG/60 rounded-xl p-4 mb-3 relative" style={{ width: '48%', minHeight: 120 }}>
+                  <Pressable 
+                    key={item.id} 
+                    onPress={() => openModal(item)}
+                    className="bg-secondaryBG/60 rounded-xl p-4 mb-3 relative active:opacity-80" 
+                    style={{ width: '48%', minHeight: 120 }}
+                  >
                     <Text className="text-primaryFont text-sm flex-1 mb-2" numberOfLines={4}>
                       {item.content}
                     </Text>
@@ -229,7 +234,10 @@ export default function NotesDropdown({ tripId }: NotesDropdownProps) {
                     {/* Menu button */}
                     <View className="absolute top-2 right-2">
                       <Pressable 
-                        onPress={() => setMenuNoteId(menuNoteId === item.id ? null : item.id)} 
+                        onPress={(event) => {
+                          event.stopPropagation(); // Prevent card press when clicking menu
+                          setMenuNoteId(menuNoteId === item.id ? null : item.id);
+                        }} 
                         className="p-1"
                       >
                         <Image 
@@ -266,7 +274,7 @@ export default function NotesDropdown({ tripId }: NotesDropdownProps) {
                         </>
                       )}
                     </View>
-                  </View>
+                  </Pressable>
                 ))}
               </View>
             )}
