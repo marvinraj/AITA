@@ -96,6 +96,27 @@ export interface DailyItinerary {
   itemCount: number;
 }
 
+// Interface for generated activities in preview modal
+export interface GeneratedActivity {
+  id: string;
+  title: string;
+  description: string;
+  time: string;
+  location: string;
+  category: 'activity' | 'restaurant' | 'hotel' | 'transport' | 'flight' | 'attraction' | 'shopping' | 'nightlife' | 'other';
+  priority: 'low' | 'medium' | 'high';
+}
+
+// Trip form data interface for smart form
+export interface TripFormData {
+  tripName: string;
+  destination: string;
+  startDate: string;
+  endDate: string;
+  companions: string;
+  activities: string;
+}
+
 // Input types for creating and updating records
 export interface CreateNoteInput {
   trip_id: string;

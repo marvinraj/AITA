@@ -2,8 +2,11 @@ import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { Alert, Modal, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { Calendar } from 'react-native-calendars';
+import InitialItineraryPreviewModal from '../../../../components/InitialItineraryPreviewModal';
+import { itineraryService } from '../../../../lib/services/itineraryService';
 import { Place, placesService } from '../../../../lib/services/placesService';
 import { tripsService } from '../../../../lib/services/tripsService';
+import { ItineraryItem, TripFormData } from '../../../../types/database';
 
 // define options for companions and activities
 const companionOptions = [
@@ -48,6 +51,16 @@ const SmartForm = () => {
     const [showActivitiesModal, setShowActivitiesModal] = useState(false);
     // loading state for trip creation
     const [isCreatingTrip, setIsCreatingTrip] = useState(false);
+    // state for initial itinerary preview modal
+    const [showPreviewModal, setShowPreviewModal] = useState(false);
+    const [formData, setFormData] = useState<TripFormData>({
+        tripName: '',
+        destination: '',
+        startDate: '',
+        endDate: '',
+        companions: '',
+        activities: ''
+    });
 
     // function to toggle activity selection
     const toggleActivity = (activity: string) => {
@@ -140,31 +153,66 @@ const SmartForm = () => {
 
     // function to handle final form submission (from activities modal)
     const handleSubmit = async () => {
+        // Prepare form data for the preview modal
+        const tripFormData: TripFormData = {
+            tripName: tripName || `${destination} Trip`,
+            destination: destination,
+            startDate: range.start,
+            endDate: range.end,
+            companions: companions,
+            activities: activities.join(',')
+        };
+        
+        setFormData(tripFormData);
+        setShowActivitiesModal(false); // Close activities modal
+        setShowPreviewModal(true); // Show preview modal
+    };
+
+    // Handle preview modal completion
+    const handlePreviewComplete = async (keepActivities: boolean, itineraryItems?: ItineraryItem[]) => {
         try {
             setIsCreatingTrip(true);
+            setShowPreviewModal(false);
             
             // Create trip in database
             const tripData = await tripsService.createTrip({
-                name: tripName || `${destination} Trip`,
-                destination: destination,
-                start_date: range.start,
-                end_date: range.end,
-                companions: companions,
-                activities: activities.join(','),
+                name: formData.tripName,
+                destination: formData.destination,
+                start_date: formData.startDate,
+                end_date: formData.endDate,
+                companions: formData.companions,
+                activities: formData.activities,
                 status: 'planning'
             });
+
+            // If user chose to keep activities, save them to database
+            if (keepActivities && itineraryItems) {
+                for (const item of itineraryItems) {
+                    await itineraryService.createItineraryItem({
+                        trip_id: tripData.id,
+                        title: item.title,
+                        description: item.description,
+                        date: item.date,
+                        time: item.time,
+                        location: item.location,
+                        category: item.category,
+                        priority: item.priority,
+                        item_order: item.item_order
+                    });
+                }
+            }
 
             // Navigate to chatAI with the trip ID and other params
             router.replace({
                 pathname: '/(root)/chatAI',
                 params: {
                     tripId: tripData.id,
-                    tripName: tripName || `${destination} Trip`,
-                    destination,
-                    startDate: range.start,
-                    endDate: range.end,
-                    companions,
-                    activities: activities.join(','),
+                    tripName: formData.tripName,
+                    destination: formData.destination,
+                    startDate: formData.startDate,
+                    endDate: formData.endDate,
+                    companions: formData.companions,
+                    activities: formData.activities,
                 },
             });
         } catch (error) {
@@ -177,6 +225,12 @@ const SmartForm = () => {
         } finally {
             setIsCreatingTrip(false);
         }
+    };
+
+    // Handle preview modal cancel
+    const handlePreviewCancel = () => {
+        setShowPreviewModal(false);
+        // User cancelled, don't create trip
     };
 
     // Calculate form completion progress (without activities)
@@ -523,6 +577,14 @@ const SmartForm = () => {
                     </ScrollView>
                 </View>
             </Modal>
+
+            {/* Initial Itinerary Preview Modal */}
+            <InitialItineraryPreviewModal
+                visible={showPreviewModal}
+                tripData={formData}
+                onComplete={handlePreviewComplete}
+                onCancel={handlePreviewCancel}
+            />
         </View>
     );
 };
