@@ -27,6 +27,7 @@ export default forwardRef<ItineraryWrapperRef, ItineraryWrapperProps>(function I
   
   const itineraryTabRef = useRef<ItineraryTabRef>(null);
   const [viewMode, setViewMode] = useState<'itinerary' | 'map'>('itinerary');
+  const [mapKey, setMapKey] = useState(0); // Force map re-render when itinerary changes
 
   // Expose refresh function to parent components
   useImperativeHandle(ref, () => ({
@@ -42,6 +43,19 @@ export default forwardRef<ItineraryWrapperRef, ItineraryWrapperProps>(function I
     // call parent callback if provided
     if (onTripUpdate) {
       onTripUpdate(updatedTrip);
+    }
+  };
+
+  // handle itinerary changes and refresh map
+  const handleItineraryChange = () => {
+    console.log('ItineraryWrapper: Itinerary changed, refreshing map');
+    
+    // Force map re-render by updating key
+    setMapKey(prev => prev + 1);
+    
+    // call parent callback if provided
+    if (onItineraryChange) {
+      onItineraryChange();
     }
   };
   
@@ -85,11 +99,12 @@ export default forwardRef<ItineraryWrapperRef, ItineraryWrapperProps>(function I
               ref={itineraryTabRef}
               trip={trip}
               onTripUpdate={handleTripUpdate}
-              onItineraryChange={onItineraryChange}
+              onItineraryChange={handleItineraryChange}
             />
           </View>
         ) : (
           <ItineraryMapView 
+            key={mapKey}
             trip={trip}
             height={height}
           />

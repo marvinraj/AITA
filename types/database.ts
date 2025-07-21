@@ -210,6 +210,8 @@ export interface CreateItineraryItemInput {
   time: string; // Time in HH:MM format - now required
   duration?: number;
   location?: string;
+  latitude?: number;
+  longitude?: number;
   category?: 'activity' | 'restaurant' | 'hotel' | 'transport' | 'flight' | 'attraction' | 'shopping' | 'nightlife' | 'other';
   priority?: 'low' | 'medium' | 'high';
   item_order?: number;
@@ -227,6 +229,8 @@ export interface UpdateItineraryItemInput {
   time?: string;
   duration?: number;
   location?: string;
+  latitude?: number;
+  longitude?: number;
   category?: 'activity' | 'restaurant' | 'hotel' | 'transport' | 'flight' | 'other';
   priority?: 'low' | 'medium' | 'high';
   item_order?: number;

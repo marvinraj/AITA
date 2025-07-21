@@ -1,9 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useRef, useState } from 'react';
-import { Alert, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import { colors } from '../constants/colors';
-import { addLocationDataToTripItems, getDestinationCoordinates } from '../lib/locationUtils';
+import { getDestinationCoordinates } from '../lib/locationUtils';
 import { supabase } from '../lib/supabase';
 import { ItineraryItem, Trip } from '../types/database';
 
@@ -17,7 +17,6 @@ export default function ItineraryMapView({ trip, height }: ItineraryMapViewProps
   const [selectedDate, setSelectedDate] = useState<string>('all');
   const [availableDates, setAvailableDates] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
-  const [fetchingLocations, setFetchingLocations] = useState(false);
   const [showDateDropdown, setShowDateDropdown] = useState(false);
   const mapRef = useRef<MapView>(null);
 
@@ -27,23 +26,9 @@ export default function ItineraryMapView({ trip, height }: ItineraryMapViewProps
     }
   }, [trip?.id]);
 
-  const handleFetchLocationData = async () => {
-    setFetchingLocations(true);
-    try {
-      await addLocationDataToTripItems(trip.id);
-      Alert.alert('Success', 'Location data has been added to your activities!');
-      await fetchItineraryItems();
-    } catch (error) {
-      console.error('Error fetching location data:', error);
-      Alert.alert('Error', 'Failed to fetch location data. Please try again.');
-    } finally {
-      setFetchingLocations(false);
-    }
-  };
-
-  // Effect to handle auto-selection of first date after location data is fetched
+  // Effect to handle auto-selection of first date after items are loaded
   useEffect(() => {
-    if (!fetchingLocations && availableDates.length > 0 && itineraryItems.length > 0) {
+    if (!loading && availableDates.length > 0 && itineraryItems.length > 0) {
       const firstDate = availableDates[0];
       const firstDateItems = itineraryItems.filter(item => 
         new Date(item.date).toDateString() === firstDate
@@ -67,7 +52,7 @@ export default function ItineraryMapView({ trip, height }: ItineraryMapViewProps
         }, 500);
       }
     }
-  }, [fetchingLocations, availableDates, itineraryItems]);
+  }, [loading, availableDates, itineraryItems]);
 
   const handleDateSelection = (date: string) => {
     setSelectedDate(date);
@@ -379,24 +364,12 @@ export default function ItineraryMapView({ trip, height }: ItineraryMapViewProps
               <Text className="text-sm font-InterBold mb-2 text-primaryFont text-center">
                 No locations found
               </Text>
-              <Text className="text-xs text-secondaryFont text-center mb-3">
+              <Text className="text-xs text-secondaryFont text-center">
                 {selectedDate === 'all' 
-                  ? 'Add location data to your itinerary items'
+                  ? 'Add activities to your itinerary to see them on the map'
                   : `No activities with locations for ${new Date(selectedDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
                 }
               </Text>
-              {selectedDate === 'all' && (
-                <TouchableOpacity 
-                  onPress={handleFetchLocationData}
-                  disabled={fetchingLocations}
-                  className="px-4 py-2 rounded-lg"
-                  style={{ backgroundColor: colors.accentFont }}
-                >
-                  <Text className="text-xs font-InterBold text-primaryBG">
-                    {fetchingLocations ? 'Adding...' : 'Auto-Add Locations'}
-                  </Text>
-                </TouchableOpacity>
-              )}
             </View>
           </View>
         )}

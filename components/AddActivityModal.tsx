@@ -11,6 +11,7 @@ import {
   View
 } from 'react-native';
 import { ACTIVITY_CATEGORIES, Category, getSuggestedCategories } from '../constants/categories';
+import { searchLocationByName } from '../lib/locationUtils';
 import { itineraryService } from '../lib/services/itineraryService';
 import { Place, placesService } from '../lib/services/placesService';
 import { savedPlacesService } from '../lib/services/savedPlacesService';
@@ -185,6 +186,15 @@ export default function AddActivityModal({
       console.log('Saving activity with category:', selectedCategory);
       console.log('Selected place photos:', selectedPlace.photos?.length || 0, selectedPlace.photos);
 
+      // Try to fetch location coordinates automatically
+      let locationData = null;
+      try {
+        locationData = await searchLocationByName(selectedPlace.name + ' ' + selectedPlace.address);
+        console.log('Location data found:', locationData);
+      } catch (error) {
+        console.log('Could not fetch location data:', error);
+      }
+
       // Create itinerary item
       const newItem = await itineraryService.createItineraryItem({
         trip_id: tripId,
@@ -196,7 +206,9 @@ export default function AddActivityModal({
         category: selectedCategory as any, // Type assertion for now
         priority: 'medium',
         image_url: selectedPlace.imageUrl, // Primary image URL from the place
-        photos: selectedPlace.photos || [] // All available photos for gallery
+        photos: selectedPlace.photos || [], // All available photos for gallery
+        latitude: locationData?.latitude || undefined,
+        longitude: locationData?.longitude || undefined
       });
 
       console.log('Activity created successfully:', newItem);
