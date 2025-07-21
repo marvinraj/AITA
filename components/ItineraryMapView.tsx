@@ -36,31 +36,21 @@ export default function ItineraryMapView({ trip, height }: ItineraryMapViewProps
       
       if (firstDateItems.length > 0 && selectedDate === 'all') {
         setSelectedDate(firstDate);
-        
-        setTimeout(() => {
-          if (mapRef.current) {
-            const coordinates = firstDateItems.map(item => ({
-              latitude: item.latitude!,
-              longitude: item.longitude!,
-            }));
-            
-            mapRef.current.fitToCoordinates(coordinates, {
-              edgePadding: { top: 20, right: 20, bottom: 20, left: 20 },
-              animated: true,
-            });
-          }
-        }, 500);
       }
     }
   }, [loading, availableDates, itineraryItems]);
 
   const handleDateSelection = (date: string) => {
+    console.log('Date selection:', date);
     setSelectedDate(date);
     
     if (date !== 'all') {
       const dateItems = itineraryItems.filter(item => 
         new Date(item.date).toDateString() === date
       );
+      
+      console.log(`Found ${dateItems.length} items for date ${date}`);
+      console.log('Items:', dateItems.map(item => ({ title: item.title, date: item.date })));
       
       if (dateItems.length > 0 && mapRef.current) {
         setTimeout(() => {
@@ -70,12 +60,14 @@ export default function ItineraryMapView({ trip, height }: ItineraryMapViewProps
           }));
           
           mapRef.current!.fitToCoordinates(coordinates, {
-            edgePadding: { top: 20, right: 20, bottom: 20, left: 20 },
+            edgePadding: { top: 50, right: 50, bottom: 50, left: 50 },
             animated: true,
           });
         }, 300);
       }
     } else {
+      console.log(`Showing all ${itineraryItems.length} items`);
+      // For "all" view, fit to all items
       if (itineraryItems.length > 0 && mapRef.current) {
         setTimeout(() => {
           const coordinates = itineraryItems.map(item => ({
@@ -84,7 +76,7 @@ export default function ItineraryMapView({ trip, height }: ItineraryMapViewProps
           }));
           
           mapRef.current!.fitToCoordinates(coordinates, {
-            edgePadding: { top: 20, right: 20, bottom: 20, left: 20 },
+            edgePadding: { top: 50, right: 50, bottom: 50, left: 50 },
             animated: true,
           });
         }, 300);
@@ -123,10 +115,10 @@ export default function ItineraryMapView({ trip, height }: ItineraryMapViewProps
       
       setItineraryItems(itemsWithLocation);
       
-      // Extract unique dates from all items
-      const dates = [...new Set(data?.map((item: ItineraryItem) => 
+      // Extract unique dates from items with location data only
+      const dates = [...new Set(itemsWithLocation.map((item: ItineraryItem) => 
         new Date(item.date).toDateString()
-      ) || [])] as string[];
+      ))] as string[];
       setAvailableDates(dates);
     } catch (error) {
       console.error('Error fetching itinerary items:', error);
@@ -142,6 +134,10 @@ export default function ItineraryMapView({ trip, height }: ItineraryMapViewProps
     : itineraryItems.filter(item => 
         new Date(item.date).toDateString() === selectedDate
       );
+
+  console.log('Render - Selected date:', selectedDate);
+  console.log('Render - Filtered items:', filteredItems.length);
+  console.log('Render - Items:', filteredItems.map(item => ({ title: item.title, date: item.date })));
 
   const initialRegion = (() => {
     try {
@@ -204,6 +200,7 @@ export default function ItineraryMapView({ trip, height }: ItineraryMapViewProps
       <View className="flex-1 relative">
         <MapView
           ref={mapRef}
+          key={`map-${selectedDate}-${filteredItems.length}`}
           style={{ flex: 1 }}
           initialRegion={initialRegion}
           showsUserLocation={Platform.OS === 'ios'}
