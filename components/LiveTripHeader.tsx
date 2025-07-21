@@ -131,6 +131,10 @@ export default function LiveTripHeader({ trip, weather: weatherOverride, onTripU
   // Handle trip change
   const handleTripChange = (selectedTrip: Trip) => {
     setShowTripSelectModal(false);
+    
+    // Save the selected trip to persistence
+    tripsService.setCurrentTrip(selectedTrip.id);
+    
     if (onTripChange) {
       onTripChange(selectedTrip);
     }

@@ -1,7 +1,11 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { CreateTripInput, Trip, UpdateTripInput } from '../../types/database';
 import { supabase } from '../supabase';
 import { notificationService } from './notificationService';
 import { TripNotificationManager } from './tripNotificationManager';
+
+// Storage key for selected trip
+const SELECTED_TRIP_KEY = 'selected_trip_id';
 
 export class TripsService {
   
@@ -70,16 +74,17 @@ export class TripsService {
           'normal'
         );
 
-        // Set up future scheduled notifications
-        await TripNotificationManager.setupTripNotifications(data);
-        await TripNotificationManager.setupLocationNotifications(data);
-        
-        console.log(`✅ Trip notifications set up for: ${data.name}`);
-      } catch (notificationError) {
-        console.warn('Failed to setup notifications for trip:', notificationError);
-      }
-
-      return data;
+      // Set up future scheduled notifications
+      await TripNotificationManager.setupTripNotifications(data);
+      await TripNotificationManager.setupLocationNotifications(data);
+      
+      // Set this as the current selected trip
+      await this.setCurrentTrip(data.id);
+      
+      console.log(`✅ Trip notifications set up for: ${data.name}`);
+    } catch (notificationError) {
+      console.warn('Failed to setup notifications for trip:', notificationError);
+    }      return data;
     } catch (error) {
       console.error('Failed to create trip:', error);
       throw error;
@@ -211,6 +216,20 @@ export class TripsService {
   // Get user's current active trip (most recent)
   async getCurrentTrip(): Promise<Trip | null> {
     try {
+      // First, try to get the user's selected trip from storage
+      const selectedTripId = await AsyncStorage.getItem(SELECTED_TRIP_KEY);
+      
+      if (selectedTripId) {
+        // Try to get the selected trip by ID
+        const selectedTrip = await this.getTripById(selectedTripId);
+        if (selectedTrip) {
+          return selectedTrip;
+        }
+        // If selected trip doesn't exist anymore, clear the storage
+        await AsyncStorage.removeItem(SELECTED_TRIP_KEY);
+      }
+
+      // Fallback to most recent trip
       const { data, error } = await supabase
         .from('trips')
         .select('*')
@@ -231,6 +250,24 @@ export class TripsService {
     } catch (error) {
       console.error('Failed to fetch current trip:', error);
       throw error;
+    }
+  }
+
+  // Set user's selected trip
+  async setCurrentTrip(tripId: string): Promise<void> {
+    try {
+      await AsyncStorage.setItem(SELECTED_TRIP_KEY, tripId);
+    } catch (error) {
+      console.error('Failed to set current trip:', error);
+    }
+  }
+
+  // Clear user's selected trip (will fallback to most recent)
+  async clearCurrentTrip(): Promise<void> {
+    try {
+      await AsyncStorage.removeItem(SELECTED_TRIP_KEY);
+    } catch (error) {
+      console.error('Failed to clear current trip:', error);
     }
   }
 }
