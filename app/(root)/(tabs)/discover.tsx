@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { ActivityIndicator, Alert, Dimensions, Image, Modal, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import { GestureHandlerRootView, PanGestureHandler } from 'react-native-gesture-handler'
 import MapView, { Marker } from 'react-native-maps'
@@ -219,7 +219,7 @@ const DiscoverScreen = () => {
     setRecentSearches(['restaurants', 'hotels', 'attractions', 'museums'])
   }
 
-  const handleSearch = async (query: string, location?: string) => {
+  const handleSearch = useCallback(async (query: string, location?: string) => {
     if (!query.trim()) return
 
     setIsLoading(true)
@@ -244,7 +244,16 @@ const DiscoverScreen = () => {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [currentLocation, filters, recentSearches])
+
+  // Default search for restaurants when page loads
+  useEffect(() => {
+    if (user) { // Only search after user is loaded
+      setSearchQuery('restaurants')
+      setSelectedCategory('restaurants')
+      handleSearch('restaurants')
+    }
+  }, [user, handleSearch])
 
   const handleLocationSelect = () => {
     if (locationInput.trim()) {
