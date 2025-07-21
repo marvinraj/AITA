@@ -96,6 +96,14 @@ export default function DailyItinerarySection({
     setShowAddModal(false);
   };
 
+  // Handle activity edited - immediate update
+  const handleActivityEdited = (updatedActivity: ItineraryItem) => {
+    // Update the selected activity to reflect changes immediately
+    setSelectedActivity(updatedActivity);
+    // Also trigger the parent refresh to sync with database
+    onActivityAdded();
+  };
+
   // Handle activity tap
   const handleActivityTap = (activity: ItineraryItem) => {
     setSelectedActivity(activity);
@@ -231,6 +239,8 @@ export default function DailyItinerarySection({
         onClose={handleDetailModalClose}
         activity={selectedActivity}
         onActivityDeleted={handleActivityAdded} // Reuse the refresh callback
+        onActivityUpdated={handleActivityAdded} // Add this for edit updates
+        onEdit={handleActivityEdited} // Add callback for immediate updates
       />
     </View>
   );

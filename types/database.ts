@@ -231,7 +231,7 @@ export interface UpdateItineraryItemInput {
   location?: string;
   latitude?: number;
   longitude?: number;
-  category?: 'activity' | 'restaurant' | 'hotel' | 'transport' | 'flight' | 'other';
+  category?: 'activity' | 'restaurant' | 'hotel' | 'transport' | 'flight' | 'attraction' | 'shopping' | 'nightlife' | 'other';
   priority?: 'low' | 'medium' | 'high';
   item_order?: number;
   notes?: string;

@@ -11,7 +11,7 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
-import { getCategoryById, getCategoryIcon } from '../constants/categories';
+import { ACTIVITY_CATEGORIES, getCategoryById, getCategoryIcon } from '../constants/categories';
 import { colors } from '../constants/colors';
 import { itineraryService } from '../lib/services/itineraryService';
 import { savedPlacesService } from '../lib/services/savedPlacesService';
@@ -91,6 +91,8 @@ interface ActivityDetailModalProps {
   onClose: () => void;
   activity: ItineraryItem | null;
   onActivityDeleted?: () => void;
+  onActivityUpdated?: () => void; // Add callback for updates
+  onEdit?: (updatedActivity: ItineraryItem) => void; // Callback with updated data
   isSavedPlace?: boolean; // New prop to indicate if this is a saved place
 }
 
@@ -99,12 +101,116 @@ export default function ActivityDetailModal({
   onClose, 
   activity,
   onActivityDeleted,
+  onActivityUpdated,
+  onEdit,
   isSavedPlace = false
 }: ActivityDetailModalProps) {
   
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   
-  if (!activity) return null;
+  // Local activity state for immediate updates
+  const [localActivity, setLocalActivity] = useState<ItineraryItem | null>(activity);
+  
+  // Update local activity when prop changes
+  React.useEffect(() => {
+    setLocalActivity(activity);
+  }, [activity]);
+  
+  // Edit state
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [selectedHour, setSelectedHour] = useState(9);
+  const [selectedMinute, setSelectedMinute] = useState(0);
+  const [selectedPeriod, setSelectedPeriod] = useState<'AM' | 'PM'>('AM');
+  
+  if (!localActivity) return null;
+
+  // Initialize edit state when entering edit mode
+  const initializeEditState = () => {
+    setSelectedCategory(localActivity.category);
+    
+    if (localActivity.time) {
+      const [hours, minutes] = localActivity.time.split(':');
+      const hour = parseInt(hours);
+      const minute = parseInt(minutes);
+      
+      if (hour === 0) {
+        setSelectedHour(12);
+        setSelectedPeriod('AM');
+      } else if (hour <= 12) {
+        setSelectedHour(hour);
+        setSelectedPeriod(hour === 12 ? 'PM' : 'AM');
+      } else {
+        setSelectedHour(hour - 12);
+        setSelectedPeriod('PM');
+      }
+      
+      setSelectedMinute(minute);
+    } else {
+      setSelectedHour(9);
+      setSelectedMinute(0);
+      setSelectedPeriod('AM');
+    }
+  };
+
+  // Handle edit mode toggle
+  const handleEditToggle = () => {
+    if (!isEditing) {
+      initializeEditState();
+    }
+    setIsEditing(!isEditing);
+  };
+
+  // Handle save changes
+  const handleSaveChanges = async () => {
+    if (!activity || isSavedPlace) return;
+
+    setIsSaving(true);
+    try {
+      // Convert time to 24-hour format
+      let hour = selectedHour;
+      if (selectedPeriod === 'PM' && hour !== 12) {
+        hour += 12;
+      } else if (selectedPeriod === 'AM' && hour === 12) {
+        hour = 0;
+      }
+      
+      const timeString = `${hour.toString().padStart(2, '0')}:${selectedMinute.toString().padStart(2, '0')}`;
+
+      // Update the activity
+      await itineraryService.updateItineraryItem(localActivity.id, {
+        category: selectedCategory as ItineraryItem['category'],
+        time: timeString,
+      });
+
+      // Create updated activity for callback
+      const updatedActivity = {
+        ...localActivity,
+        category: selectedCategory as ItineraryItem['category'],
+        time: timeString,
+      };
+
+      // Update local state immediately for UI
+      setLocalActivity(updatedActivity);
+
+      // Close edit mode
+      setIsEditing(false);
+      
+      // Trigger callbacks
+      onEdit?.(updatedActivity);
+      if (onActivityUpdated) {
+        onActivityUpdated();
+      }
+
+      Alert.alert('Success', 'Activity updated successfully');
+    } catch (error) {
+      console.error('Error updating activity:', error);
+      Alert.alert('Error', 'Failed to update localActivity. Please try again.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   // Format time display
   const formatTime = (time?: string) => {
@@ -128,14 +234,14 @@ export default function ActivityDetailModal({
     });
   };
 
-  const category = getCategoryById(activity.category);
+  const category = getCategoryById(localActivity.category);
 
   // Handle delete activity
-  const handleDeleteActivity = () => {
+  const handleDeleteActivity = async () => {
     const actionType = isSavedPlace ? 'Remove from Saved Places' : 'Delete Activity';
     const message = isSavedPlace 
-      ? `Are you sure you want to remove "${activity.title}" from your saved places?`
-      : `Are you sure you want to delete "${activity.title}"? This action cannot be undone.`;
+      ? `Are you sure you want to remove "${localActivity.title}" from your saved places?`
+      : `Are you sure you want to delete "${localActivity.title}"? This action cannot be undone.`;
     
     Alert.alert(
       actionType,
@@ -158,13 +264,13 @@ export default function ActivityDetailModal({
     try {
       if (isSavedPlace) {
         // Create a method to delete saved place by ID
-        const { error } = await savedPlacesService.deleteSavedPlaceById(activity.id);
+        const { error } = await savedPlacesService.deleteSavedPlaceById(localActivity.id);
         if (error) {
           throw error;
         }
       } else {
         // Delete itinerary item
-        await itineraryService.deleteItineraryItem(activity.id);
+        await itineraryService.deleteItineraryItem(localActivity.id);
       }
       
       // Close modal and trigger refresh
@@ -181,7 +287,7 @@ export default function ActivityDetailModal({
       console.error('Error deleting activity:', error);
       const errorMessage = isSavedPlace 
         ? 'Failed to remove place from saved places. Please try again.'
-        : 'Failed to delete activity. Please try again.';
+        : 'Failed to delete localActivity. Please try again.';
       Alert.alert('Error', errorMessage);
     } finally {
       setIsDeleting(false);
@@ -211,18 +317,22 @@ export default function ActivityDetailModal({
           </View>
         </View>
 
-        <ScrollView className="flex-1 px-4 pt-6">
+        <ScrollView 
+          className="flex-1 px-4 pt-6" 
+          contentContainerStyle={{ paddingBottom: 100 }}
+          showsVerticalScrollIndicator={false}
+        >
           {/* Activity Header */}
           <View className="bg-secondaryBG/50 rounded-lg p-4 mb-6">
             <View className="flex-row items-center mb-3">
               {/* Category Icon */}
               <View className="w-12 h-12 rounded-full bg-accentFont/20 items-center justify-center mr-3">
-                <Text className="text-xl">{getCategoryIcon(activity.category)}</Text>
+                <Text className="text-xl">{getCategoryIcon(localActivity.category)}</Text>
               </View>
               
               <View className="flex-1">
                 <Text className="text-primaryFont font-UrbanistSemiBold text-xl">
-                  {activity.title}
+                  {localActivity.title}
                 </Text>
                 {category && (
                   <Text className="text-secondaryFont text-sm">
@@ -232,7 +342,7 @@ export default function ActivityDetailModal({
               </View>
               
               {/* Priority indicator */}
-              {activity.priority === 'high' && (
+              {localActivity.priority === 'high' && (
                 <View className="bg-red-500/20 px-2 py-1 rounded-full">
                   <Text className="text-red-500 text-xs font-UrbanistSemiBold">
                     High Priority
@@ -243,12 +353,12 @@ export default function ActivityDetailModal({
           </View>
 
           {/* Activity Image Gallery */}
-          {activity.image_url && (
+          {localActivity.image_url && (
             <ImageGallery 
               images={
-                activity.photos && activity.photos.length > 0 
-                  ? activity.photos 
-                  : [activity.image_url]
+                localActivity.photos && localActivity.photos.length > 0 
+                  ? localActivity.photos 
+                  : [localActivity.image_url]
               }
             />
           )}
@@ -262,18 +372,18 @@ export default function ActivityDetailModal({
                   📅 When
                 </Text>
                 <Text className="text-secondaryFont">
-                  {formatDate(activity.date)}
+                  {formatDate(localActivity.date)}
                 </Text>
-                {activity.time && (
+                {localActivity.time && (
                   <Text className="text-secondaryFont">
-                    {formatTime(activity.time)}
+                    {formatTime(localActivity.time)}
                   </Text>
                 )}
               </View>
             )}
 
             {/* Location */}
-            {activity.location && (
+            {localActivity.location && (
               <View className="bg-primaryBG/50 rounded-lg p-4 border border-border/30">
                 <View className="flex flex-row items-center justify-between">
                   <Text className="text-primaryFont font-UrbanistSemiBold text-base mb-2 mr-2">
@@ -286,14 +396,14 @@ export default function ActivityDetailModal({
                       // ellipsizeMode="tail"
                       style={{ maxWidth: '100%' }}
                     >
-                      {activity.location}
+                      {localActivity.location}
                     </Text>
                   </View>
                   <View className="flex-row flex-shrink-0 ml-2">
                     {/* Waze Icon Button */}
                     <TouchableOpacity
                       onPress={() => {
-                        const query = encodeURIComponent(activity.location ?? '');
+                        const query = encodeURIComponent(localActivity.location ?? '');
                         const wazeUrl = `https://waze.com/ul?q=${query}`;
                         Alert.alert(
                           'Open Waze',
@@ -315,7 +425,7 @@ export default function ActivityDetailModal({
                     {/* Google Maps Icon Button */}
                     <TouchableOpacity
                       onPress={() => {
-                        const query = encodeURIComponent(activity.location ?? '');
+                        const query = encodeURIComponent(localActivity.location ?? '');
                         const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${query}`;
                         Alert.alert(
                           'Open Google Maps',
@@ -339,49 +449,49 @@ export default function ActivityDetailModal({
             )}
 
             {/* Description */}
-            {activity.description && (
+            {localActivity.description && (
               <View className="bg-primaryBG/50 rounded-lg p-4 border border-border/30">
                 <Text className="text-primaryFont font-UrbanistSemiBold text-base mb-2">
                   📝 Description
                 </Text>
                 <Text className="text-secondaryFont leading-5">
-                  {activity.description}
+                  {localActivity.description}
                 </Text>
               </View>
             )}
 
             {/* Duration - Only show for itinerary items */}
-            {!isSavedPlace && activity.duration && (
+            {!isSavedPlace && localActivity.duration && (
               <View className="bg-primaryBG/50 rounded-lg p-4 border border-border/30">
                 <Text className="text-primaryFont font-UrbanistSemiBold text-base mb-2">
                   ⏱️ Duration
                 </Text>
                 <Text className="text-secondaryFont">
-                  {activity.duration} minutes
+                  {localActivity.duration} minutes
                 </Text>
               </View>
             )}
 
             {/* Cost - Only show for itinerary items */}
-            {!isSavedPlace && activity.cost && (
+            {!isSavedPlace && localActivity.cost && (
               <View className="bg-primaryBG/50 rounded-lg p-4 border border-border/30">
                 <Text className="text-primaryFont font-UrbanistSemiBold text-base mb-2">
                   💰 Cost
                 </Text>
                 <Text className="text-secondaryFont">
-                  {activity.currency || 'USD'} {activity.cost}
+                  {localActivity.currency || 'USD'} {localActivity.cost}
                 </Text>
               </View>
             )}
 
             {/* Notes */}
-            {activity.notes && (
+            {localActivity.notes && (
               <View className="bg-primaryBG/50 rounded-lg p-4 border border-border/30">
                 <Text className="text-primaryFont font-UrbanistSemiBold text-base mb-2">
                   💭 Notes
                 </Text>
                 <Text className="text-secondaryFont leading-5">
-                  {activity.notes}
+                  {localActivity.notes}
                 </Text>
               </View>
             )}
@@ -389,34 +499,195 @@ export default function ActivityDetailModal({
 
           {/* Action Buttons */}
           <View className="mt-8 mb-6 space-y-3">
-            <TouchableOpacity 
-              className="bg-transparent rounded-xl py-3 items-center border border-blue-300/20"
-              activeOpacity={0.8}
-              onPress={() => {
-                // TODO: Implement edit functionality
-                console.log('Edit activity:', activity.id);
-              }}
-            >
-              <Text className="text-blue-300 font-UrbanistSemiBold">
-                Edit Activity
-              </Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity 
-              className={`bg-red-500/20 rounded-xl py-3 mt-3 items-center border border-red-500/30 ${
-                isDeleting ? 'opacity-50' : ''
-              }`}
-              activeOpacity={0.8}
-              onPress={handleDeleteActivity}
-              disabled={isDeleting}
-            >
-              <Text className="text-red-500 font-UrbanistSemiBold">
-                {isDeleting 
-                  ? (isSavedPlace ? 'Removing...' : 'Deleting...') 
-                  : (isSavedPlace ? 'Remove from Saved Places' : 'Delete Activity')
-                }
-              </Text>
-            </TouchableOpacity>
+            {/* Edit Mode */}
+            {isEditing && !isSavedPlace ? (
+              <View className="bg-secondaryBG/30 rounded-xl p-4 border-2 border-accentFont/30 mb-4">
+                <Text className="text-accentFont font-UrbanistSemiBold mb-4 text-center">
+                  ✏️ Edit Activity
+                </Text>
+                
+                {/* Category Selection */}
+                <View className="mb-4">
+                  <Text className="text-primaryFont font-UrbanistSemiBold mb-3">
+                    Choose category
+                  </Text>
+                  
+                  <View className="flex-row flex-wrap gap-2 mb-4">
+                    {ACTIVITY_CATEGORIES.map((category) => (
+                      <TouchableOpacity
+                        key={category.id}
+                        className={`px-4 py-2 rounded-full border flex-row items-center ${
+                          selectedCategory === category.id
+                            ? 'bg-accentFont border-accentFont'
+                            : 'bg-secondaryBG border-border'
+                        }`}
+                        onPress={() => setSelectedCategory(category.id)}
+                        activeOpacity={0.8}
+                      >
+                        <Text className="mr-2">{category.icon}</Text>
+                        <Text className={`font-UrbanistSemiBold ${
+                          selectedCategory === category.id
+                            ? 'text-primaryBG'
+                            : 'text-primaryFont'
+                        }`}>
+                          {category.label}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+
+                {/* Time Picker */}
+                <View className="mb-6">
+                  <View className="flex-row items-center justify-between mb-3">
+                    <Text className="text-primaryFont font-UrbanistSemiBold">
+                      Set time
+                    </Text>
+                  </View>
+                  
+                  <View className="bg-secondaryBG rounded-xl p-4 border border-border">
+                    <View className="flex-row items-center justify-center">
+                      {/* Hour Picker */}
+                      <View className="items-center">
+                        <Text className="text-secondaryFont text-xs mb-2">Hour</Text>
+                        <View className="flex-row items-center">
+                          <TouchableOpacity
+                            onPress={() => setSelectedHour(selectedHour > 1 ? selectedHour - 1 : 12)}
+                            className="w-10 h-10 bg-accentFont/20 rounded-lg items-center justify-center"
+                            activeOpacity={0.7}
+                          >
+                            <Text className="text-accentFont font-UrbanistSemiBold">−</Text>
+                          </TouchableOpacity>
+                          <Text className="text-primaryFont font-UrbanistSemiBold text-xl mx-4 min-w-8 text-center">
+                            {selectedHour}
+                          </Text>
+                          <TouchableOpacity
+                            onPress={() => setSelectedHour(selectedHour < 12 ? selectedHour + 1 : 1)}
+                            className="w-10 h-10 bg-accentFont/20 rounded-lg items-center justify-center"
+                            activeOpacity={0.7}
+                          >
+                            <Text className="text-accentFont font-UrbanistSemiBold">+</Text>
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+                      
+                      <Text className="text-primaryFont font-UrbanistSemiBold text-xl mx-2">:</Text>
+                      
+                      {/* Minute Picker */}
+                      <View className="items-center">
+                        <Text className="text-secondaryFont text-xs mb-2">Min</Text>
+                        <View className="flex-row items-center">
+                          <TouchableOpacity
+                            onPress={() => setSelectedMinute(selectedMinute >= 15 ? selectedMinute - 15 : 45)}
+                            className="w-10 h-10 bg-accentFont/20 rounded-lg items-center justify-center"
+                            activeOpacity={0.7}
+                          >
+                            <Text className="text-accentFont font-UrbanistSemiBold">−</Text>
+                          </TouchableOpacity>
+                          <Text className="text-primaryFont font-UrbanistSemiBold text-xl mx-4 min-w-8 text-center">
+                            {selectedMinute.toString().padStart(2, '0')}
+                          </Text>
+                          <TouchableOpacity
+                            onPress={() => setSelectedMinute(selectedMinute <= 30 ? selectedMinute + 15 : 0)}
+                            className="w-10 h-10 bg-accentFont/20 rounded-lg items-center justify-center"
+                            activeOpacity={0.7}
+                          >
+                            <Text className="text-accentFont font-UrbanistSemiBold">+</Text>
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+                      
+                      {/* AM/PM Toggle */}
+                      <View className="items-center ml-4">
+                        <Text className="text-secondaryFont text-xs mb-2">Period</Text>
+                        <View className="bg-primaryBG rounded-lg overflow-hidden">
+                          <TouchableOpacity
+                            onPress={() => setSelectedPeriod('AM')}
+                            className={`px-3 py-2 ${selectedPeriod === 'AM' ? 'bg-accentFont' : 'bg-transparent'}`}
+                            activeOpacity={0.7}
+                          >
+                            <Text className={`font-UrbanistSemiBold text-sm ${selectedPeriod === 'AM' ? 'text-primaryBG' : 'text-primaryFont'}`}>
+                              AM
+                            </Text>
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            onPress={() => setSelectedPeriod('PM')}
+                            className={`px-3 py-2 ${selectedPeriod === 'PM' ? 'bg-accentFont' : 'bg-transparent'}`}
+                            activeOpacity={0.7}
+                          >
+                            <Text className={`font-UrbanistSemiBold text-sm ${selectedPeriod === 'PM' ? 'text-primaryBG' : 'text-primaryFont'}`}>
+                              PM
+                            </Text>
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+                    </View>
+                    
+                    {/* Selected time preview */}
+                    <Text className="text-center text-secondaryFont text-sm mt-3">
+                      Selected: {selectedHour}:{selectedMinute.toString().padStart(2, '0')} {selectedPeriod}
+                    </Text>
+                  </View>
+                </View>
+
+                {/* Save/Cancel Buttons */}
+                <View className="flex-row space-x-3">
+                  <TouchableOpacity 
+                    className="flex-1 bg-transparent rounded-xl py-3 items-center border border-border/30"
+                    activeOpacity={0.8}
+                    onPress={() => setIsEditing(false)}
+                  >
+                    <Text className="text-primaryFont font-UrbanistSemiBold">
+                      Cancel
+                    </Text>
+                  </TouchableOpacity>
+                  
+                  <TouchableOpacity 
+                    className={`flex-1 rounded-xl py-3 items-center ${
+                      isSaving ? 'bg-accentFont/50' : 'bg-accentFont'
+                    }`}
+                    activeOpacity={0.8}
+                    onPress={handleSaveChanges}
+                    disabled={isSaving}
+                  >
+                    <Text className="text-primaryBG font-UrbanistSemiBold">
+                      {isSaving ? 'Saving...' : 'Save Changes'}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            ) : (
+              /* Normal Mode Buttons */
+              <>
+                {!isSavedPlace && (
+                  <TouchableOpacity 
+                    className="bg-transparent rounded-xl py-3 items-center border border-blue-300/20"
+                    activeOpacity={0.8}
+                    onPress={handleEditToggle}
+                  >
+                    <Text className="text-blue-300 font-UrbanistSemiBold">
+                      Edit Activity
+                    </Text>
+                  </TouchableOpacity>
+                )}
+                
+                <TouchableOpacity 
+                  className={`bg-red-500/20 rounded-xl py-3 mt-3 items-center border border-red-500/30 ${
+                    isDeleting ? 'opacity-50' : ''
+                  }`}
+                  activeOpacity={0.8}
+                  onPress={handleDeleteActivity}
+                  disabled={isDeleting}
+                >
+                  <Text className="text-red-500 font-UrbanistSemiBold">
+                    {isDeleting 
+                      ? (isSavedPlace ? 'Removing...' : 'Deleting...') 
+                      : (isSavedPlace ? 'Remove from Saved Places' : 'Delete Activity')
+                    }
+                  </Text>
+                </TouchableOpacity>
+              </>
+            )}
           </View>
         </ScrollView>
       </View>
