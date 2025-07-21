@@ -28,10 +28,10 @@ const TripSelectModal: React.FC<TripSelectModalProps> = ({ visible, trips, curre
 
         {/* Header */}
         <View className="px-6 py-4">
-          <Text className="text-primaryFont text-2xl font-BellezaRegular text-center">Select Trip</Text>
-          <Text className="text-secondaryFont text-xs text-center mt-1">
+          <Text className="text-primaryFont text-2xl font-BellezaRegular text-center">Select a Live Trip</Text>
+          {/* <Text className="text-secondaryFont text-xs text-center mt-1">
             Select a trip to go live
-          </Text>
+          </Text> */}
         </View>
         
         {/* Trip List */}
