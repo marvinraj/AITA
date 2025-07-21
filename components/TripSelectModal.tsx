@@ -110,11 +110,11 @@ const TripSelectModal: React.FC<TripSelectModalProps> = ({ visible, trips, curre
         {/* Cancel Button */}
         <View className="px-6 pb-6 pt-4">
           <TouchableOpacity
-            className="py-4 px-6 bg-border/20 rounded-2xl border border-border/30"
+            className="py-4 px-6 bg-primaryFont/50 rounded-2xl border border-border/30"
             onPress={onCancel}
             activeOpacity={0.7}
           >
-            <Text className="text-primaryFont text-center font-semibold">Cancel</Text>
+            <Text className="text-primaryBG text-center font-semibold">Cancel</Text>
           </TouchableOpacity>
         </View>
       </View>
