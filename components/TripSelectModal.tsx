@@ -16,22 +16,26 @@ const TripSelectModal: React.FC<TripSelectModalProps> = ({ visible, trips, curre
     <Modal
       visible={visible}
       animationType="slide"
-      transparent
+      transparent={false}
+      presentationStyle="pageSheet"
       onRequestClose={onCancel}
     >
-      <View className="flex-1 justify-center items-center bg-black/50 px-4">
-        <View className="bg-secondaryBG rounded-2xl p-6 w-full max-w-sm max-h-96 shadow-2xl">
-          {/* Header */}
-          <View className="flex-row items-center justify-between mb-6">
-            <View className="flex-1">
-              <Text className="text-primaryFont text-2xl font-bold text-center">Select Trip</Text>
-              <Text className="text-secondaryFont text-sm text-center mt-1">
-                Choose which trip to view
-              </Text>
-            </View>
-          </View>
-          
-          {/* Trip List */}
+      <View className="flex-1 bg-secondaryBG">
+        {/* Handle Bar */}
+        <View className="items-center pt-4 pb-2">
+          <View className="w-12 h-1 bg-border/40 rounded-full" />
+        </View>
+
+        {/* Header */}
+        <View className="px-6 py-4">
+          <Text className="text-primaryFont text-2xl font-BellezaRegular text-center">Select Trip</Text>
+          <Text className="text-secondaryFont text-xs text-center mt-1">
+            Select a trip to go live
+          </Text>
+        </View>
+        
+        {/* Trip List */}
+        <View className="flex-1 px-6">
           <FlatList
             data={trips}
             keyExtractor={(item) => item.id}
@@ -99,17 +103,18 @@ const TripSelectModal: React.FC<TripSelectModalProps> = ({ visible, trips, curre
                 </TouchableOpacity>
               );
             }}
-            style={{ maxHeight: 240 }}
             showsVerticalScrollIndicator={false}
           />
-          
-          {/* Cancel Button */}
+        </View>
+        
+        {/* Cancel Button */}
+        <View className="px-6 pb-6 pt-4">
           <TouchableOpacity
-            className="mt-4 py-3 px-6 bg-border/20 rounded-xl border border-border/30"
+            className="py-4 px-6 bg-border/20 rounded-2xl border border-border/30"
             onPress={onCancel}
             activeOpacity={0.7}
           >
-            <Text className="text-primaryFont text-center font-medium">Cancel</Text>
+            <Text className="text-primaryFont text-center font-semibold">Cancel</Text>
           </TouchableOpacity>
         </View>
       </View>
