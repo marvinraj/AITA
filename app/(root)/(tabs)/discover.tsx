@@ -673,7 +673,7 @@ const DiscoverScreen = () => {
             >
               {/* Background Gradient */}
               <LinearGradient
-                colors={['rgba(15, 20, 31, 0.98)', 'rgba(24, 32, 45, 0.98)', 'rgba(12, 17, 26, 0.99)']}
+                colors={['rgba(8, 12, 20, 0.99)', 'rgba(12, 17, 26, 0.99)', 'rgba(6, 10, 16, 1)']}
                 style={{
                   position: 'absolute',
                   top: 0,
