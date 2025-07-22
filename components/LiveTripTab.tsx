@@ -1,6 +1,9 @@
+import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
-import { Text, View } from 'react-native';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Animated, Text, TouchableOpacity, View } from 'react-native';
+import { useProfile } from '../hooks/useProfile';
 import { tripsService } from '../lib/services/tripsService';
 import { Trip } from '../types/database';
 import ItineraryTab from './ItineraryTab';
@@ -24,17 +27,97 @@ interface LiveTripTabProps {
 
 export default function LiveTripTab({ onTripChange, onChatPress, onMapPress }: LiveTripTabProps) {
   const router = useRouter();
+  const { profileData } = useProfile();
   
   // state to manage active tab
   const [activeTab, setActiveTab] = useState('Travel Hub');
   // trip state
   const [currentTrip, setCurrentTrip] = useState<Trip | null>(null);
   const [loading, setLoading] = useState(true);
+  // state for rotating chat messages
+  const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
+  // state for typing animation
+  const [displayedText, setDisplayedText] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+  const [canRotate, setCanRotate] = useState(false);
+  const fadeAnim = useState(new Animated.Value(1))[0];
+
+  // Dynamic messages for AI chat button - memoized to prevent re-creation
+  const chatMessages = useMemo(() => [
+    `Hey, need help with planning your trip?`,
+    `Ready to explore ${profileData.name}? Let's plan together!`,
+    `${profileData.name}, I can help you discover amazing places!`,
+    `Planning made easy, ${profileData.name}. Just ask me!`,
+    `${profileData.name}, let's make your trip unforgettable!`
+  ], [profileData.name]);
 
   // Load current trip on component mount
   useEffect(() => {
     loadCurrentTrip();
   }, []);
+
+  // Typing animation function - memoized with useCallback
+  const typeMessage = useCallback((message: string) => {
+    setIsTyping(true);
+    setCanRotate(false);
+    setDisplayedText('');
+    
+    let index = 0;
+    const typingInterval = setInterval(() => {
+      if (index < message.length) {
+        setDisplayedText(message.substring(0, index + 1));
+        index++;
+      } else {
+        clearInterval(typingInterval);
+        setIsTyping(false);
+        // Allow rotation only after typing is complete and a brief pause
+        setTimeout(() => {
+          setCanRotate(true);
+        }, 6000); // 4 second pause after typing completes
+      }
+    }, 50);
+  }, []);
+
+  // Initialize with first message when profile data is available
+  useEffect(() => {
+    if (profileData.name && chatMessages.length > 0) {
+      typeMessage(chatMessages[0]);
+    }
+  }, [profileData.name, typeMessage, chatMessages]);
+
+  // Rotate chat messages with typing animation
+  useEffect(() => {
+    if (!profileData.name || chatMessages.length === 0 || !canRotate) return;
+    
+    const interval = setInterval(() => {
+      // Only rotate if we're allowed to (typing is complete)
+      if (canRotate && !isTyping) {
+        // Fade out current text
+        Animated.timing(fadeAnim, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+        }).start(() => {
+          // Change message index
+          setCurrentMessageIndex((prevIndex) => {
+            const newIndex = (prevIndex + 1) % chatMessages.length;
+            // Start typing new message
+            typeMessage(chatMessages[newIndex]);
+            return newIndex;
+          });
+          
+          // Fade in new text
+          Animated.timing(fadeAnim, {
+            toValue: 1,
+            duration: 300,
+            useNativeDriver: true,
+          }).start();
+        });
+      }
+    }, 1000); // Check every second if we can rotate
+
+    return () => clearInterval(interval);
+  }, [profileData.name, chatMessages, typeMessage, fadeAnim, canRotate, isTyping]);
 
   const loadCurrentTrip = async () => {
     try {
@@ -132,6 +215,13 @@ export default function LiveTripTab({ onTripChange, onChatPress, onMapPress }: L
 
   return (
     <View className="flex-1 bg-primaryBG">
+      {/* greeting */} 
+      <View className="pt-4 pb-4">
+        <Text className="text-primaryFont text-3xl font-BellezaRegular">
+          Hey, {profileData.name}
+        </Text>
+      </View>
+      
       {/* main header component with white shadow  */}
       <View style={{
         shadowColor: '#ffffff',
@@ -146,6 +236,39 @@ export default function LiveTripTab({ onTripChange, onChatPress, onMapPress }: L
           onTripChange={handleTripChange}
           onMapPress={handleMapPress}
         />
+      </View>
+
+      {/* AI Chat Banner Button */}
+      <View className="">
+        <TouchableOpacity onPress={handleChatPress} activeOpacity={0.8}>
+          <LinearGradient
+            colors={['#16213e', '#EF4444']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={{
+              borderRadius: 16,
+              padding: 14,
+              opacity: 0.8,
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.1,
+              shadowRadius: 4,
+              elevation: 3,
+            }}
+          >
+            <View className="flex-row items-center justify-center">
+              <Ionicons name="sparkles" size={14} color="#FFFFFF" style={{ marginRight: 12 }} />
+              <Animated.View style={{ opacity: fadeAnim, flex: 1 }}>
+                <Text className="text-white text-base font-UrbanistSemiBold">
+                  {displayedText}
+                  {isTyping && (
+                    <Text className="text-white text-base font-UrbanistSemiBold">|</Text>
+                  )}
+                </Text>
+              </Animated.View>
+            </View>
+          </LinearGradient>
+        </TouchableOpacity>
       </View>
       
       {/* live trip tabs */}

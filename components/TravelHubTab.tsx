@@ -38,8 +38,8 @@ export default function TravelHubTab({ trip }: TravelHubTabProps) {
               { id: 'sim', name: 'SIM', icon: 'phone-portrait', color: colors.secondaryBG },
               { id: 'luggage', name: 'Luggage', icon: 'briefcase', color: colors.secondaryBG },
             ].map((item) => (
-              <View key={item.id} className="items-center mr-2 rounded-3xl px-2 py-1 min-w-[60px]">
-                <View className="w-14 h-14 rounded-full bg-[#ECDFCC]/60 items-center justify-center mb-2">
+              <View key={item.id} className="items-center mr-1 rounded-3xl py-1 min-w-[60px]">
+                <View className="w-14 h-14 rounded-3xl bg-[#ECDFCC]/60 items-center justify-center mb-2">
                   <Ionicons 
                     name={item.icon as keyof typeof Ionicons.glyphMap} 
                     size={18} 
