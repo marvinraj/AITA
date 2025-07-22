@@ -157,7 +157,51 @@ export default function SavesTab({ trip }: SavesTabProps) {
 
   return (
     <View className="flex-1 pt-4">
-      <Text className="text-primaryFont text-lg font-semibold mb-4">Saves for {trip.name}</Text>
+      {/* Stats Section */}
+      <View className="flex-row justify-start items-center gap-4 px-4 mb-2">
+        <View className="">
+          <View className="flex-row items-center mb-1">
+            <Ionicons name="heart" size={18} color="#ef4444" style={{ marginRight: 8 }} />
+            <Text className="text-primaryFont font-UrbanistSemiBold text-xl">
+              {savedPlaces.length}
+            </Text>
+          </View>
+          <Text className="text-secondaryFont text-xs text-center">
+            Total Saves
+          </Text>
+        </View>
+        
+        {/* Divider */}
+        <View className="w-px h-8 bg-border mx-2" />
+        
+        <View className="">
+          <View className="flex-row items-center mb-1">
+            <Ionicons name="grid-outline" size={18} color="#f97316" style={{ marginRight: 8 }} />
+            <Text className="text-primaryFont font-UrbanistSemiBold text-xl">
+              {new Set(savedPlaces.map(place => place.category)).size}
+            </Text>
+          </View>
+          <Text className="text-secondaryFont text-xs text-center">
+            Categories
+          </Text>
+        </View>
+        
+        {/* Divider */}
+        <View className="w-px h-8 bg-border mx-2" />
+        
+        <View className="">
+          <View className="flex-row items-center mb-1">
+            <Ionicons name="star" size={18} color="#a855f7" style={{ marginRight: 8 }} />
+            <Text className="text-primaryFont font-UrbanistSemiBold text-xl">
+              {savedPlaces.filter(place => place.rating && place.rating >= 4).length}
+            </Text>
+          </View>
+          <Text className="text-secondaryFont text-xs text-center">
+            Top Rated
+          </Text>
+        </View>
+      </View>
+      
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ flexDirection: 'row', flexWrap: 'wrap', paddingBottom: 100 }}
