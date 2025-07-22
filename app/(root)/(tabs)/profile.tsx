@@ -166,7 +166,7 @@ const ProfileScreen = () => {
         )}
       </View>
       {/* travels & saves tabs */}
-      <View className="flex-row items-end border-b border-border mb-2 ml-0 pl-4 mt-12">
+      <View className="flex-row items-end mb-2 ml-0 pl-4 mt-12">
         {TABS.map(tab => (
           <TouchableOpacity
             key={tab}
