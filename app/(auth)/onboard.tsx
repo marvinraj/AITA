@@ -37,7 +37,7 @@ const onboardingData: OnboardingSlide[] = [
     subtitle: "Effortless Itineraries",
     description: "Create detailed itineraries with AI assistance. Add activities, manage budgets, and keep everything organized in one place.",
     image: require('../../assets/images/logo.png'),
-    icon: "calendar"
+    // icon: "calendar"
   },
   {
     id: 4,
