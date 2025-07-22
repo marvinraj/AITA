@@ -51,7 +51,7 @@ const onboardingData: OnboardingSlide[] = [
     id: 5,
     title: "Ready to Explore?",
     subtitle: "Start Your Journey",
-    description: "Join thousands of travelers who use AITA to plan their perfect trips. Your next adventure is just a tap away!",
+    description: "",
     image: require('../../assets/images/logo.png'),
     // icon: "rocket"
   }
@@ -108,10 +108,10 @@ const Onboarding = () => {
         <Text className="text-4xl text-primaryFont text-center font-BellezaRegular mb-3">
           {item.title}
         </Text>
-        <Text className="text-xl text-accentFont/70 text-center font-InterRegular mb-4">
+        <Text className="text-base text-accentFont/70 text-center font-UrbanistSemiBold mb-4">
           {item.subtitle}
         </Text>
-        <Text className="text-base text-secondaryFont text-center font-InterRegular leading-6 max-w-sm">
+        <Text className="text-base text-secondaryFont text-center font-UrbanistRegular leading-6 max-w-sm">
           {item.description}
         </Text>
       </View>
@@ -134,8 +134,8 @@ const Onboarding = () => {
   return (
     <View className="flex-1 bg-primaryBG">
       {/* Header with Skip Button */}
-      <View className="flex-row justify-between items-center pt-12 pb-4 px-6">
-        <Text className="text-3xl text-primaryFont font-BellezaRegular">AITA</Text>
+      <View className="flex-row justify-end items-center pt-12 pb-4 px-6">
+        {/* <Text className="text-3xl text-primaryFont font-BellezaRegular">AITA</Text> */}
         {currentIndex < onboardingData.length - 1 && (
           <Link href="/(auth)/sign-up" asChild>
             <TouchableOpacity className="px-4 py-2">
