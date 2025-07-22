@@ -52,7 +52,7 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({ images }) => {
           <View key={index} style={{ width: screenWidth - 32 }} className="pr-0">
             <Image
               source={{ uri: imageUrl }}
-              className="w-full h-48 rounded-lg"
+              className="w-full h-96 rounded-lg"
               resizeMode="cover"
             />
           </View>
@@ -323,7 +323,7 @@ export default function ActivityDetailModal({
           showsVerticalScrollIndicator={false}
         >
           {/* Activity Header */}
-          <View className="bg-secondaryBG/50 rounded-lg p-4 mb-6">
+          <View className="rounded-lg p-4">
             <View className="flex-row items-center mb-3">
               {/* Category Icon */}
               <View className="w-12 h-12 rounded-full bg-accentFont/20 items-center justify-center mr-3">
@@ -331,14 +331,14 @@ export default function ActivityDetailModal({
               </View>
               
               <View className="flex-1">
-                <Text className="text-primaryFont font-UrbanistSemiBold text-xl">
+                <Text className="text-primaryFont font-UrbanistSemiBold text-3xl">
                   {localActivity.title}
                 </Text>
-                {category && (
+                {/* {category && (
                   <Text className="text-secondaryFont text-sm">
                     {category.label}
                   </Text>
-                )}
+                )} */}
               </View>
               
               {/* Priority indicator */}
@@ -368,9 +368,12 @@ export default function ActivityDetailModal({
             {/* Date & Time - Only show for itinerary items */}
             {!isSavedPlace && (
               <View className="flex flex-row items-center justify-between bg-primaryBG/50 rounded-lg p-4 border border-border/30">
-                <Text className="text-primaryFont font-UrbanistSemiBold text-base mb-2">
-                  📅 When
-                </Text>
+                <View className="flex-row items-center">
+                  <Ionicons name="calendar-outline" size={20} color={colors.accentFont} style={{ marginRight: 8 }} />
+                  <Text className="text-primaryFont font-UrbanistSemiBold text-base">
+                    When
+                  </Text>
+                </View>
                 <Text className="text-secondaryFont">
                   {formatDate(localActivity.date)}
                 </Text>
@@ -386,10 +389,13 @@ export default function ActivityDetailModal({
             {localActivity.location && (
               <View className="bg-primaryBG/50 rounded-lg p-4 border border-border/30">
                 <View className="flex flex-row items-center justify-between">
-                  <Text className="text-primaryFont font-UrbanistSemiBold text-base mb-2 mr-2">
-                    📍 Location
-                  </Text>
-                  <View style={{ flex: 1, minWidth: 0 }}>
+                  <View className="flex-row items-center">
+                    <Ionicons name="location-outline" size={20} color={colors.accentFont} style={{ marginRight: 8 }} />
+                    <Text className="text-primaryFont font-UrbanistSemiBold text-base mr-2">
+                      Location
+                    </Text>
+                  </View>
+                  <View className='ml-8' style={{ flex: 1, minWidth: 0 }}>
                     <Text
                       className="text-secondaryFont"
                       // numberOfLines={4}
@@ -399,7 +405,7 @@ export default function ActivityDetailModal({
                       {localActivity.location}
                     </Text>
                   </View>
-                  <View className="flex-row flex-shrink-0 ml-2">
+                  <View className="flex-row flex-shrink-0">
                     {/* Waze Icon Button */}
                     <TouchableOpacity
                       onPress={() => {
@@ -451,9 +457,12 @@ export default function ActivityDetailModal({
             {/* Description */}
             {localActivity.description && (
               <View className="bg-primaryBG/50 rounded-lg p-4 border border-border/30">
-                <Text className="text-primaryFont font-UrbanistSemiBold text-base mb-2">
-                  📝 Description
-                </Text>
+                <View className="flex-row items-center mb-2">
+                  <Ionicons name="document-text-outline" size={20} color={colors.accentFont} style={{ marginRight: 8 }} />
+                  <Text className="text-primaryFont font-UrbanistSemiBold text-base">
+                    Description
+                  </Text>
+                </View>
                 <Text className="text-secondaryFont leading-5">
                   {localActivity.description}
                 </Text>
