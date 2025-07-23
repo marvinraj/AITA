@@ -1,8 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, FlatList, Image, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { colors } from '../constants/colors';
-import { SavedFolder, savedFoldersService } from '../lib/services/savedFoldersService';
 import { SavedPlace, savedPlacesService } from '../lib/services/savedPlacesService';
 import { supabase } from '../lib/supabase';
 import { ItineraryItem } from '../types/database';
@@ -10,14 +9,13 @@ import ActivityDetailModal from './ActivityDetailModal';
 
 export default function SavedPlacesTab() {
   const [savedPlaces, setSavedPlaces] = useState<SavedPlace[]>([]);
-  const [folders, setFolders] = useState<SavedFolder[]>([]);
-  const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
+  const [filteredPlaces, setFilteredPlaces] = useState<SavedPlace[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [user, setUser] = useState<any>(null);
-  const [showingFolders, setShowingFolders] = useState(true);
-  const [currentFolderPlaces, setCurrentFolderPlaces] = useState<SavedPlace[]>([]);
   const [selectedPlace, setSelectedPlace] = useState<SavedPlace | null>(null);
   const [showModal, setShowModal] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [showCategoryFilter, setShowCategoryFilter] = useState(false);
 
   useEffect(() => {
     getCurrentUser();
@@ -26,7 +24,6 @@ export default function SavedPlacesTab() {
   useEffect(() => {
     if (user) {
       loadSavedPlaces();
-      loadFolders();
     }
   }, [user]);
 
@@ -42,37 +39,11 @@ export default function SavedPlacesTab() {
     try {
       const places = await savedPlacesService.getSavedPlaces(user.id);
       setSavedPlaces(places);
+      setFilteredPlaces(places);
     } catch (error) {
       console.error('Error loading saved places:', error);
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const loadFolders = async () => {
-    if (!user) return;
-
-    try {
-      // Get custom folders from database
-      const customFolders = await savedFoldersService.getFolders(user.id);
-      
-      // Get total count for "All Saves"
-      const allSavesCount = await savedFoldersService.getAllSavesCount(user.id);
-      
-      // Create "All Saves" folder
-      const allSavesFolder: SavedFolder = {
-        id: 'all',
-        user_id: user.id,
-        name: 'All Saves',
-        is_default: true,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        place_count: allSavesCount
-      };
-
-      setFolders([allSavesFolder, ...customFolders]);
-    } catch (error) {
-      console.error('Error loading folders:', error);
     }
   };
 
@@ -113,97 +84,20 @@ export default function SavedPlacesTab() {
     setSelectedPlace(null);
   };
 
-  const handleCreateFolder = () => {
-    Alert.prompt(
-      'New Folder',
-      'Enter folder name:',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Create',
-          onPress: async (folderName) => {
-            if (folderName && folderName.trim()) {
-              const newFolder = await savedFoldersService.createFolder(user.id, {
-                name: folderName.trim()
-              });
-              
-              if (newFolder) {
-                // Reload folders to get updated list
-                loadFolders();
-              } else {
-                Alert.alert('Error', 'Failed to create folder. The name might already exist.');
-              }
-            }
-          }
-        }
-      ],
-      'plain-text'
-    );
+  const getUniqueCategories = () => {
+    const categories = [...new Set(savedPlaces.map(place => place.category))];
+    return categories.sort();
   };
 
-  const handleFolderPress = async (folderId: string) => {
-    setSelectedFolder(folderId);
-    setShowingFolders(false);
-    
-    // Load places for this folder
-    if (folderId === 'all') {
-      setCurrentFolderPlaces(savedPlaces);
+  const handleCategoryFilter = (category: string | null) => {
+    setSelectedCategory(category);
+    if (category === null) {
+      setFilteredPlaces(savedPlaces);
     } else {
-      await loadPlacesInFolder(folderId);
+      const filtered = savedPlaces.filter(place => place.category === category);
+      setFilteredPlaces(filtered);
     }
-  };
-
-  const loadPlacesInFolder = async (folderId: string) => {
-    if (!user) return;
-    
-    setIsLoading(true);
-    try {
-      const folderPlaces = await savedFoldersService.getPlacesInFolder(user.id, folderId);
-      setCurrentFolderPlaces(folderPlaces);
-    } catch (error) {
-      console.error('Error loading places in folder:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleBackToFolders = () => {
-    setShowingFolders(true);
-    setSelectedFolder(null);
-    setCurrentFolderPlaces([]);
-  };
-
-  const getFilteredPlaces = () => {
-    if (selectedFolder === 'all' || !selectedFolder) {
-      return savedPlaces;
-    }
-    return currentFolderPlaces;
-  };
-
-  const handleRemovePlace = async (placeId: string) => {
-    if (!user) return;
-
-    Alert.alert(
-      'Remove Place',
-      'Are you sure you want to remove this place from your saved places?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Remove',
-          style: 'destructive',
-          onPress: async () => {
-            const success = await savedPlacesService.unsavePlace(user.id, placeId);
-            if (success) {
-              setSavedPlaces(prev => prev.filter(place => place.place_id !== placeId));
-              setCurrentFolderPlaces(prev => prev.filter(place => place.place_id !== placeId));
-              loadFolders(); // Refresh folder counts
-            } else {
-              Alert.alert('Error', 'Failed to remove place');
-            }
-          }
-        }
-      ]
-    );
+    setShowCategoryFilter(false);
   };
 
   const getRatingStars = (rating?: number) => {
@@ -224,51 +118,12 @@ export default function SavedPlacesTab() {
     return stars;
   };
 
-  const renderFolder = ({ item }: { item: SavedFolder }) => (
-    <TouchableOpacity
-      className="bg-transparent rounded-lg  m-2 flex-1"
-      onPress={() => handleFolderPress(item.id)}
-    >
-      <View className="w-full h-32 rounded-lg mb-3 bg-inputBG justify-center items-center">
-        <Ionicons 
-          name="folder" 
-          size={48} 
-          color={item.is_default ? colors.accentFont : colors.secondaryFont} 
-        />
-      </View>
-      
-      <Text className="text-primaryFont font-semibold text-sm mb-1" numberOfLines={2}>
-        {item.name}
-      </Text>
-      <Text className="text-secondaryFont text-xs">
-        {item.place_count || 0} {(item.place_count || 0) === 1 ? 'place' : 'places'}
-      </Text>
-    </TouchableOpacity>
-  );
-
-  const renderAddFolderButton = () => (
-    <TouchableOpacity
-      className="bg-inputBG rounded-lg m-2 border border-dashed border-border flex-1"
-      onPress={handleCreateFolder}
-    >
-      <View className="w-full h-32 rounded-lg mb-3 justify-center items-center">
-        <Ionicons name="add" size={48} color={colors.secondaryFont} />
-      </View>
-      
-      <Text className="text-secondaryFont font-medium text-sm text-center">
-        New Folder
-      </Text>
-    </TouchableOpacity>
-  );
-
   const renderSavedPlace = ({ item }: { item: SavedPlace }) => (
     <TouchableOpacity 
       onPress={() => handlePlacePress(item)}
       activeOpacity={0.7}
-      className="flex-1"
-      style={{ maxWidth: '50%' }}
     >
-      <View className="bg-secondaryBG rounded-lg p-3 m-2 border border-border">
+      <View className="bg-transparent rounded-lg py-2 px-2 m-2 flex-1">
         {/* Place Image */}
         <View className="w-full h-32 rounded-lg mb-3 bg-inputBG justify-center items-center">
           {item.image_url ? (
@@ -288,21 +143,7 @@ export default function SavedPlacesTab() {
             <Text className="text-primaryFont font-semibold text-sm flex-1 mr-2" numberOfLines={2}>
               {item.name}
             </Text>
-            {/* Remove Button */}
-            <TouchableOpacity
-              onPress={(e) => {
-                e.stopPropagation(); // Prevent triggering the parent TouchableOpacity
-                handleRemovePlace(item.place_id);
-              }}
-              className="p-1"
-            >
-              <Ionicons name="heart" size={16} color={colors.accentFont} />
-            </TouchableOpacity>
           </View>
-
-          <Text className="text-secondaryFont text-xs mb-2" numberOfLines={2}>
-            {item.address}
-          </Text>
           
           {/* Rating */}
           {item.rating && (
@@ -341,116 +182,126 @@ export default function SavedPlacesTab() {
     );
   }
 
-  if (showingFolders) {
-    // Show folders view
-    const foldersWithAddButton = [...folders, { id: 'add-folder', name: 'Add Folder', placeCount: 0 }];
-    
+  if (!isLoading && filteredPlaces.length === 0) {
     return (
-      <View className="flex-1 px-2 pt-4">
-        {/* <Text className="text-primaryFont text-lg font-semibold mb-4 px-2">
-          Your Folders
-        </Text> */}
-        <FlatList
-          data={foldersWithAddButton}
-          renderItem={({ item }) => 
-            item.id === 'add-folder' ? renderAddFolderButton() : renderFolder({ item: item as SavedFolder })
-          }
-          keyExtractor={(item) => item.id}
-          numColumns={2}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: 100 }}
-        />
-
-        {/* Activity Detail Modal */}
-        <ActivityDetailModal
-          visible={showModal}
-          onClose={handleModalClose}
-          activity={selectedPlace ? convertSavedPlaceToItineraryItem(selectedPlace) : null}
-          isSavedPlace={true}
-          onActivityDeleted={() => {
-            // Refresh the saved places list after deletion
-            loadSavedPlaces();
-            loadFolders();
-          }}
-        />
-      </View>
-    );
-  }
-
-  // Show places view
-  const filteredPlaces = getFilteredPlaces();
-  const selectedFolderName = folders.find(f => f.id === selectedFolder)?.name || 'Folder';
-
-  if (filteredPlaces.length === 0) {
-    return (
-      <View className="flex-1 px-4">
-        {/* Header with back button */}
-        <View className="flex-row items-center pt-4 mb-4">
-          <TouchableOpacity onPress={handleBackToFolders} className="mr-3">
-            <Ionicons name="arrow-back" size={24} color={colors.primaryFont} />
-          </TouchableOpacity>
-          <Text className="text-primaryFont text-lg font-semibold">
-            {selectedFolderName}
-          </Text>
-        </View>
-
-        <View className="flex-1 justify-center items-center">
-          <Ionicons name="heart-outline" size={64} color={colors.secondaryFont} />
-          <Text className="text-primaryFont text-xl font-semibold mt-4 text-center">
-            No Saved Places
-          </Text>
-          <Text className="text-secondaryFont text-center mt-2">
-            Start exploring and save places you love in the Discover tab
-          </Text>
-        </View>
-
-        {/* Activity Detail Modal */}
-        <ActivityDetailModal
-          visible={showModal}
-          onClose={handleModalClose}
-          activity={selectedPlace ? convertSavedPlaceToItineraryItem(selectedPlace) : null}
-          isSavedPlace={true}
-          onActivityDeleted={() => {
-            // Refresh the saved places list after deletion
-            loadSavedPlaces();
-            loadFolders();
-          }}
-        />
+      <View className="flex-1 justify-center items-center">
+        <Ionicons name="heart-outline" size={64} color={colors.secondaryFont} />
+        <Text className="text-primaryFont text-xl font-semibold mt-4 text-center">
+          {selectedCategory ? `No ${selectedCategory} places found` : 'No Saved Places'}
+        </Text>
+        <Text className="text-secondaryFont text-center mt-2">
+          {selectedCategory ? 'Try selecting a different category' : 'Start exploring and save places you love in the Discover tab'}
+        </Text>
       </View>
     );
   }
 
   return (
-    <View className="flex-1 px-2 pt-4">
-      {/* Header with back button */}
-      <View className="flex-row items-center mb-4 px-2">
-        <TouchableOpacity onPress={handleBackToFolders} className="mr-3">
-          <Ionicons name="arrow-back" size={24} color={colors.primaryFont} />
-        </TouchableOpacity>
-        <Text className="text-primaryFont text-lg font-semibold">
-          {selectedFolderName} ({filteredPlaces.length})
-        </Text>
-      </View>
-      
-      <FlatList
-        data={filteredPlaces}
-        renderItem={renderSavedPlace}
-        keyExtractor={(item) => item.id}
-        numColumns={2}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 100 }}
-      />
+    <View className="flex-1 pt-4">
+      {/* Stats Section with Filter */}
+      <View className="flex-row justify-between items-center px-4 mb-2">
+        <View className="flex-row justify-start items-center gap-2">
+          <View className="">
+            <View className="flex-row items-center mb-1">
+              <Ionicons name="heart" size={18} color="#ef4444" style={{ marginRight: 8 }} />
+              <Text className="text-primaryFont font-UrbanistSemiBold text-xl">
+                {filteredPlaces.length}
+              </Text>
+            </View>
+            <Text className="text-secondaryFont text-xs text-center">
+              Total Saves
+            </Text>
+          </View>
+          
+          {/* Divider */}
+          <View className="w-px h-8 bg-border mx-2" />
+          
+          <View className="">
+            <View className="flex-row items-center mb-1">
+              <Ionicons name="grid-outline" size={18} color="#f97316" style={{ marginRight: 8 }} />
+              <Text className="text-primaryFont font-UrbanistSemiBold text-xl">
+                {new Set(filteredPlaces.map(place => place.category)).size}
+              </Text>
+            </View>
+            <Text className="text-secondaryFont text-xs text-center">
+              Categories
+            </Text>
+          </View>
+          
+          {/* Divider */}
+          <View className="w-px h-8 bg-border mx-2" />
+          
+          <View className="">
+            <View className="flex-row items-center mb-1">
+              <Ionicons name="star" size={18} color="#a855f7" style={{ marginRight: 8 }} />
+              <Text className="text-primaryFont font-UrbanistSemiBold text-xl">
+                {filteredPlaces.filter(place => place.rating && place.rating >= 4).length}
+              </Text>
+            </View>
+            <Text className="text-secondaryFont text-xs text-center">
+              Top Rated
+            </Text>
+          </View>
+        </View>
 
-      {/* Activity Detail Modal */}
+        {/* Filter Button */}
+        <TouchableOpacity
+          onPress={() => setShowCategoryFilter(!showCategoryFilter)}
+          className="bg-inputBG p-2 rounded-lg"
+        >
+          <Ionicons name="filter" size={20} color="white" />
+        </TouchableOpacity>
+      </View>
+
+      {/* Category Filter Dropdown */}
+      {showCategoryFilter && (
+        <View className="px-4 mb-2">
+          <ScrollView 
+            horizontal 
+            showsHorizontalScrollIndicator={false}
+            className="bg-inputBG rounded-lg p-2"
+          >
+            <TouchableOpacity
+              onPress={() => handleCategoryFilter(null)}
+              className={`px-3 py-2 rounded-lg mr-2 ${selectedCategory === null ? 'bg-accentFont' : 'bg-transparent'}`}
+            >
+              <Text className={`text-xs ${selectedCategory === null ? 'text-white' : 'text-primaryFont'}`}>
+                All
+              </Text>
+            </TouchableOpacity>
+            {getUniqueCategories().map((category) => (
+              <TouchableOpacity
+                key={category}
+                onPress={() => handleCategoryFilter(category)}
+                className={`px-3 py-2 rounded-lg mr-2 ${selectedCategory === category ? 'bg-accentFont' : 'bg-transparent'}`}
+              >
+                <Text className={`text-xs capitalize ${selectedCategory === category ? 'text-white' : 'text-primaryFont'}`}>
+                  {category}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+      )}
+      
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ flexDirection: 'row', flexWrap: 'wrap', paddingBottom: 100 }}
+      >
+        {filteredPlaces.map((item) => (
+          <View key={item.id} style={{ width: '50%' }}>
+            {renderSavedPlace({ item })}
+          </View>
+        ))}
+      </ScrollView>
+
       <ActivityDetailModal
         visible={showModal}
         onClose={handleModalClose}
         activity={selectedPlace ? convertSavedPlaceToItineraryItem(selectedPlace) : null}
         isSavedPlace={true}
         onActivityDeleted={() => {
-          // Refresh the saved places list after deletion
           loadSavedPlaces();
-          loadFolders();
         }}
       />
     </View>
