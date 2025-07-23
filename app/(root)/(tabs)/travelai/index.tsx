@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Link } from 'expo-router';
 import React, { useEffect } from 'react';
 import { Image, ImageBackground, Text, TouchableOpacity, View } from "react-native";
@@ -57,9 +58,18 @@ const TravelAI = () => {
             elevation: 8,
             opacity: 0.8,
           }}>
-            <View className="bg-inputBG rounded-full p-4 mr-4">
-              <Ionicons name="sparkles-outline" size={19} color="#FFFFFF" />
-            </View>
+            <LinearGradient
+              colors={['#16213e', '#EF4444']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={{
+                borderRadius: 999,
+                padding: 16,
+                marginRight: 16,
+              }}
+            >
+              <Ionicons name="sparkles" size={19} color="#FFFFFF" />
+            </LinearGradient>
             <View className="flex-1">
               <Text className="text-primaryFont font-semibold text-lg">AI-Powered Plan</Text>
               <Text className="text-secondaryFont text-sm">Let TRAVA help you plan</Text>
