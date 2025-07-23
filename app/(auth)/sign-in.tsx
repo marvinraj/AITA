@@ -1,6 +1,6 @@
 import { Link, useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { Image, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Image, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { supabase } from '../../lib/supabase';
 
 const SignIn = () => {
@@ -56,62 +56,73 @@ const SignIn = () => {
   }
 
   return (
-    <ScrollView className="flex-1 bg-primaryBG px-6" contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }} showsVerticalScrollIndicator={false}>
-      {/* logo & app name */}
-      <View className="items-center mt-10 mb-8">
-        <Image
-          source={require('../../assets/images/logo5.png')}
-          className="w-20 h-20 mb-2"
-          resizeMode="contain"
-          accessibilityLabel="TRAVA Logo"
-        />
-        <Text className="text-2xl font-BellezaRegular text-primaryFont text-center">Welcome Back!</Text>
-      </View>
-      {/* form inputs for email and password */}
-      <View className="flex-1 items-center justify-center w-full">
-        <View className="w-full mb-6" style={{maxWidth: 400}}>
-          <Text className="text-primaryFont text-sm mb-2 font-InterRegular">Email</Text>
-          <TextInput
-            placeholder="Enter email"
-            placeholderTextColor="#666"
-            keyboardType="email-address"
-            autoCapitalize="none"
-            className="bg-inputBG focus:border-primaryFont rounded-full px-6 py-5 mb-5 text-primaryFont text-base font-InterRegular"
-            value={email}
-            onChangeText={setEmail}
+    <KeyboardAvoidingView 
+      className="flex-1 bg-primaryBG" 
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+    >
+      <ScrollView 
+        className="flex-1 px-6" 
+        contentContainerStyle={{ flexGrow: 1 }} 
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
+        {/* logo & app name */}
+        <View className="items-center mt-12 mb-12">
+          <Image
+            source={require('../../assets/images/logo5.png')}
+            className="w-20 h-20 mb-2"
+            resizeMode="contain"
+            accessibilityLabel="TRAVA Logo"
           />
-          <Text className="text-primaryFont text-sm mb-2 font-InterRegular">Password</Text>
-          <TextInput
-            placeholder="Enter password"
-            placeholderTextColor="#666"
-            secureTextEntry
-            className="bg-inputBG focus:border-primaryFont rounded-full px-6 py-5 mb-2 text-primaryFont text-base font-InterRegular"
-            value={password}
-            onChangeText={setPassword}
-          />
+          <Text className="text-2xl font-BellezaRegular text-primaryFont text-center">Welcome Back!</Text>
         </View>
-        {/* sign in button and link to sign up */}
-        <TouchableOpacity
-          className="bg-buttonPrimary w-full px-6 py-5 rounded-full shadow-lg active:opacity-80 mb-4 mt-4"
-          style={{maxWidth: 400}}
-          onPress={handleSignIn}
-          disabled={loading}
-        >
-          <Text className="font-BellezaRegular text-lg text-center">
-            {loading ? 'Logging In...' : 'Log In'}
-          </Text>
-        </TouchableOpacity>
-        {/* link to sign up page */}
-        <Link href="/(auth)/sign-up" asChild>
-          <TouchableOpacity className="bg-transparent w-full px-6 py-4 rounded-full mb-2 flex-row justify-center items-center" style={{maxWidth: 400}}>
-            <Text className="text-secondaryFont font-InterRegular text-base text-center">
-              Don't have an account?{' '}
-              <Text className="underline text-primaryFont font-BellezaRegular text-lg">Sign up</Text>
+        {/* form inputs for email and password */}
+        <View className="flex-1 items-center justify-center w-full" style={{ minHeight: 300 }}>
+          <View className="w-full mb-6" style={{maxWidth: 400}}>
+            <Text className="text-primaryFont text-sm mb-2 font-InterRegular">Email</Text>
+            <TextInput
+              placeholder="Enter email"
+              placeholderTextColor="#666"
+              keyboardType="email-address"
+              autoCapitalize="none"
+              className="bg-inputBG focus:border-primaryFont rounded-full px-6 py-5 mb-5 text-primaryFont text-base font-InterRegular"
+              value={email}
+              onChangeText={setEmail}
+            />
+            <Text className="text-primaryFont text-sm mb-2 font-InterRegular">Password</Text>
+            <TextInput
+              placeholder="Enter password"
+              placeholderTextColor="#666"
+              secureTextEntry
+              className="bg-inputBG focus:border-primaryFont rounded-full px-6 py-5 mb-2 text-primaryFont text-base font-InterRegular"
+              value={password}
+              onChangeText={setPassword}
+            />
+          </View>
+          {/* sign in button and link to sign up */}
+          <TouchableOpacity
+            className="bg-buttonPrimary w-full px-6 py-5 rounded-full shadow-lg active:opacity-80 mb-4 mt-4"
+            style={{maxWidth: 400}}
+            onPress={handleSignIn}
+            disabled={loading}
+          >
+            <Text className="font-BellezaRegular text-lg text-center">
+              {loading ? 'Logging In...' : 'Log In'}
             </Text>
           </TouchableOpacity>
-        </Link>
-      </View>
-    </ScrollView>
+          {/* link to sign up page */}
+          <Link href="/(auth)/sign-up" asChild>
+            <TouchableOpacity className="bg-transparent w-full px-6 py-4 rounded-full mb-8 flex-row justify-center items-center" style={{maxWidth: 400}}>
+              <Text className="text-secondaryFont font-InterRegular text-base text-center">
+                Don't have an account?{' '}
+                <Text className="underline text-primaryFont font-BellezaRegular text-lg">Sign up</Text>
+              </Text>
+            </TouchableOpacity>
+          </Link>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   )
 }
 
