@@ -1,5 +1,4 @@
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Animated, Easing, Modal, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { travaApi } from '../lib/api';
@@ -1280,12 +1279,7 @@ export default function InitialItineraryPreviewModal({
       presentationStyle="fullScreen"
       onRequestClose={onCancel}
     >
-      <LinearGradient
-        colors={['rgba(15, 20, 31, 1)', 'rgba(24, 32, 45, 1)', 'rgba(12, 17, 26, 1)']}
-        style={{ flex: 1 }}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 0, y: 1 }}
-      >
+      <View className="flex-1 bg-primaryBG">
         {phase === 'loading' ? (
           // Loading Phase
           <View className="flex-1 justify-center items-center px-6">
@@ -1448,7 +1442,7 @@ export default function InitialItineraryPreviewModal({
             </View>
           </View>
         )}
-      </LinearGradient>
+      </View>
     </Modal>
   );
 }
