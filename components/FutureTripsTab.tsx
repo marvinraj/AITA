@@ -1,8 +1,8 @@
-import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Alert, Image, ImageBackground, Modal, RefreshControl, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { DestinationImage, imageService } from '../lib/services/imageService';
 import { tripsService } from '../lib/services/tripsService';
