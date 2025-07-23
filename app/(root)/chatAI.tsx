@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, Dimensions, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Dimensions, Keyboard, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { GestureHandlerRootView, PanGestureHandler } from 'react-native-gesture-handler';
 import Markdown from 'react-native-markdown-display';
 import Animated, { runOnJS, useAnimatedGestureHandler, useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
@@ -19,8 +19,8 @@ import { Trip } from '../../types/database';
 const HEADER_HEIGHT = 55;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 const MODAL_MIN_HEIGHT = 200; // Minimum height for the chat modal
-const MODAL_MAX_HEIGHT = SCREEN_HEIGHT * 0.8; // Maximum height (80% of screen)
-const MODAL_DEFAULT_HEIGHT = SCREEN_HEIGHT * 0.4; // Default height (40% of screen)
+const MODAL_MAX_HEIGHT = SCREEN_HEIGHT * 0.95; // Maximum height (95% of screen)
+const MODAL_DEFAULT_HEIGHT = SCREEN_HEIGHT * 0.8; // Default height (60% of screen - little over halfway)
 const MODAL_COLLAPSED_HEIGHT = 80; // Height when collapsed but still visible
 
 const chatAI = () => {
@@ -167,6 +167,8 @@ const chatAI = () => {
   const [modalVisible, setModalVisible] = useState(true);
   const [modalHeight, setModalHeight] = useState(MODAL_DEFAULT_HEIGHT);
   const [isModalCollapsed, setIsModalCollapsed] = useState(false);
+  // Track the user's manually adjusted height (before keyboard appears)
+  const [userAdjustedHeight, setUserAdjustedHeight] = useState(MODAL_DEFAULT_HEIGHT);
   
   // Animated values for smooth modal handling
   const modalHeightAnimated = useSharedValue(MODAL_DEFAULT_HEIGHT);
@@ -198,14 +200,15 @@ const chatAI = () => {
         runOnJS(setIsModalCollapsed)(true);
         runOnJS(updateModalHeight)(MODAL_COLLAPSED_HEIGHT);
       } else {
-        // Snap to reasonable height and ensure it's expanded
-        const targetHeight = finalHeight < MODAL_DEFAULT_HEIGHT ? MODAL_DEFAULT_HEIGHT : finalHeight;
-        modalHeightAnimated.value = withSpring(targetHeight, {
+        // Allow any height between collapsed and max, no minimum constraint
+        modalHeightAnimated.value = withSpring(finalHeight, {
           damping: 20,
           stiffness: 90,
         });
         runOnJS(setIsModalCollapsed)(false);
-        runOnJS(updateModalHeight)(targetHeight);
+        runOnJS(updateModalHeight)(finalHeight);
+        // Save the user's manually adjusted height
+        runOnJS(setUserAdjustedHeight)(finalHeight);
       }
     },
   });
@@ -234,6 +237,28 @@ const chatAI = () => {
   // state for smart suggestions
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
+
+  // Add keyboard event listeners to expand modal when keyboard is shown
+  useEffect(() => {
+    const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', (e) => {
+      // Expand modal to 90% of screen height when keyboard is shown
+      const targetHeight = SCREEN_HEIGHT * 0.9;
+      modalHeightAnimated.value = withSpring(targetHeight, { damping: 20, stiffness: 90 });
+      setModalHeight(targetHeight);
+      setIsModalCollapsed(false);
+    });
+
+    const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => {
+      // Return to user's adjusted height (not default height) when keyboard is hidden
+      modalHeightAnimated.value = withSpring(userAdjustedHeight, { damping: 20, stiffness: 90 });
+      setModalHeight(userAdjustedHeight);
+    });
+
+    return () => {
+      keyboardDidShowListener?.remove();
+      keyboardDidHideListener?.remove();
+    };
+  }, [userAdjustedHeight]); // Now depends on userAdjustedHeight instead of modalHeight
 
   // load trip data when component mounts
   useEffect(() => {
@@ -313,8 +338,8 @@ const chatAI = () => {
 
   const expandModal = () => {
     setIsModalCollapsed(false);
-    modalHeightAnimated.value = withSpring(MODAL_DEFAULT_HEIGHT, { damping: 20, stiffness: 90 });
-    setModalHeight(MODAL_DEFAULT_HEIGHT);
+    modalHeightAnimated.value = withSpring(userAdjustedHeight, { damping: 20, stiffness: 90 });
+    setModalHeight(userAdjustedHeight);
   };
 
   // Show chat modal - button always shows the modal when pressed
@@ -645,6 +670,22 @@ const chatAI = () => {
                 end={{ x: 0, y: 1 }}
               />
 
+              {/* Top Glow Effect */}
+              <LinearGradient
+                colors={['rgba(247, 55, 79, 0.3)', 'rgba(247, 55, 79, 0.1)', 'transparent']}
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  height: 60,
+                  borderTopLeftRadius: 20,
+                  borderTopRightRadius: 20,
+                }}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 0, y: 1 }}
+              />
+
             {/* Modal Handle */}
             <PanGestureHandler onGestureEvent={modalGestureHandler}>
               <Animated.View className="items-center py-3 bg-transparent relative">
@@ -672,19 +713,17 @@ const chatAI = () => {
             {/* Chat Interface - Hidden when collapsed */}
             {!isModalCollapsed && (
               <KeyboardAvoidingView
-                behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                 style={{ flex: 1 }}
+                keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 120}
               >
-                <View className="flex-1 overflow-hidden justify-end">
-                {/* Chat messages area */}
                 <ScrollView
                   ref={scrollViewRef}
-                  className="flex-1 px-4 pb-4 pt-4 w-full"
-                  contentContainerStyle={{ justifyContent: 'flex-end', flexGrow: 1 }}
+                  className="flex-1 px-4 pt-4"
+                  contentContainerStyle={{ flexGrow: 1 }}
+                  showsVerticalScrollIndicator={false}
+                  keyboardShouldPersistTaps="handled"
                   onContentSizeChange={() => scrollViewRef.current?.scrollToEnd({ animated: true })}
-                  bounces={false}
-                  alwaysBounceVertical={false}
-                  overScrollMode="never"
                 >
                   {loading && messages.length === 0 ? (
                     <View className="flex-1 justify-center items-center">
@@ -799,8 +838,8 @@ const chatAI = () => {
                 </View>
                 
                 {/* Input area */}
-                <View className="mb-5">
-                  <View className="flex-row items-center px-4 py-4">
+                <View className="bg-transparent border-t border-white/10 mt-2">
+                  <View className="flex-row items-center px-4 py-3">
                     <TextInput
                       className="flex-1 bg-white/5 border border-white/20 rounded-2xl px-4 py-4 mr-3 text-base text-white"
                       placeholder={trip?.destination ? `Ask about your trip to ${trip.destination}...` : "Ask TRAVA anything about your trip..."}
@@ -810,6 +849,8 @@ const chatAI = () => {
                       onChangeText={setInput}
                       onSubmitEditing={handleSend}
                       editable={!loading && isReady && !sending}
+                      multiline={false}
+                      blurOnSubmit={true}
                     />
                     <TouchableOpacity 
                       className={`rounded-full px-4 py-4 justify-center items-center ${loading || !isReady || sending ? 'bg-secondaryFont' : 'bg-primaryFont'}`} 
@@ -824,8 +865,7 @@ const chatAI = () => {
                     </TouchableOpacity>
                   </View>
                 </View>
-              </View>
-            </KeyboardAvoidingView>
+              </KeyboardAvoidingView>
             )}
           </Animated.View>
         </>
