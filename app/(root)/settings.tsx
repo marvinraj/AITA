@@ -93,6 +93,12 @@ const settingsOptions = [
     route: 'demo_filter_notifications',
     category: 'demo',
   },
+  {
+    title: 'Preview Welcome Screen',
+    subtitle: 'View the new user welcome aboard screen',
+    route: 'preview_welcome_aboard',
+    category: 'demo',
+  },
   
   // App Settings Section
   {
@@ -297,6 +303,9 @@ const SettingsScreen = () => {
                 break;
             case 'demo_filter_notifications':
                 sendDemoFilterNotifications();
+                break;
+            case 'preview_welcome_aboard':
+                router.push('/(auth)/welcome-aboard');
                 break;
             default:
                 router.push(route as any);
