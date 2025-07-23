@@ -464,7 +464,7 @@ const DiscoverScreen = () => {
     return (
       <TouchableOpacity 
         key={item.place_id}
-        className="bg-white/5 rounded-xl p-3 mb-3 border border-white/10"
+        className="bg-secondaryBG rounded-xl p-3 mb-3 border border-border"
         style={{ width: '48%' }}
         onPress={() => {
           setSelectedPlaceDetail(item);
@@ -472,7 +472,7 @@ const DiscoverScreen = () => {
         }}
       >
         {/* Place Image */}
-        <View className="w-full h-32 rounded-lg mb-2 bg-white/10 justify-center items-center">
+        <View className="w-full h-32 rounded-lg mb-2 bg-inputBG justify-center items-center">
           {item.photos && item.photos.length > 0 ? (
             <Image
               source={{ uri: getPhotoUrl(item.photos[0].photo_reference) }}
@@ -480,13 +480,13 @@ const DiscoverScreen = () => {
               resizeMode="cover"
             />
           ) : (
-            <Ionicons name="image-outline" size={28} color="rgba(255,255,255,0.5)" />
+            <Ionicons name="image-outline" size={28} color="#828282" />
           )}
         </View>
 
         {/* Place Details */}
         <View className="flex-1">
-          <Text className="text-white font-semibold text-base mb-1" numberOfLines={2}>
+          <Text className="text-primaryFont font-semibold text-base mb-1" numberOfLines={2}>
             {item.name}
           </Text>
           
@@ -496,14 +496,14 @@ const DiscoverScreen = () => {
               <View className="flex-row mr-1">
                 {getRatingStars(item.rating)}
               </View>
-              <Text className="text-gray-300 text-xs">
+              <Text className="text-secondaryFont text-xs">
                 {item.rating}
               </Text>
             </View>
           )}
           
           {/* Place Type */}
-          <Text className="text-blue-300 text-xs capitalize mb-2">
+          <Text className="text-accentFont text-xs capitalize mb-2">
             {item.types[0]?.replace(/_/g, ' ')}
           </Text>
         </View>
@@ -512,13 +512,13 @@ const DiscoverScreen = () => {
         <TouchableOpacity
           onPress={() => handleSavePlace(item)}
           className={`absolute top-2 right-2 p-1.5 rounded-full ${
-            isPlaceSaved ? 'bg-red-500' : 'bg-white/20'
+            isPlaceSaved ? 'bg-accentFont' : 'bg-secondaryBG/80 border border-border'
           }`}
         >
           <Ionicons
             name={isPlaceSaved ? "heart" : "heart-outline"}
             size={16}
-            color={isPlaceSaved ? "white" : "rgba(255,255,255,0.7)"}
+            color={isPlaceSaved ? "white" : "#828282"}
           />
         </TouchableOpacity>
       </TouchableOpacity>
@@ -673,7 +673,7 @@ const DiscoverScreen = () => {
             >
               {/* Background Gradient */}
               <LinearGradient
-                colors={['rgba(8, 12, 20, 0.99)', 'rgba(12, 17, 26, 0.99)', 'rgba(6, 10, 16, 1)']}
+                colors={['#1F1E1E', '#0B0705', '#0B0705']}
                 style={{
                   position: 'absolute',
                   top: 0,
@@ -692,7 +692,7 @@ const DiscoverScreen = () => {
                     style={{
                       width: 40,
                       height: 4,
-                      backgroundColor: '#9CA3AF',
+                      backgroundColor: '#828282',
                       borderRadius: 2,
                       marginBottom: 4,
                     }}
@@ -700,10 +700,10 @@ const DiscoverScreen = () => {
                   {isModalCollapsed && (
                     <TouchableOpacity
                       onPress={expandModal}
-                      className="flex-row items-center px-4 py-2 bg-white/10 rounded-full mt-2"
+                      className="flex-row items-center px-4 py-2 bg-secondaryBG/80 rounded-full mt-2 border border-border"
                     >
-                      <Text className="text-white text-sm font-medium mr-2">Discover Places</Text>
-                      <Ionicons name="chevron-up" size={16} color="white" />
+                      <Text className="text-primaryFont text-sm font-medium mr-2">Discover Places</Text>
+                      <Ionicons name="chevron-up" size={16} color="#FFFFFF" />
                     </TouchableOpacity>
                   )}
                 </Animated.View>
@@ -720,20 +720,20 @@ const DiscoverScreen = () => {
                   {/* Categories Header */}
                   <View className="mb-3">
                     <View className="flex-row justify-between items-center mb-3">
-                      <Text className="text-white text-xl font-semibold">
+                      <Text className="text-primaryFont text-xl font-semibold">
                         Discover Places
                       </Text>
                       
                       {/* Location Selector */}
                       <TouchableOpacity 
                         onPress={() => setLocationModalVisible(true)}
-                        className="flex-row items-center bg-transparent rounded-full px-3 py-2 border border-white/20"
+                        className="flex-row items-center bg-inputBG rounded-full px-3 py-2 border border-border"
                       >
-                        <Ionicons name="location-outline" size={14} color="white" />
-                        <Text className="text-white text-sm ml-1 mr-1" numberOfLines={1}>
+                        <Ionicons name="location-outline" size={14} color="#f48080" />
+                        <Text className="text-primaryFont text-sm ml-1 mr-1" numberOfLines={1}>
                           {currentLocation.length > 12 ? currentLocation.substring(0, 12) + '...' : currentLocation}
                         </Text>
-                        <Ionicons name="chevron-down" size={14} color="white" />
+                        <Ionicons name="chevron-down" size={14} color="#828282" />
                       </TouchableOpacity>
                     </View>
 {/*                     
@@ -769,7 +769,7 @@ const DiscoverScreen = () => {
                         setTimeout(() => fitMarkersToMap(), 300);
                       }}
                     >
-                      <Text className="text-white font-semibold">View All Results on Map ({searchResults.length})</Text>
+                      <Text className="text-primaryFont font-semibold">View All Results on Map ({searchResults.length})</Text>
                     </TouchableOpacity>
                   </View>
                 )}
@@ -778,7 +778,7 @@ const DiscoverScreen = () => {
                 {isLoading && (
                   <View className="items-center py-8">
                     <ActivityIndicator size="large" color={colors.accentFont} />
-                    <Text className="text-gray-300 mt-2">Searching places...</Text>
+                    <Text className="text-secondaryFont mt-2">Searching places...</Text>
                   </View>
                 )}
               </ScrollView>
@@ -826,7 +826,7 @@ const DiscoverScreen = () => {
         >
           <SafeAreaView className="flex-1 bg-primaryBG">
             {/* Filter Header */}
-            <View className="flex-row justify-between items-center px-4 py-3 border-b border-border">
+            <View className="flex-row justify-between items-center px-4 py-8 border-b border-border">
               <Text className="text-primaryFont text-xl font-bold">Filters</Text>
               <View className="flex-row items-center">
                 <TouchableOpacity 
@@ -1010,7 +1010,7 @@ const DiscoverScreen = () => {
         >
           <SafeAreaView className="flex-1 bg-primaryBG">
             {/* Location Modal Header */}
-            <View className="flex-row justify-between items-center px-4 py-3 border-b border-border">
+            <View className="flex-row justify-between items-center px-4 py-8 border-b border-border">
               <Text className="text-primaryFont text-xl font-bold">Select Location</Text>
               <TouchableOpacity onPress={handleLocationCancel}>
                 <Ionicons name="close" size={24} color={colors.primaryFont} />
