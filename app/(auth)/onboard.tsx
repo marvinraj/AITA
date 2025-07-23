@@ -17,10 +17,10 @@ interface OnboardingSlide {
 const onboardingData: OnboardingSlide[] = [
   {
     id: 1,
-    title: "Welcome to AITA",
+    title: "AITA",
     subtitle: "Your AI Travel Companion",
     description: "Plan, discover, and chat with AI for your next adventure. Let's make travel planning effortless and exciting!",
-    image: require('../../assets/images/logo.png'),
+    image: require('../../assets/images/logo6.png'),
     // icon: "airplane"
   },
   {
@@ -28,7 +28,7 @@ const onboardingData: OnboardingSlide[] = [
     title: "Chat with AI",
     subtitle: "Get Instant Travel Advice",
     description: "Ask anything about your destination! Get personalized recommendations, local tips, and travel insights powered by AI.",
-    image: require('../../assets/images/logo.png'),
+    image: require('../../assets/images/logo6.png'),
     // icon: "chatbubbles"
   },
   {
@@ -36,7 +36,7 @@ const onboardingData: OnboardingSlide[] = [
     title: "Smart Planning",
     subtitle: "Effortless Itineraries",
     description: "Create detailed itineraries with AI assistance. Add activities, manage budgets, and keep everything organized in one place.",
-    image: require('../../assets/images/logo.png'),
+    image: require('../../assets/images/logo6.png'),
     // icon: "calendar"
   },
   {
@@ -44,7 +44,7 @@ const onboardingData: OnboardingSlide[] = [
     title: "Discover Places",
     subtitle: "Save & Explore",
     description: "Find amazing places, save your favorites, and build your personal collection of must-visit destinations.",
-    image: require('../../assets/images/logo.png'),
+    image: require('../../assets/images/logo6.png'),
     // icon: "location"
   },
   {
@@ -52,7 +52,7 @@ const onboardingData: OnboardingSlide[] = [
     title: "Ready to Explore?",
     subtitle: "Start Your Journey",
     description: "",
-    image: require('../../assets/images/logo.png'),
+    image: require('../../assets/images/logo6.png'),
     // icon: "rocket"
   }
 ]

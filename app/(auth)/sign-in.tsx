@@ -60,7 +60,7 @@ const SignIn = () => {
       {/* logo & app name */}
       <View className="items-center mt-10 mb-8">
         <Image
-          source={require('../../assets/images/logo.png')}
+          source={require('../../assets/images/logo6.png')}
           className="w-20 h-20 mb-2"
           resizeMode="contain"
           accessibilityLabel="AITA Logo"

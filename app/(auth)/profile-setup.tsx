@@ -160,7 +160,7 @@ const styles = StyleSheet.create({
     opacity: 0.9,
   },
   form: {
-    marginBottom: 100,
+    marginBottom: 60,
     marginTop: 50,
   },
   label: {
