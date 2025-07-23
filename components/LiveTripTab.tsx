@@ -217,7 +217,7 @@ export default function LiveTripTab({ onTripChange, onChatPress, onMapPress }: L
         </View>
 
         {/* New User Welcome Content */}
-        <View className="flex-1 justify-center items-center px-4">
+        <View className="flex-1 justify-center items-center px-4 mt-16">
           {/* GIF Animation */}
           <View className="items-center mb-6">
             <Image
@@ -236,9 +236,9 @@ export default function LiveTripTab({ onTripChange, onChatPress, onMapPress }: L
               Build the perfect trip
             </Text>
             <Text className="text-secondaryFont text-base font-UrbanistSemiBold text-center leading-6 opacity-90">
-              Create personalized itineraries with AI assistance.{'\n'}
-              Discover amazing places, save favorites, and{'\n'}
-              plan every detail of your adventure.
+              Create personalized itineraries with AITA's assistance.{'\n'}
+              {/* Discover amazing places, save favorites, and{'\n'}
+              plan every detail of your adventure. */}
             </Text>
           </View>
 

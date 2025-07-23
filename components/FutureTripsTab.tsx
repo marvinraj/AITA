@@ -191,6 +191,19 @@ export default function FutureTripsTab() {
         <View className="flex-1 items-center justify-center px-8">
           {selectedFilter === 'all' ? (
             <>
+              {/* GIF Animation */}
+              <View className="items-center mb-6">
+                <Image
+                  source={require('../assets/images/map3.gif')}
+                  style={{
+                    width: 200,
+                    height: 200,
+                    borderRadius: 16,
+                  }}
+                  resizeMode="cover"
+                />
+              </View>
+              
               <Text className="text-xl font-UrbanistSemiBold text-primaryFont mb-2">No trips yet</Text>
               <Text className="text-secondaryFont text-center mb-6">
                 Start planning your next adventure by creating your first trip!
