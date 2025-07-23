@@ -99,6 +99,12 @@ const settingsOptions = [
     route: 'preview_welcome_aboard',
     category: 'demo',
   },
+  {
+    title: 'Preview Profile Setup',
+    subtitle: 'View the profile setup screen',
+    route: 'preview_profile_setup',
+    category: 'demo',
+  },
   
   // App Settings Section
   {
@@ -306,6 +312,9 @@ const SettingsScreen = () => {
                 break;
             case 'preview_welcome_aboard':
                 router.push('/(auth)/welcome-aboard');
+                break;
+            case 'preview_profile_setup':
+                router.push('/(auth)/profile-setup');
                 break;
             default:
                 router.push(route as any);

@@ -16,7 +16,7 @@ const SignIn = () => {
   // uses Supabase's auth.signInWithPassword method to authenticate the user
   async function handleSignIn() {
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
@@ -24,8 +24,33 @@ const SignIn = () => {
     // error handling
     if (error) {
       alert(error.message);
-    } else {
-      router.replace('/(root)/(tabs)');
+      setLoading(false);
+      return;
+    }
+
+    // Check if user has completed profile setup
+    if (data.user) {
+      try {
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('full_name')
+          .eq('id', data.user.id)
+          .single();
+
+        if (profileError && profileError.code !== 'PGRST116') {
+          console.error('Error checking profile:', profileError);
+        }
+
+        // If no profile or no full_name, redirect to profile setup
+        if (!profile || !profile.full_name) {
+          router.replace('/(auth)/profile-setup');
+        } else {
+          router.replace('/(root)/(tabs)');
+        }
+      } catch (err) {
+        console.error('Error checking profile setup:', err);
+        router.replace('/(root)/(tabs)'); // Fallback to main app
+      }
     }
     setLoading(false);
   }

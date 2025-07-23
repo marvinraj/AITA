@@ -1,4 +1,3 @@
-import { View, Text } from 'react-native'
 import { Stack } from 'expo-router'
 import React from 'react'
 
@@ -15,6 +14,10 @@ const AuthLayout = () => {
         />
         <Stack.Screen 
             name="sign-in" 
+            options={{ headerShown: false }}
+        />
+        <Stack.Screen 
+            name="profile-setup" 
             options={{ headerShown: false }}
         />
         <Stack.Screen 

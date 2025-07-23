@@ -30,8 +30,8 @@ const SignUp = () => {
       alert('Please check your inbox for email verification!');
       router.replace('/(auth)/sign-in');
     } else {
-      // New user successfully signed up - redirect to welcome aboard screen
-      router.replace('/(auth)/welcome-aboard');
+      // New user successfully signed up - redirect to profile setup screen
+      router.replace('/(auth)/profile-setup');
     }
     setLoading(false);
   }

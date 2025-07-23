@@ -19,6 +19,10 @@ const WelcomeAboard = () => {
   const logoRotateAnim = useRef(new Animated.Value(0)).current
   const sparkleAnim = useRef(new Animated.Value(0)).current
   const progressAnim = useRef(new Animated.Value(0)).current
+  
+  // New fade-in animations for sections
+  const topContentFadeAnim = useRef(new Animated.Value(0)).current
+  const progressBarFadeAnim = useRef(new Animated.Value(0)).current
 
   // Loading steps with messages
   const loadingSteps = [
@@ -108,7 +112,7 @@ const WelcomeAboard = () => {
 
   // Initial entrance animations
   useEffect(() => {
-    // Fade in and scale up
+    // Fade in and scale up main content
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
@@ -121,7 +125,21 @@ const WelcomeAboard = () => {
         friction: 8,
         useNativeDriver: true,
       })
-    ]).start()
+    ]).start(() => {
+      // Top content fades in first
+      Animated.timing(topContentFadeAnim, {
+        toValue: 1,
+        duration: 800,
+        useNativeDriver: true,
+      }).start(() => {
+        // Progress bar fades in after top content
+        Animated.timing(progressBarFadeAnim, {
+          toValue: 1,
+          duration: 600,
+          useNativeDriver: true,
+        }).start()
+      })
+    })
   }, [])
 
   const logoRotation = logoRotateAnim.interpolate({
@@ -143,7 +161,7 @@ const WelcomeAboard = () => {
         ]}
       >
         {/* Top Content */}
-        <View style={styles.topContent}>
+        <Animated.View style={[styles.topContent, { opacity: topContentFadeAnim }]}>
           {/* Welcome Aboard Title */}
           <View style={styles.welcomeContainer}>
             <Text style={styles.welcomeTitle}>Welcome aboard</Text>
@@ -151,10 +169,10 @@ const WelcomeAboard = () => {
           
           {/* Subtitle */}
           <Text style={styles.mainSubtitle}>AITA is now being carefully{'\n'} curated for you.</Text>
-        </View>
+        </Animated.View>
 
         {/* Center Progress Bar */}
-        <View style={styles.centerContent}>
+        <Animated.View style={[styles.centerContent, { opacity: progressBarFadeAnim }]}>
           <View style={styles.progressSection}>
             <View style={styles.progressBarContainer}>
               <Animated.View
@@ -170,7 +188,7 @@ const WelcomeAboard = () => {
               />
             </View>
           </View>
-        </View>
+        </Animated.View>
       </Animated.View>
     </View>
   )
