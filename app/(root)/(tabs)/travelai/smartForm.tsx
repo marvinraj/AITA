@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Alert, Modal, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import InitialItineraryPreviewModal from '../../../../components/InitialItineraryPreviewModal';
+import { addLocationDataToTripItems } from '../../../../lib/locationUtils';
 import { itineraryService } from '../../../../lib/services/itineraryService';
 import { Place, placesService } from '../../../../lib/services/placesService';
 import { tripsService } from '../../../../lib/services/tripsService';
@@ -187,6 +188,7 @@ const SmartForm = () => {
 
             // If user chose to keep activities, save them to database
             if (keepActivities && itineraryItems) {
+                console.log('Saving itinerary items with location data...');
                 for (const item of itineraryItems) {
                     await itineraryService.createItineraryItem({
                         trip_id: tripData.id,
@@ -199,6 +201,16 @@ const SmartForm = () => {
                         priority: item.priority,
                         item_order: item.item_order
                     });
+                }
+
+                // Add location coordinates to all items after creation
+                try {
+                    console.log('Adding location coordinates to itinerary items...');
+                    await addLocationDataToTripItems(tripData.id);
+                    console.log('Location coordinates added successfully');
+                } catch (locationError) {
+                    console.error('Error adding location data:', locationError);
+                    // Don't fail the entire operation if location lookup fails
                 }
             }
 

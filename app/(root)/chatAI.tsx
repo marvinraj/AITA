@@ -11,6 +11,7 @@ import EditTripModal from '../../components/EditTripModal';
 import ItineraryWrapper, { ItineraryWrapperRef } from '../../components/ItineraryWrapper'; // New wrapper component
 import { StructuredResponse } from '../../components/StructuredResponse';
 import { TripContext, useAIChat } from '../../hooks/useAIChat';
+import { searchLocationByName } from '../../lib/locationUtils';
 import { ItineraryService } from '../../lib/services/itineraryService';
 import { TripsService } from '../../lib/services/tripsService';
 import { Trip } from '../../types/database';
@@ -438,6 +439,17 @@ const chatAI = () => {
         return 'activity'; // Default category
       };
 
+      // Try to get location coordinates if location is provided
+      let locationData = null;
+      if (item.location) {
+        try {
+          locationData = await searchLocationByName(item.location);
+          console.log('Location data found:', locationData);
+        } catch (error) {
+          console.log('Could not fetch location data:', error);
+        }
+      }
+
       const itineraryItem = {
         trip_id: tripId,
         title: item.name,
@@ -447,7 +459,9 @@ const chatAI = () => {
         location: item.location,
         category: getCategoryFromItem(item),
         priority: 'medium' as const,
-        notes: undefined // No notes since we removed the notes feature
+        notes: undefined, // No notes since we removed the notes feature
+        latitude: locationData?.latitude || undefined,
+        longitude: locationData?.longitude || undefined
       };
 
       console.log('Adding to itinerary:', itineraryItem);
