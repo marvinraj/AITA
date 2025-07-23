@@ -983,7 +983,7 @@ const DiscoverScreen = () => {
             </View>
 
             {/* Apply Filters Button */}
-            <View className="px-4 pb-4">
+            <View className="px-4 pb-4 mb-12">
               <TouchableOpacity
                 onPress={() => {
                   setFilterModalVisible(false)
