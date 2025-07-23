@@ -161,9 +161,54 @@ export default function FutureTripsTab() {
 
   return (
     <View className="flex-1 bg-primaryBG px-4 pt-6">
-      {/* Header with Filter Button */}
+      {/* Header with Stats and Filter Button */}
       <View className="flex-row items-center justify-between mb-6">
-        <Text className="text-2xl font-BellezaRegular text-primaryFont">My Travels</Text>
+        {/* Stats Section */}
+        <View className="flex-row items-center gap-2">
+          <View className="">
+            <View className="flex-row items-center mb-1">
+              <Ionicons name="airplane" size={18} color="#10b981" style={{ marginRight: 8 }} />
+              <Text className="text-primaryFont font-UrbanistSemiBold text-xl">
+                {trips.length}
+              </Text>
+            </View>
+            <Text className="text-secondaryFont text-xs text-center">
+              Total Trips
+            </Text>
+          </View>
+          
+          {/* Divider */}
+          <View className="w-px h-8 bg-border mx-2" />
+          
+          <View className="">
+            <View className="flex-row items-center mb-1">
+              <Ionicons name="checkmark-circle" size={18} color="#3b82f6" style={{ marginRight: 8 }} />
+              <Text className="text-primaryFont font-UrbanistSemiBold text-xl">
+                {trips.filter(trip => trip.status === 'completed').length}
+              </Text>
+            </View>
+            <Text className="text-secondaryFont text-xs text-center">
+              Completed
+            </Text>
+          </View>
+          
+          {/* Divider */}
+          <View className="w-px h-8 bg-border mx-2" />
+          
+          <View className="">
+            <View className="flex-row items-center mb-1">
+              <Ionicons name="calendar" size={18} color="#f59e0b" style={{ marginRight: 8 }} />
+              <Text className="text-primaryFont font-UrbanistSemiBold text-xl">
+                {trips.filter(trip => (trip.status || 'planning') === 'planning').length}
+              </Text>
+            </View>
+            <Text className="text-secondaryFont text-xs text-center">
+              Planning
+            </Text>
+          </View>
+        </View>
+        
+        {/* Filter Button */}
         <TouchableOpacity
           className="flex-row items-center bg-secondaryBG border border-border rounded-lg px-3 py-2"
           onPress={() => setShowFilterModal(true)}

@@ -158,7 +158,7 @@ export default function SavesTab({ trip }: SavesTabProps) {
   return (
     <View className="flex-1 pt-4">
       {/* Stats Section */}
-      <View className="flex-row justify-start items-center gap-4 px-4 mb-2">
+      <View className="flex-row justify-start items-center gap-2 px-4 mb-2">
         <View className="">
           <View className="flex-row items-center mb-1">
             <Ionicons name="heart" size={18} color="#ef4444" style={{ marginRight: 8 }} />
