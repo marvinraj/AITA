@@ -18,7 +18,7 @@ const TravelAI = () => {
       {/* header/title */}
       <Text className="text-5xl font-BellezaRegular text-primaryFont mb-4">Plan a New Trip</Text>
       {/* description */}
-      <Text className="text-sm font-InterRegular text-primaryFont/65 mb-8 text-center">Choose how you want to plan your trip. You can plan everything yourself or let AITA help you!</Text>
+      <Text className="text-sm font-InterRegular text-primaryFont/65 mb-8 text-center">Choose how you want to plan your trip. You can plan everything yourself or let TRAVA help you!</Text>
       {/* 2 buttons */}
       <View className="w-full gap-4">
         {/* manual button -> need to alter the href soon*/}
@@ -56,7 +56,7 @@ const TravelAI = () => {
             </View>
             <View className="flex-1">
               <Text className="text-primaryFont font-semibold text-lg">AI-Powered Plan</Text>
-              <Text className="text-secondaryFont text-sm">Let AITA help you plan</Text>
+              <Text className="text-secondaryFont text-sm">Let TRAVA help you plan</Text>
             </View>
             <Text className="text-secondaryFont text-2xl">›</Text>
           </TouchableOpacity>

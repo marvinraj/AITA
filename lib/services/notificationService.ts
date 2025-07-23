@@ -334,7 +334,7 @@ class NotificationService {
         timeInterval: 300000, // 5 minutes
         distanceInterval: 1000, // 1km
         foregroundService: {
-          notificationTitle: 'AITA Travel Assistant',
+          notificationTitle: 'TRAVA Travel Assistant',
           notificationBody: 'Tracking location for smart travel suggestions',
         },
       });

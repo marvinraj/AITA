@@ -1,4 +1,4 @@
-// API service for AITA - handles communication with Google Gemini AI
+// API service for TRAVA - handles communication with Google Gemini AI
 
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
@@ -21,10 +21,10 @@ interface ConversationContext {
   currentFocus?: 'planning' | 'booking' | 'during-trip' | 'general';
 }
 
-class AITAApiService {
+class TRAVAApiService {
     private genAI: GoogleGenerativeAI;
     private readonly maxContextMessages = 20;
-    private readonly systemPrompt = `You are AITA, an expert AI travel assistant specializing in personalized travel planning and recommendations. You have extensive knowledge of:
+    private readonly systemPrompt = `You are TRAVA, an expert AI travel assistant specializing in personalized travel planning and recommendations. You have extensive knowledge of:
 
 🌍 **Global Destinations**: Attractions, local culture, hidden gems, seasonal considerations
 🏨 **Accommodations**: Hotels, resorts, hostels, vacation rentals for all budgets
@@ -145,7 +145,7 @@ Interests: ${conversationContext.tripDetails.activities}`;
                     },
                     {
                         role: 'model',
-                        parts: [{ text: 'I understand. I am AITA, your expert travel assistant. I have your trip details and I\'m ready to provide personalized recommendations. How can I help you plan an amazing trip?' }]
+                        parts: [{ text: 'I understand. I am TRAVA, your expert travel assistant. I have your trip details and I\'m ready to provide personalized recommendations. How can I help you plan an amazing trip?' }]
                     },
                     ...history
                 ],
@@ -273,10 +273,10 @@ If this is NOT a request for specific places, just respond with: {"type": "regul
 }
 
 // Export a singleton instance
-export const aitaApi = new AITAApiService();
+export const travaApi = new TRAVAApiService();
 
 // Export the class for testing or custom instances
-export { AITAApiService };
+export { TRAVAApiService };
 
 // Export types for use in components
     export type { Message };

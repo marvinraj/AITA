@@ -1,11 +1,11 @@
 {
   "expo": {
     "name": "TRAVA",
-    "slug": "aita-ai",
+    "slug": "trava-ai",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/logo6.png",
-    "scheme": "aitaai",
+    "scheme": "trava",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {

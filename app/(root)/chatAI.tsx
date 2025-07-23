@@ -743,7 +743,7 @@ const chatAI = () => {
                     <View className="w-full items-start mb-4">
                       <View className="rounded-2xl px-4 py-3 bg-white/10 border border-white/20">
                         <Text className="text-base text-white">
-                          AITA is typing...
+                          TRAVA is typing...
                         </Text>
                       </View>
                     </View>
@@ -803,7 +803,7 @@ const chatAI = () => {
                   <View className="flex-row items-center px-4 py-4">
                     <TextInput
                       className="flex-1 bg-white/5 border border-white/20 rounded-2xl px-4 py-4 mr-3 text-base text-white"
-                      placeholder={trip?.destination ? `Ask about your trip to ${trip.destination}...` : "Ask AITA anything about your trip..."}
+                      placeholder={trip?.destination ? `Ask about your trip to ${trip.destination}...` : "Ask TRAVA anything about your trip..."}
                       placeholderTextColor="#9CA3AF"
                       returnKeyType="send"
                       value={input}

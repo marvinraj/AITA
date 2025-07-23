@@ -57,31 +57,31 @@ const HelpScreen = () => {
                 {
                     title: 'Contact support',
                     description: 'Get help from our support team',
-                    action: () => Linking.openURL('mailto:support@aitaai.com'),
+                    action: () => Linking.openURL('mailto:support@trava.com'),
                     external: true
                 },
                 {
                     title: 'Report a bug',
                     description: 'Help us improve the app',
-                    action: () => Linking.openURL('mailto:bugs@aitaai.com'),
+                    action: () => Linking.openURL('mailto:bugs@trava.com'),
                     external: true
                 },
                 {
                     title: 'Feature requests',
                     description: 'Suggest new features',
-                    action: () => Linking.openURL('mailto:feedback@aitaai.com'),
+                    action: () => Linking.openURL('mailto:feedback@trava.com'),
                     external: true
                 },
                 {
                     title: 'Privacy policy',
                     description: 'How we handle your data',
-                    action: () => Linking.openURL('https://aitaai.com/privacy'),
+                    action: () => Linking.openURL('https://trava.com/privacy'),
                     external: true
                 },
                 {
                     title: 'Terms of service',
                     description: 'Terms and conditions',
-                    action: () => Linking.openURL('https://aitaai.com/terms'),
+                    action: () => Linking.openURL('https://trava.com/terms'),
                     external: true
                 },
             ]

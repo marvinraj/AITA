@@ -63,7 +63,7 @@ const SignIn = () => {
           source={require('../../assets/images/logo6.png')}
           className="w-20 h-20 mb-2"
           resizeMode="contain"
-          accessibilityLabel="AITA Logo"
+          accessibilityLabel="TRAVA Logo"
         />
         <Text className="text-2xl font-BellezaRegular text-primaryFont text-center">Welcome Back!</Text>
       </View>

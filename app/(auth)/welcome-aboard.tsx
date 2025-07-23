@@ -34,7 +34,7 @@ const WelcomeAboard = () => {
     },
     {
       id: 2,
-      message: "AITA is being carefully curated for you",
+      message: "TRAVA is being carefully curated for you",
       subtitle: "Setting up your personalized experience...",
       duration: 2500
     },
@@ -70,7 +70,7 @@ const WelcomeAboard = () => {
     // TEMPORARY: Skip timing if disabled for development
     if (DISABLE_TIMING) {
       setCurrentStep(2) // Show final step
-      setDisplayedText("AITA is being carefully curated for you")
+      setDisplayedText("TRAVA is being carefully curated for you")
       progressAnim.setValue(1) // Fill progress bar
       return
     }
@@ -168,7 +168,7 @@ const WelcomeAboard = () => {
           </View>
           
           {/* Subtitle */}
-          <Text style={styles.mainSubtitle}>AITA is now being carefully{'\n'} curated for you.</Text>
+          <Text style={styles.mainSubtitle}>TRAVA is now being carefully{'\n'} curated for you.</Text>
         </Animated.View>
 
         {/* Center Progress Bar */}

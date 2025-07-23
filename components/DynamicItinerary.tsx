@@ -140,7 +140,7 @@ export default function DynamicItinerary({ trip, height }: DynamicItineraryProps
                 <Text className="text-secondaryFont text-lg mb-2">Ready to plan!</Text>
                 <Text className="text-secondaryFont text-sm text-center">
                   Your trip dates are set.{'\n'}
-                  Chat with AITA to start adding activities.
+                  Chat with TRAVA to start adding activities.
                 </Text>
               </View>
             )}

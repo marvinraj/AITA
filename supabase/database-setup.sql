@@ -1,4 +1,4 @@
--- AITA Travel App Database Setup
+-- TRAVA Travel App Database Setup
 -- Run this script in your Supabase SQL Editor
 
 -- =============================================

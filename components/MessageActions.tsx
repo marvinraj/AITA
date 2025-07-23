@@ -27,7 +27,7 @@ export const MessageActions: React.FC<MessageActionsProps> = ({
   const handleShare = async () => {
     try {
       await Share.share({
-        message: `AITA Travel Recommendation:\n\n${message}`,
+        message: `TRAVA Travel Recommendation:\n\n${message}`,
       });
     } catch (error) {
       console.error('Error sharing:', error);

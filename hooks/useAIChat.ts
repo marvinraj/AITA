@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert } from 'react-native';
-import { aitaApi } from '../lib/api';
+import { travaApi } from '../lib/api';
 import { aiChatService } from '../lib/services/aiChatService';
 import { AIChat, AIMessage } from '../types/database';
 
@@ -100,7 +100,7 @@ export function useAIChat({
         return;
       }
       // Create system message with trip context
-      let systemMessage = `You are AITA, a helpful AI travel assistant. The user is planning a trip with the following details:
+      let systemMessage = `You are TRAVA, a helpful AI travel assistant. The user is planning a trip with the following details:
 
 🌍 Destination: ${context.destination}
 📅 Travel Dates: ${formatDate(context.startDate)} to ${formatDate(context.endDate)}
@@ -330,7 +330,7 @@ What interests you most about your upcoming trip?`;
       };
       
       // First, check if this should be a structured response
-      const structuredData = await aitaApi.generateStructuredRecommendations(messagesForAI, tripContext);
+      const structuredData = await travaApi.generateStructuredRecommendations(messagesForAI, tripContext);
       
       let aiResponse: string;
       let structuredContent: string | undefined = undefined;
@@ -342,7 +342,7 @@ What interests you most about your upcoming trip?`;
         structuredContent = JSON.stringify(structuredData);
       } else {
         // Get regular AI response with enhanced context
-        aiResponse = await aitaApi.createChatCompletion(messagesForAI, conversationContext);
+        aiResponse = await travaApi.createChatCompletion(messagesForAI, conversationContext);
       }
       
       const responseTime = Date.now() - startTime;
@@ -387,7 +387,7 @@ What interests you most about your upcoming trip?`;
           })
         }));
       
-      return await aitaApi.generateSmartSuggestions(messagesForAI, tripContext);
+      return await travaApi.generateSmartSuggestions(messagesForAI, tripContext);
     } catch (error) {
       console.error('Error generating suggestions:', error);
       return [];

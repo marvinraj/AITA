@@ -236,7 +236,7 @@ export default function LiveTripTab({ onTripChange, onChatPress, onMapPress }: L
               Build the perfect trip
             </Text>
             <Text className="text-secondaryFont text-base font-UrbanistSemiBold text-center leading-6 opacity-90">
-              Create personalized itineraries with AITA's assistance.{'\n'}
+              Create personalized itineraries with TRAVA's assistance.{'\n'}
               {/* Discover amazing places, save favorites, and{'\n'}
               plan every detail of your adventure. */}
             </Text>

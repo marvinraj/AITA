@@ -44,9 +44,9 @@ const SignUp = () => {
           source={require('../../assets/images/logo6.png')}
           className="w-20 h-20 mb-2"
           resizeMode="contain"
-          accessibilityLabel="AITA Logo"
+          accessibilityLabel="TRAVA Logo"
         />
-        <Text className="text-2xl text-primaryFont text-center font-BellezaRegular">Welcome to AITA.</Text>
+        <Text className="text-2xl text-primaryFont text-center font-BellezaRegular">Welcome to TRAVA.</Text>
       </View>
       
       <View className="flex-1 items-center justify-center w-full">

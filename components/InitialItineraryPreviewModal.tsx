@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Animated, Easing, Modal, ScrollView, Text, TouchableOpacity, View } from 'react-native';
-import { aitaApi } from '../lib/api';
+import { travaApi } from '../lib/api';
 import { formatDayHeader, generateDateRange, getDayOfWeek } from '../lib/utils/dateUtils';
 import { DailyItinerary, GeneratedActivity, ItineraryItem, TripFormData } from '../types/database';
 import DailyItinerarySection from './DailyItinerarySection';
@@ -77,7 +77,7 @@ Respond ONLY with a JSON array of activities. No other text or formatting. Examp
 
   try {
     console.log('Calling AI API...');
-    const response = await aitaApi.createChatCompletion(messages, {
+    const response = await travaApi.createChatCompletion(messages, {
       tripDetails: {
         tripName: tripData.tripName,
         destination: tripData.destination,

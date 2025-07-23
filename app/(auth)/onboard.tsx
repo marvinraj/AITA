@@ -17,7 +17,7 @@ interface OnboardingSlide {
 const onboardingData: OnboardingSlide[] = [
   {
     id: 1,
-    title: "AITA",
+    title: "TRAVA",
     subtitle: "Your AI Travel Companion",
     description: "Plan, discover, and chat with AI for your next adventure. Let's make travel planning effortless and exciting!",
     image: require('../../assets/images/logo6.png'),
@@ -135,7 +135,7 @@ const Onboarding = () => {
     <View className="flex-1 bg-primaryBG">
       {/* Header with Skip Button */}
       <View className="flex-row justify-end items-center pt-12 pb-4 px-6">
-        {/* <Text className="text-3xl text-primaryFont font-BellezaRegular">AITA</Text> */}
+        {/* <Text className="text-3xl text-primaryFont font-BellezaRegular">TRAVA</Text> */}
         {currentIndex < onboardingData.length - 1 && (
           <Link href="/(auth)/sign-up" asChild>
             <TouchableOpacity className="px-4 py-2">
