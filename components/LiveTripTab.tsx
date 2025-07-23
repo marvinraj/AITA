@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Animated, Text, TouchableOpacity, View } from 'react-native';
+import { Animated, Image, Text, TouchableOpacity, View } from 'react-native';
 import { useProfile } from '../hooks/useProfile';
 import { tripsService } from '../lib/services/tripsService';
 import { Trip } from '../types/database';
@@ -127,32 +127,18 @@ export default function LiveTripTab({ onTripChange, onChatPress, onMapPress }: L
       const trip = await tripsService.getCurrentTrip();
       
       if (!trip) {
-        // No trips found, create a default one
-        const defaultTrip = await tripsService.createTrip({
-          name: 'My Travel Plans',
-          destination: 'Planning your next adventure',
-          status: 'planning'
-        });
-        setCurrentTrip(defaultTrip);
-        onTripChange?.(defaultTrip);
+        // No trips found - don't create a default one
+        setCurrentTrip(null);
+        onTripChange?.(null);
       } else {
         setCurrentTrip(trip);
         onTripChange?.(trip);
       }
     } catch (err) {
       console.error('Error loading current trip:', err);
-      // Create a fallback trip if all else fails
-      const fallbackTrip = {
-        id: 'fallback',
-        user_id: 'fallback',
-        name: 'My Travel Plans',
-        destination: 'Planning your next adventure',
-        status: 'planning' as const,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      };
-      setCurrentTrip(fallbackTrip);
-      onTripChange?.(fallbackTrip);
+      // Don't create fallback trip - let user start fresh
+      setCurrentTrip(null);
+      onTripChange?.(null);
     } finally {
       setLoading(false);
     }
@@ -204,11 +190,67 @@ export default function LiveTripTab({ onTripChange, onChatPress, onMapPress }: L
   // determine the active component based on the active tab
   const ActiveComponent = TABS.find(tab => tab.key === activeTab)?.component || TravelHubTab;
 
+  // Handle get started button press
+  const handleGetStarted = () => {
+    // Navigate to create new trip page (TravelAI)
+    router.push('/travelai');
+  };
+
   // Show loading state while trip is being loaded
-  if (loading || !currentTrip) {
+  if (loading) {
     return (
       <View className="flex-1 bg-primaryBG justify-center items-center">
-        <Text className="text-secondaryFont">Loading your trip...</Text>
+        <Text className="text-secondaryFont">Loading your trips...</Text>
+      </View>
+    );
+  }
+
+  // Show new user experience if no trip exists
+  if (!currentTrip) {
+    return (
+      <View className="flex-1 bg-primaryBG px-6">
+        {/* Greeting */} 
+        <View className="pt-4 pb-4">
+          <Text className="text-primaryFont text-3xl font-BellezaRegular">
+            Hey, {profileData.name}
+          </Text>
+        </View>
+
+        {/* New User Welcome Content */}
+        <View className="flex-1 justify-center items-center px-4">
+          {/* GIF Animation */}
+          <View className="items-center mb-6">
+            <Image
+              source={require('../assets/images/map3.gif')}
+              style={{
+                width: 200,
+                height: 200,
+                borderRadius: 16,
+              }}
+              resizeMode="cover"
+            />
+          </View>
+
+          <View className="items-center mb-8">
+            <Text className="text-primaryFont text-4xl font-BellezaRegular text-center mb-4">
+              Build the perfect trip
+            </Text>
+            <Text className="text-secondaryFont text-base font-UrbanistSemiBold text-center leading-6 opacity-90">
+              Create personalized itineraries with AI assistance.{'\n'}
+              Discover amazing places, save favorites, and{'\n'}
+              plan every detail of your adventure.
+            </Text>
+          </View>
+
+          <TouchableOpacity 
+            onPress={handleGetStarted}
+            className="bg-accentFont px-8 py-4 rounded-xl shadow-lg active:opacity-80"
+          >
+            <Text className="text-primaryBG text-lg font-UrbanistSemiBold font-semibold">
+              Get Started
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
     );
   }
