@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Location from 'expo-location';
 import * as Notifications from 'expo-notifications';
 import * as TaskManager from 'expo-task-manager';
+import { notificationsDatabaseService } from './notificationsDatabaseService';
 
 export interface SmartNotification {
   id: string;
@@ -100,6 +101,14 @@ class NotificationService {
         await this.setupLocationServices();
       } catch (locationError) {
         console.warn('⚠️ Location services setup failed (this is optional):', locationError);
+      }
+
+      // Sync notifications with database on initialization
+      try {
+        await this.syncNotifications();
+        console.log('✅ Notifications synced with database on initialization');
+      } catch (syncError) {
+        console.warn('⚠️ Failed to sync notifications on initialization (this is optional):', syncError);
       }
 
       this.isInitialized = true;
@@ -359,18 +368,25 @@ class NotificationService {
     // Example: Weather-based activity suggestions
   }
 
-  // store notification in local storage
+  // store notification in local storage and database
   private async storeNotification(notification: SmartNotification): Promise<void> {
     try {
+      // Store in local storage (for offline access and backwards compatibility)
       const stored = await AsyncStorage.getItem(NOTIFICATIONS_KEY);
       const notifications: SmartNotification[] = stored ? JSON.parse(stored) : [];
       
       notifications.unshift(notification); // Add to beginning
       
-      // keep only last 50 notifications
+      // keep only last 50 notifications in local storage
       const trimmed = notifications.slice(0, 50);
       
       await AsyncStorage.setItem(NOTIFICATIONS_KEY, JSON.stringify(trimmed));
+
+      // Store in database (for cross-device sync and persistence)
+      const dbInput = notificationsDatabaseService.convertFromSmartNotification(notification);
+      await notificationsDatabaseService.saveNotification(dbInput);
+      
+      console.log('✅ Notification stored in both local storage and database');
     } catch (error) {
       console.error('Failed to store notification:', error);
     }
@@ -390,38 +406,81 @@ class NotificationService {
     }
   }
 
-  // get all stored notifications
+  // get all stored notifications (database first, then local storage fallback)
   async getStoredNotifications(): Promise<SmartNotification[]> {
     try {
-      const stored = await AsyncStorage.getItem(NOTIFICATIONS_KEY);
-      return stored ? JSON.parse(stored) : [];
+      // Try to fetch from database first
+      const dbNotifications = await notificationsDatabaseService.getUserNotifications(50);
+      
+      if (dbNotifications.length > 0) {
+        // Convert database notifications to SmartNotification format
+        const smartNotifications = dbNotifications.map(dbNotif => 
+          notificationsDatabaseService.convertToSmartNotification(dbNotif)
+        );
+        
+        // Update local storage with database data for offline access
+        await AsyncStorage.setItem(NOTIFICATIONS_KEY, JSON.stringify(smartNotifications));
+        
+        console.log(`✅ Loaded ${smartNotifications.length} notifications from database`);
+        return smartNotifications;
+      } else {
+        // Fallback to local storage if database is empty or unavailable
+        const stored = await AsyncStorage.getItem(NOTIFICATIONS_KEY);
+        const localNotifications: SmartNotification[] = stored ? JSON.parse(stored) : [];
+        
+        console.log(`📱 Loaded ${localNotifications.length} notifications from local storage (fallback)`);
+        return localNotifications;
+      }
     } catch (error) {
-      console.error('Failed to get stored notifications:', error);
-      return [];
+      console.error('Failed to get stored notifications from database, trying local storage:', error);
+      
+      // Final fallback to local storage
+      try {
+        const stored = await AsyncStorage.getItem(NOTIFICATIONS_KEY);
+        const localNotifications: SmartNotification[] = stored ? JSON.parse(stored) : [];
+        
+        console.log(`📱 Loaded ${localNotifications.length} notifications from local storage (error fallback)`);
+        return localNotifications;
+      } catch (localError) {
+        console.error('Failed to get notifications from local storage:', localError);
+        return [];
+      }
     }
   }
 
-  // mark notification as read
+  // mark notification as read (both local storage and database)
   async markNotificationAsRead(notificationId: string): Promise<void> {
     try {
+      // Update local storage
       const notifications = await this.getStoredNotifications();
       const updated = notifications.map(notif => 
         notif.id === notificationId ? { ...notif, read: true } : notif
       );
       
       await AsyncStorage.setItem(NOTIFICATIONS_KEY, JSON.stringify(updated));
+
+      // Update database
+      await notificationsDatabaseService.markNotificationAsRead(notificationId);
+      
+      console.log(`✅ Marked notification ${notificationId} as read in both storage types`);
     } catch (error) {
       console.error('Failed to mark notification as read:', error);
     }
   }
 
-  // mark all notifications as read
+  // mark all notifications as read (both local storage and database)
   async markAllNotificationsAsRead(): Promise<void> {
     try {
+      // Update local storage
       const notifications = await this.getStoredNotifications();
       const updated = notifications.map(notif => ({ ...notif, read: true }));
       
       await AsyncStorage.setItem(NOTIFICATIONS_KEY, JSON.stringify(updated));
+
+      // Update database
+      await notificationsDatabaseService.markAllNotificationsAsRead();
+      
+      console.log('✅ Marked all notifications as read in both storage types');
     } catch (error) {
       console.error('Failed to mark all notifications as read:', error);
     }
@@ -457,25 +516,109 @@ class NotificationService {
     }
   }
 
-  // Get unread notification count
+  // Get unread notification count (database first, then local fallback)
   async getUnreadCount(): Promise<number> {
     try {
+      // Try database first for accurate count
+      const dbCount = await notificationsDatabaseService.getUnreadCount();
+      if (dbCount >= 0) {
+        console.log(`📊 Unread count from database: ${dbCount}`);
+        return dbCount;
+      }
+      
+      // Fallback to local storage count
       const notifications = await this.getStoredNotifications();
-      return notifications.filter(notif => !notif.read).length;
+      const localCount = notifications.filter(notif => !notif.read).length;
+      
+      console.log(`📱 Unread count from local storage (fallback): ${localCount}`);
+      return localCount;
     } catch (error) {
       console.error('Failed to get unread count:', error);
       return 0;
     }
   }
 
-  // Clear all stored notifications
+  // Clear all stored notifications (both local storage and database)
   async clearAllNotifications(): Promise<void> {
     try {
+      // Clear local storage
       await AsyncStorage.removeItem(NOTIFICATIONS_KEY);
-      console.log('✅ All notifications cleared successfully');
+      
+      // Clear database
+      await notificationsDatabaseService.clearAllNotifications();
+      
+      console.log('✅ All notifications cleared from both storage types');
     } catch (error) {
       console.error('Failed to clear notifications:', error);
       throw error;
+    }
+  }
+
+  // Get notifications by type (database only - new feature)
+  async getNotificationsByType(type: SmartNotification['type'], limit: number = 20): Promise<SmartNotification[]> {
+    try {
+      const dbNotifications = await notificationsDatabaseService.getNotificationsByType(type, limit);
+      return dbNotifications.map(dbNotif => 
+        notificationsDatabaseService.convertToSmartNotification(dbNotif)
+      );
+    } catch (error) {
+      console.error('Failed to get notifications by type:', error);
+      return [];
+    }
+  }
+
+  // Get notifications for a specific trip (database only - new feature)
+  async getTripNotifications(tripId: string, limit: number = 20): Promise<SmartNotification[]> {
+    try {
+      const dbNotifications = await notificationsDatabaseService.getTripNotifications(tripId, limit);
+      return dbNotifications.map(dbNotif => 
+        notificationsDatabaseService.convertToSmartNotification(dbNotif)
+      );
+    } catch (error) {
+      console.error('Failed to get trip notifications:', error);
+      return [];
+    }
+  }
+
+  // Delete a specific notification (database and local storage)
+  async deleteNotification(notificationId: string): Promise<boolean> {
+    try {
+      // Remove from local storage
+      const notifications = await this.getStoredNotifications();
+      const filtered = notifications.filter(notif => notif.id !== notificationId);
+      await AsyncStorage.setItem(NOTIFICATIONS_KEY, JSON.stringify(filtered));
+
+      // Remove from database
+      const success = await notificationsDatabaseService.deleteNotification(notificationId);
+      
+      if (success) {
+        console.log(`✅ Deleted notification ${notificationId} from both storage types`);
+      }
+      
+      return success;
+    } catch (error) {
+      console.error('Failed to delete notification:', error);
+      return false;
+    }
+  }
+
+  // Sync local storage with database (useful for initial load or after network reconnection)
+  async syncNotifications(): Promise<void> {
+    try {
+      console.log('🔄 Syncing notifications with database...');
+      
+      // Get notifications from database
+      const dbNotifications = await notificationsDatabaseService.getUserNotifications(50);
+      const smartNotifications = dbNotifications.map(dbNotif => 
+        notificationsDatabaseService.convertToSmartNotification(dbNotif)
+      );
+      
+      // Update local storage
+      await AsyncStorage.setItem(NOTIFICATIONS_KEY, JSON.stringify(smartNotifications));
+      
+      console.log(`✅ Synced ${smartNotifications.length} notifications from database to local storage`);
+    } catch (error) {
+      console.error('Failed to sync notifications:', error);
     }
   }
 

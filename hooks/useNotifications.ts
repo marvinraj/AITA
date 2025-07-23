@@ -64,6 +64,55 @@ export const useNotifications = () => {
     }
   };
 
+  const deleteNotification = async (notificationId: string) => {
+    try {
+      const success = await notificationService.deleteNotification(notificationId);
+      if (success) {
+        await loadNotifications(); // Refresh
+      }
+      return success;
+    } catch (error) {
+      console.error('Failed to delete notification:', error);
+      return false;
+    }
+  };
+
+  const getNotificationsByType = async (type: SmartNotification['type'], limit?: number) => {
+    try {
+      return await notificationService.getNotificationsByType(type, limit);
+    } catch (error) {
+      console.error('Failed to get notifications by type:', error);
+      return [];
+    }
+  };
+
+  const getTripNotifications = async (tripId: string, limit?: number) => {
+    try {
+      return await notificationService.getTripNotifications(tripId, limit);
+    } catch (error) {
+      console.error('Failed to get trip notifications:', error);
+      return [];
+    }
+  };
+
+  const syncNotifications = async () => {
+    try {
+      await notificationService.syncNotifications();
+      await loadNotifications(); // Refresh after sync
+    } catch (error) {
+      console.error('Failed to sync notifications:', error);
+    }
+  };
+
+  const clearAllNotifications = async () => {
+    try {
+      await notificationService.clearAllNotifications();
+      await loadNotifications(); // Refresh
+    } catch (error) {
+      console.error('Failed to clear all notifications:', error);
+    }
+  };
+
   return {
     notifications,
     unreadCount,
@@ -72,5 +121,10 @@ export const useNotifications = () => {
     markAsRead,
     markAllAsRead,
     sendNotification,
+    deleteNotification,
+    getNotificationsByType,
+    getTripNotifications,
+    syncNotifications,
+    clearAllNotifications,
   };
 };
