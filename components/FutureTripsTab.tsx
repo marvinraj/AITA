@@ -5,6 +5,7 @@ import { useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { Alert, Image, ImageBackground, Modal, RefreshControl, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { DestinationImage, imageService } from '../lib/services/imageService';
+import { savedPlacesService } from '../lib/services/savedPlacesService';
 import { tripsService } from '../lib/services/tripsService';
 import { Trip } from '../types/database';
 
@@ -16,6 +17,7 @@ export default function FutureTripsTab() {
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [tripImages, setTripImages] = useState<Map<string, DestinationImage>>(new Map());
+  const [tripSaves, setTripSaves] = useState<Map<string, number>>(new Map());
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState<'all' | 'planning' | 'active' | 'completed'>('all');
 
@@ -71,6 +73,9 @@ export default function FutureTripsTab() {
       
       // Load destination images for all trips
       loadTripImages(allTrips);
+      
+      // Load saves count for all trips
+      loadTripSaves(allTrips);
     } catch (err) {
       console.error('Error loading trips:', err);
       setError('Failed to load your trips');
@@ -98,6 +103,26 @@ export default function FutureTripsTab() {
 
     await Promise.all(imagePromises);
     setTripImages(imageMap);
+  };
+
+  // Load saves count for trips
+  const loadTripSaves = async (trips: Trip[]) => {
+    const savesMap = new Map<string, number>();
+    
+    // Load saves count for each trip
+    const savesPromises = trips.map(async (trip) => {
+      try {
+        const response = await savedPlacesService.getSavedPlacesForTrip(trip.id);
+        const count = response.data ? response.data.length : 0;
+        savesMap.set(trip.id, count);
+      } catch (error) {
+        console.error(`Error loading saves count for trip ${trip.id}:`, error);
+        savesMap.set(trip.id, 0);
+      }
+    });
+
+    await Promise.all(savesPromises);
+    setTripSaves(savesMap);
   };
 
   // Format date for display
@@ -352,17 +377,29 @@ export default function FutureTripsTab() {
                         <Text className="text-lg font-UrbanistSemiBold text-primaryFont mb-1">
                           {trip.name}
                         </Text>
-                        <Text className="text-secondaryFont text-xs">
-                          📍 {trip.destination || 'Destination not set'}
-                        </Text>
+                        <View className="flex-row items-center">
+                          <Ionicons name="location-outline" size={12} color="#828282" style={{ marginRight: 4 }} />
+                          <Text className="text-secondaryFont text-xs">
+                            {trip.destination || 'Destination not set'}
+                          </Text>
+                        </View>
                       </View>
                     </View>
 
                     {/* Trip details */}
-                    <View className="flex-row items-center justify-between">
+                    <View className="space-y-1">
                       <View className="flex-row items-center">
+                        <Ionicons name="calendar-outline" size={12} color="#828282" style={{ marginRight: 4 }} />
                         <Text className="text-secondaryFont text-xs">
-                          📅 {formatDate(trip.start_date)} - {formatDate(trip.end_date)}
+                          {formatDate(trip.start_date)} - {formatDate(trip.end_date)}
+                        </Text>
+                      </View>
+                      
+                      {/* Saves count */}
+                      <View className="flex-row items-center mt-3">
+                        <Ionicons name="bookmark-outline" size={12} color="#828282" style={{ marginRight: 4 }} />
+                        <Text className="text-secondaryFont text-xs font-UrbanistSemiBold">
+                          {tripSaves.get(trip.id) || 0} Saves
                         </Text>
                       </View>
                     </View>
