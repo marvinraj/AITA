@@ -368,7 +368,7 @@ export default function TravelChecklistDropdown({ tripId }: TravelChecklistDropd
                   />
                   <Pressable 
                     onPress={handleAddItem}
-                    className="bg-accentFont px-3 py-2 rounded-lg"
+                    className="bg-accentFont px-3 py-2 rounded"
                     disabled={loading || !newItem.trim()}
                   >
                     <Text className="text-white text-sm">Add</Text>
