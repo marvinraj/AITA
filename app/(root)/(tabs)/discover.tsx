@@ -14,6 +14,7 @@ import { GooglePlace, googlePlacesService } from '../../../lib/services/googlePl
 import { Place, placesService } from '../../../lib/services/placesService'
 import { CreateSavedPlaceInput, SavedPlace, savedPlacesService } from '../../../lib/services/savedPlacesService'
 import { supabase } from '../../../lib/supabase'
+import { animateToUserLocation } from '../../../lib/utils/userLocationUtils'
 
 // Constants for draggable modal
 const SCREEN_HEIGHT = Dimensions.get('window').height
@@ -555,6 +556,8 @@ const DiscoverScreen = () => {
           <MapView
             ref={mapRef}
             style={{ flex: 1 }}
+            showsUserLocation={true}
+            showsMyLocationButton={false}
             initialRegion={{
               latitude: 37.78825,
               longitude: -122.4324,
@@ -613,6 +616,14 @@ const DiscoverScreen = () => {
                   </TouchableOpacity>
                 )}
               </View>
+              
+              {/* User Location Button */}
+              <TouchableOpacity
+                onPress={() => animateToUserLocation(mapRef)}
+                className="bg-accentFont/80 backdrop-blur-sm p-3 ml-3 rounded-lg shadow-lg"
+              >
+                <Ionicons name="locate" size={20} color={colors.primaryBG} />
+              </TouchableOpacity>
               
               {/* Filter Button */}
               <TouchableOpacity

@@ -5,6 +5,7 @@ import MapView, { Marker } from 'react-native-maps';
 import { colors } from '../constants/colors';
 import { getDestinationCoordinates } from '../lib/locationUtils';
 import { supabase } from '../lib/supabase';
+import { animateToUserLocation } from '../lib/utils/userLocationUtils';
 import { ItineraryItem, Trip } from '../types/database';
 
 interface ItineraryMapViewProps {
@@ -348,6 +349,17 @@ export default function ItineraryMapView({ trip, height }: ItineraryMapViewProps
               </ScrollView>
             </View>
           )}
+        </View>
+
+        {/* User Location Button - Positioned separately on the left */}
+        <View className="absolute top-24 left-4 z-10">
+          <TouchableOpacity
+            onPress={() => animateToUserLocation(mapRef)}
+            className="px-4 py-4 rounded-full justify-center items-center shadow-lg"
+            style={{ backgroundColor: colors.accentFont }}
+          >
+            <Ionicons name="locate" size={18} color={colors.primaryBG} />
+          </TouchableOpacity>
         </View>
 
         {/* No Items Message */}

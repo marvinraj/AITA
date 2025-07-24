@@ -6,6 +6,7 @@ import MapView, { Marker } from 'react-native-maps';
 import { colors } from '../constants/colors';
 import { addLocationDataToTripItems, getDestinationCoordinates } from '../lib/locationUtils';
 import { supabase } from '../lib/supabase';
+import { animateToUserLocation } from '../lib/utils/userLocationUtils';
 import { ItineraryItem } from '../types/database';
 
 export default function MapScreen() {
@@ -268,7 +269,13 @@ export default function MapScreen() {
               </Text>
             )}
           </View>
-          <View style={{ width: 70 }} />
+          <TouchableOpacity 
+            onPress={() => animateToUserLocation(mapRef)}
+            className="p-2 rounded-full"
+            style={{ backgroundColor: colors.accentFont }}
+          >
+            <Ionicons name="locate" size={20} color={colors.primaryBG} />
+          </TouchableOpacity>
         </View>
 
       {/* Date Filter */}
