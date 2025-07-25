@@ -130,6 +130,7 @@ export default function DynamicItinerary({ trip, height }: DynamicItineraryProps
                 isExpanded={expandedDays.has(daily.date)}
                 onToggle={handleDayToggle}
                 tripId={trip.id}
+                tripDestination={trip.destination}
                 onActivityAdded={handleActivityAdded}
               />
             ))}

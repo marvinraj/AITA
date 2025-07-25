@@ -1462,6 +1462,7 @@ export default function InitialItineraryPreviewModal({
                   isExpanded={expandedDays.has(daily.date)}
                   onToggle={handleDayToggle}
                   tripId="" // No trip ID in preview mode
+                  tripDestination={tripData.destination}
                   onActivityAdded={() => {}} // Disabled in preview
                 />
               ))}

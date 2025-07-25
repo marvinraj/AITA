@@ -269,6 +269,7 @@ export default forwardRef<ItineraryTabRef, ItineraryTabProps>(function Itinerary
                 isExpanded={expandedDays.has(daily.date)}
                 onToggle={handleDayToggle}
                 tripId={trip.id}
+                tripDestination={trip.destination}
                 onActivityAdded={handleActivityAdded}
               />
             ))}

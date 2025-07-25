@@ -2,11 +2,11 @@ import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import { Alert, Image, Text, TouchableOpacity, View } from 'react-native';
 import Animated, {
-  Extrapolate,
-  interpolate,
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming
+    Extrapolate,
+    interpolate,
+    useAnimatedStyle,
+    useSharedValue,
+    withTiming
 } from 'react-native-reanimated';
 import { getCategoryIcon } from '../constants/categories';
 import { itineraryService } from '../lib/services/itineraryService';
@@ -21,6 +21,7 @@ interface DailyItinerarySectionProps {
   isExpanded: boolean;
   onToggle: (date: string) => void;
   tripId: string;
+  tripDestination?: string; // Add trip destination
   onActivityAdded: () => void;
 }
 
@@ -28,12 +29,11 @@ export default function DailyItinerarySection({
   date, 
   items, 
   isExpanded, 
-  onToggle,
-  tripId,
-  onActivityAdded
-}: DailyItinerarySectionProps) {
-  
-  const [showAddModal, setShowAddModal] = useState(false);
+  onToggle, 
+  tripId, 
+  tripDestination,
+  onActivityAdded 
+}: DailyItinerarySectionProps) {  const [showAddModal, setShowAddModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedActivity, setSelectedActivity] = useState<ItineraryItem | null>(null);
   const [deletingActivity, setDeletingActivity] = useState<string | null>(null); // Track which activity is being deleted
@@ -230,6 +230,7 @@ export default function DailyItinerarySection({
         onClose={() => setShowAddModal(false)}
         date={date}
         tripId={tripId}
+        tripDestination={tripDestination}
         onActivityAdded={handleActivityAdded}
       />
       

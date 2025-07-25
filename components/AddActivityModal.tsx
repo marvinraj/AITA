@@ -21,17 +21,16 @@ interface AddActivityModalProps {
   onClose: () => void;
   date: string;
   tripId: string;
+  tripDestination?: string; // Add trip destination
   onActivityAdded: () => void;
 }
-
-// Mock data for now - will be replaced with actual search service
-const mockRecentSearches = ["Colosseum", "Vatican Museums", "Trevi Fountain"];
 
 export default function AddActivityModal({ 
   visible, 
   onClose, 
   date, 
   tripId, 
+  tripDestination,
   onActivityAdded 
 }: AddActivityModalProps) {
   // Tab state and saved places state
@@ -52,8 +51,6 @@ export default function AddActivityModal({
   };
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<Place[]>([]);
-  const [popularPlaces, setPopularPlaces] = useState<Place[]>([]);
-  const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
   const [suggestedCategories, setSuggestedCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState('');
@@ -64,6 +61,21 @@ export default function AddActivityModal({
   const [timeEnabled, setTimeEnabled] = useState(false);
   const [loading, setLoading] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
+  const [selectedSearchCategory, setSelectedSearchCategory] = useState<string | null>(null);
+
+  // Search categories similar to discover page
+  const searchCategories = [
+    { id: 'restaurants', name: 'Restaurants', query: 'restaurants' },
+    { id: 'hotels', name: 'Hotels', query: 'hotels' },
+    { id: 'attractions', name: 'Attractions', query: 'tourist attractions' },
+    { id: 'shopping', name: 'Shopping', query: 'shopping malls' },
+    { id: 'entertainment', name: 'Entertainment', query: 'entertainment' },
+    { id: 'museums', name: 'Museums', query: 'museums' },
+    { id: 'parks', name: 'Parks', query: 'parks' },
+    { id: 'cafes', name: 'Cafes', query: 'cafes' },
+    { id: 'nightlife', name: 'Nightlife', query: 'bars nightlife' },
+    { id: 'transport', name: 'Transport', query: 'transportation' },
+  ];
 
   // Reset state when modal opens
   useEffect(() => {
@@ -77,24 +89,16 @@ export default function AddActivityModal({
       setSelectedMinute(0);
       setSelectedPeriod('AM');
       setTimeEnabled(true); // Enable time by default since it's required
+      setSelectedSearchCategory(null); // Reset category selection
       loadInitialData();
       // Fetch saved places for this trip
       fetchSavedPlaces();
     }
   }, [visible]);
 
-  // Load initial data (popular places, recent searches)
+  // Load initial data
   const loadInitialData = async () => {
-    try {
-      const [popular, recent] = await Promise.all([
-        placesService.getPopularPlaces(6),
-        placesService.getRecentSearches()
-      ]);
-      setPopularPlaces(popular);
-      setRecentSearches(recent);
-    } catch (error) {
-      console.error('Error loading initial data:', error);
-    }
+    // Removed popular places and recent searches
   };
 
   // Debounced search functionality
@@ -105,7 +109,17 @@ export default function AddActivityModal({
       setSearchLoading(true);
       timeoutId = setTimeout(async () => {
         try {
-          const results = await placesService.searchPlaces(searchQuery);
+          // Check if the search query already includes the destination
+          const queryIncludesDestination = tripDestination && 
+            searchQuery.toLowerCase().includes(tripDestination.toLowerCase());
+          
+          // Only add destination if it's not already in the query and it's a manual search
+          // (not a category search that already includes destination)
+          const finalQuery = (!queryIncludesDestination && tripDestination && !selectedSearchCategory) 
+            ? `${searchQuery} in ${tripDestination}` 
+            : searchQuery;
+          
+          const results = await placesService.searchPlaces(finalQuery);
           setSearchResults(results);
         } catch (error) {
           console.error('Search error:', error);
@@ -122,7 +136,7 @@ export default function AddActivityModal({
     return () => {
       if (timeoutId) clearTimeout(timeoutId);
     };
-  }, [searchQuery]);
+  }, [searchQuery, tripDestination, selectedSearchCategory]);
 
   const handlePlaceSelect = (place: Place) => {
     setSelectedPlace(place);
@@ -146,6 +160,27 @@ export default function AddActivityModal({
 
   const handleCategorySelect = (categoryId: string) => {
     setSelectedCategory(categoryId);
+  };
+
+  // Handle search category selection (different from activity category)
+  const handleSearchCategorySelect = async (query: string, categoryId: string) => {
+    setSelectedSearchCategory(categoryId);
+    
+    // Include trip destination in search query for more relevant results
+    const searchQuery = tripDestination ? `${query} in ${tripDestination}` : query;
+    setSearchQuery(searchQuery);
+    
+    // Trigger search immediately
+    setSearchLoading(true);
+    try {
+      const results = await placesService.searchPlaces(searchQuery);
+      setSearchResults(results);
+    } catch (error) {
+      console.error('Search error:', error);
+      setSearchResults([]);
+    } finally {
+      setSearchLoading(false);
+    }
   };
 
   const handleAddActivity = async () => {
@@ -289,18 +324,71 @@ export default function AddActivityModal({
                 // ...existing search feature code...
                 <>
                   <Text className="text-primaryFont font-UrbanistSemiBold mb-3">
-                    Search for a place
+                    {tripDestination ? `Search places in ${tripDestination}` : 'Search for a place'}
                   </Text>
                   {/* Search Input */}
                   <View className="mb-4">
-                    <TextInput
-                      className="bg-secondaryBG text-primaryFont rounded-xl px-4 py-3 border border-border"
-                      placeholder="Search places..."
-                      placeholderTextColor="#888"
-                      value={searchQuery}
-                      onChangeText={setSearchQuery}
-                      autoFocus
-                    />
+                    <View className="relative">
+                      <TextInput
+                        className="bg-secondaryBG text-primaryFont rounded-xl px-4 py-3 pr-12 border border-border"
+                        placeholder="Search places..."
+                        placeholderTextColor="#888"
+                        value={searchQuery}
+                        onChangeText={(text) => {
+                          setSearchQuery(text);
+                          // Clear category selection when typing manually
+                          if (selectedSearchCategory && text !== searchCategories.find(cat => cat.id === selectedSearchCategory)?.query) {
+                            setSelectedSearchCategory(null);
+                          }
+                        }}
+                        autoFocus
+                      />
+                      {(searchQuery.length > 0 || selectedSearchCategory) && (
+                        <TouchableOpacity
+                          onPress={() => {
+                            setSearchQuery('');
+                            setSearchResults([]);
+                            setSelectedSearchCategory(null);
+                          }}
+                          className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1"
+                          activeOpacity={0.7}
+                        >
+                          <Text className="text-secondaryFont text-lg">✕</Text>
+                        </TouchableOpacity>
+                      )}
+                    </View>
+                  </View>
+
+                  {/* Category Selection Grid */}
+                  <View className="mb-4">
+                    <Text className="text-primaryFont font-UrbanistSemiBold mb-3">
+                      {tripDestination ? `Browse ${tripDestination} by category` : 'Browse by category'}
+                    </Text>
+                    <View className="flex-row flex-wrap gap-2">
+                      {searchCategories.map((category) => {
+                        const isSelected = selectedSearchCategory === category.id;
+                        return (
+                          <TouchableOpacity
+                            key={category.id}
+                            onPress={() => handleSearchCategorySelect(category.query, category.id)}
+                            className={`px-4 py-2 rounded-full border ${
+                              isSelected 
+                                ? 'bg-accentFont border-accentFont' 
+                                : 'bg-secondaryBG/50 border-border/30'
+                            }`}
+                            activeOpacity={0.8}
+                          >
+                            <Text className={`font-UrbanistSemiBold text-sm ${
+                              isSelected 
+                                ? 'text-primaryBG' 
+                                : 'text-primaryFont'
+                            }`}>
+                              {category.name}
+                            </Text>
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </View>
                   </View>
                   {/* Search Results */}
                   {searchLoading && (
@@ -315,74 +403,6 @@ export default function AddActivityModal({
                         Search Results
                       </Text>
                       {searchResults.map((place) => (
-                        <TouchableOpacity
-                          key={place.id}
-                          className="bg-secondaryBG/50 rounded-lg p-3 mb-2 border border-border/30"
-                          onPress={() => handlePlaceSelect(place)}
-                          activeOpacity={0.8}
-                        >
-                          <View className="flex-row">
-                            {/* Place Image */}
-                            {place.imageUrl && (
-                              <Image
-                                source={{ uri: place.imageUrl }}
-                                className="w-16 h-16 rounded-lg mr-3"
-                                resizeMode="cover"
-                              />
-                            )}
-                            {/* Place Info */}
-                            <View className="flex-1">
-                              <Text className="text-primaryFont font-UrbanistSemiBold">
-                                {place.name || 'Unknown Place'}
-                              </Text>
-                              <Text className="text-secondaryFont text-sm">
-                                📍 {place.address || 'Address not available'}
-                              </Text>
-                              {(place.rating && place.rating > 0) && (
-                                <Text className="text-secondaryFont text-xs mt-1">
-                                  ⭐ {place.rating} • {place.type || 'Place'}
-                                </Text>
-                              )}
-                              {place.description && (
-                                <Text className="text-secondaryFont text-xs mt-1" numberOfLines={1}>
-                                  {place.description}
-                                </Text>
-                              )}
-                            </View>
-                          </View>
-                        </TouchableOpacity>
-                      ))}
-                    </View>
-                  )}
-                  {/* Recent Searches */}
-                  {!searchQuery && recentSearches.length > 0 && (
-                    <View className="mb-4">
-                      <Text className="text-primaryFont font-UrbanistSemiBold mb-2">
-                        Recent Searches
-                      </Text>
-                      <View className="flex-row flex-wrap gap-2">
-                        {recentSearches.map((search, index) => (
-                          <TouchableOpacity
-                            key={index}
-                            className="bg-secondaryBG/30 rounded-full px-3 py-1 border border-border/30"
-                            onPress={() => setSearchQuery(search)}
-                            activeOpacity={0.8}
-                          >
-                            <Text className="text-primaryFont text-sm">
-                              {search}
-                            </Text>
-                          </TouchableOpacity>
-                        ))}
-                      </View>
-                    </View>
-                  )}
-                  {/* Popular Places */}
-                  {!searchQuery && popularPlaces.length > 0 && (
-                    <View className="mb-4">
-                      <Text className="text-primaryFont font-UrbanistSemiBold mb-2">
-                        Popular Places
-                      </Text>
-                      {popularPlaces.map((place) => (
                         <TouchableOpacity
                           key={place.id}
                           className="bg-secondaryBG/50 rounded-lg p-3 mb-2 border border-border/30"
