@@ -705,7 +705,7 @@ export default function AddActivityModal({
                     
                     {/* Selected time preview */}
                     <Text className="text-center text-secondaryFont text-sm mt-3">
-                      Selected: {selectedHour}:{selectedMinute.toString().padStart(2, '0')} {selectedPeriod}
+                      Selected: {`${selectedHour}:${selectedMinute.toString().padStart(2, '0')} ${selectedPeriod}`}
                     </Text>
                   </View>
               </View>
