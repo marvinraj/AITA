@@ -78,7 +78,6 @@ const WelcomeAboard = () => {
     const runStep = (stepIndex: number) => {
       if (stepIndex >= loadingSteps.length) {
         // All steps complete, navigate to main app for now
-        // TODO: Replace with guided setup once implemented
         setTimeout(() => {
           router.replace('/(root)/(tabs)')
         }, 1000)
