@@ -1,4 +1,3 @@
-import * as Location from 'expo-location';
 import { Trip } from '../../types/database';
 import { notificationService, TripReminder } from './notificationService';
 
@@ -131,57 +130,8 @@ export class TripNotificationManager {
 
   // set up location-based notifications for a trip
   static async setupLocationNotifications(trip: Trip): Promise<void> {
-    try {
-      if (!trip.destination) {
-        return;
-      }
-
-      // check if location services are available
-      const hasLocationSupport = await Location.hasServicesEnabledAsync();
-      if (!hasLocationSupport) {
-        return;
-      }
-
-      // This would typically involve geocoding the destination
-      // For now, we'll create a general arrival notification
-      const destinationCoords = await this.geocodeDestination(trip.destination);
-      
-      if (destinationCoords) {
-        await notificationService.scheduleLocationBasedNotification(
-          destinationCoords.latitude,
-          destinationCoords.longitude,
-          5000, // 5km radius
-          `Welcome to ${trip.destination}!`,
-          `You've arrived at your destination. Check out local recommendations and activities.`,
-          {
-            tripId: trip.id,
-            type: 'location_arrival',
-            destination: trip.destination
-          }
-        );
-      } else {
-        console.log(`Could not geocode destination: ${trip.destination}`);
-      }
-    } catch (error) {
-      console.error('Failed to setup location notifications:', error);
-    }
-  }
-
-  // Mock geocoding function (replace with real geocoding service) -> TODO: fix or no?
-  private static async geocodeDestination(destination: string): Promise<{ latitude: number; longitude: number } | null> {
-    // This is a mock implementation
-    // In a real app, you'd use a geocoding service like Google Maps, Mapbox, etc.
-    const mockCoordinates: { [key: string]: { latitude: number; longitude: number } } = {
-      'Paris': { latitude: 48.8566, longitude: 2.3522 },
-      'London': { latitude: 51.5074, longitude: -0.1278 },
-      'New York': { latitude: 40.7128, longitude: -74.0060 },
-      'Tokyo': { latitude: 35.6762, longitude: 139.6503 },
-      'Sydney': { latitude: -33.8688, longitude: 151.2093 },
-      'Rome': { latitude: 41.9028, longitude: 12.4964 },
-    };
-
-    const normalized = destination.split(',')[0].trim(); // Take first part before comma
-    return mockCoordinates[normalized] || null;
+    // removed location based notifications for now
+    return;
   }
 
   // send weather-based notifications TODO:: is this using the api weather service?
