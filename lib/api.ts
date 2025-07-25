@@ -262,7 +262,8 @@ If this is a request for specific places (cafes, restaurants, attractions, etc.)
       "priceLevel": "$|$$|$$$|$$$$",
       "location": "Area/District",
       "highlights": ["feature1", "feature2", "feature3"],
-      "googleMapsQuery": "Place Name + ${tripContext?.destination || 'location'}"
+      "googleMapsQuery": "Place Name + ${tripContext?.destination || 'location'}",
+      "imageCategory": "restaurant|attraction|hotel|activity|cafe"
     }
   ],
   "responseText": "Here are some great recommendations for your ${tripContext?.tripName || 'trip'}! Each one offers something unique:"

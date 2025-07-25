@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { Alert, Modal, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, Alert, Image, Modal, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { googlePlacesService } from '../lib/services/googlePlacesService';
 
 interface RecommendationItem {
   name: string;
@@ -9,6 +10,8 @@ interface RecommendationItem {
   location: string;
   highlights: string[];
   googleMapsQuery: string;
+  imageUrl?: string; // URL to image (from Places API, Unsplash, etc.)
+  imageCategory?: string; // 'restaurant', 'attraction', 'hotel' for fallback images
 }
 
 interface AddToItineraryModalProps {
@@ -30,6 +33,44 @@ export const AddToItineraryModal: React.FC<AddToItineraryModalProps> = ({
   const [selectedHour, setSelectedHour] = useState(9);
   const [selectedMinute, setSelectedMinute] = useState(0);
   const [selectedPeriod, setSelectedPeriod] = useState<'AM' | 'PM'>('AM');
+  const [realPhotoUrl, setRealPhotoUrl] = useState<string | null>(null);
+  const [loadingPhoto, setLoadingPhoto] = useState(false);
+
+  // Fetch real place photo when modal opens with new item
+  useEffect(() => {
+    if (visible && item) {
+      const fetchPlacePhoto = async () => {
+        setLoadingPhoto(true);
+        try {
+          // Check if we already have the photo in cache before making a new request
+          const photoUrl = await googlePlacesService.searchPlacePhoto(item.name, item.location);
+          setRealPhotoUrl(photoUrl);
+          console.log('📸 Fetched photo for modal:', item.name, photoUrl ? 'success' : 'fallback');
+        } catch (error) {
+          console.error('Error fetching photo for modal:', error);
+        } finally {
+          setLoadingPhoto(false);
+        }
+      };
+
+      // Only fetch if we don't already have a real photo URL
+      if (!item.imageUrl || !realPhotoUrl) {
+        fetchPlacePhoto();
+      } else {
+        // Use existing imageUrl if available
+        setRealPhotoUrl(item.imageUrl);
+        setLoadingPhoto(false);
+      }
+    }
+  }, [visible, item]);
+
+  // Reset photo when modal closes
+  useEffect(() => {
+    if (!visible) {
+      setRealPhotoUrl(null);
+      setLoadingPhoto(false);
+    }
+  }, [visible]);
 
   const handleAdd = () => {
     if (!selectedDate) {
@@ -94,6 +135,33 @@ export const AddToItineraryModal: React.FC<AddToItineraryModalProps> = ({
     return 'activity'; // Default category
   };
 
+  // Fallback images based on category
+  const getFallbackImage = (category?: string) => {
+    const fallbackImages = {
+      restaurant: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=300&h=200&fit=crop',
+      cafe: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=300&h=200&fit=crop',
+      attraction: 'https://images.unsplash.com/photo-1539650116574-75c0c6d0c6b4?w=300&h=200&fit=crop',
+      hotel: 'https://images.unsplash.com/photo-1455587734955-081b22074882?w=300&h=200&fit=crop',
+      activity: 'https://images.unsplash.com/photo-1539650116574-75c0c6d0c6b4?w=300&h=200&fit=crop',
+      shopping: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=300&h=200&fit=crop',
+      nightlife: 'https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=300&h=200&fit=crop',
+      default: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=300&h=200&fit=crop'
+    };
+    
+    return fallbackImages[category as keyof typeof fallbackImages] || fallbackImages.default;
+  };
+
+  const getImageSource = () => {
+    // Priority: Real photo from Places API > item.imageUrl > fallback
+    if (realPhotoUrl) {
+      return { uri: realPhotoUrl };
+    }
+    if (item?.imageUrl) {
+      return { uri: item.imageUrl };
+    }
+    return { uri: getFallbackImage(item?.imageCategory) };
+  };
+
   if (!visible || !item) return null;
 
   return (
@@ -104,20 +172,48 @@ export const AddToItineraryModal: React.FC<AddToItineraryModalProps> = ({
       onRequestClose={onClose}
     >
       <View className="flex-1 bg-black/50 justify-end">
-        <View className="bg-primaryBG rounded-t-3xl p-6 max-h-[80%]">
+        <View className="bg-primaryBG rounded-t-3xl p-6 max-h-[85%]">
           {/* Header */}
           <View className="flex-row justify-between items-center mb-4">
-            <Text className="text-primaryFont font-bold text-xl">Add to Itinerary</Text>
+            <Text className="text-primaryFont font-BellezaRegular text-2xl">Add to Itinerary</Text>
             <TouchableOpacity onPress={onClose}>
               <Text className="text-secondaryFont text-lg">✕</Text>
             </TouchableOpacity>
           </View>
 
           {/* Item info */}
-          <View className="bg-secondaryBG rounded-xl p-4 mb-4">
-            <Text className="text-primaryFont font-semibold text-lg mb-1">{item.name}</Text>
-            <Text className="text-secondaryFont text-sm mb-2">📍 {item.location}</Text>
-            <Text className="text-primaryFont text-sm">{item.description}</Text>
+          <View className="bg-secondaryBG rounded-xl mb-4 overflow-hidden">
+            {/* Image */}
+            <View className="relative">
+              <Image 
+                source={getImageSource()}
+                className="w-full h-64"
+                resizeMode="cover"
+                defaultSource={{ uri: getFallbackImage('default') }}
+              />
+              
+              {/* Loading overlay */}
+              {loadingPhoto && (
+                <View className="absolute inset-0 bg-gray-200/80 items-center justify-center">
+                  <ActivityIndicator size="small" color="#666" />
+                  <Text className="text-xs text-gray-600 mt-1">Loading photo...</Text>
+                </View>
+              )}
+              
+              {/* Real photo indicator
+              {realPhotoUrl && !loadingPhoto && (
+                <View className="absolute top-2 right-2 bg-green-500 rounded-full px-2 py-1">
+                  <Text className="text-white text-xs font-medium">📸 Real</Text>
+                </View>
+              )} */}
+            </View>
+            
+            {/* Content */}
+            <View className="p-4">
+              <Text className="text-primaryFont font-semibold text-lg mb-1">{item.name}</Text>
+              <Text className="text-secondaryFont text-sm mb-2">📍 {item.location}</Text>
+              <Text className="text-primaryFont text-sm">{item.description}</Text>
+            </View>
           </View>
 
           <ScrollView showsVerticalScrollIndicator={false}>
@@ -242,7 +338,7 @@ export const AddToItineraryModal: React.FC<AddToItineraryModalProps> = ({
           </ScrollView>
 
           {/* Action Buttons */}
-          <View className="flex-row space-x-3 mt-4">
+          <View className="flex-row space-x-4 mt-4">
             <TouchableOpacity
               onPress={onClose}
               className="flex-1 bg-secondaryBG rounded-xl py-3"
@@ -252,9 +348,9 @@ export const AddToItineraryModal: React.FC<AddToItineraryModalProps> = ({
             
             <TouchableOpacity
               onPress={handleAdd}
-              className="flex-1 bg-green-600 rounded-xl py-3"
+              className="flex-1 bg-green-600 rounded-xl py-3 ml-2"
             >
-              <Text className="text-white text-center font-medium">Add to Trip 🎉</Text>
+              <Text className="text-white text-center font-medium">Add to Trip</Text>
             </TouchableOpacity>
           </View>
         </View>
