@@ -24,13 +24,20 @@ const LOADING_MESSAGES = [
 
 // Generate AI-powered itinerary
 const generateAIItinerary = async (tripData: TripFormData): Promise<GeneratedActivity[]> => {
+  const budgetGuidance = tripData.budget && tripData.budget !== 'any' ? `
+Budget style: ${tripData.budget === 'budget' ? 'Budget traveler - focus on free/low-cost activities and affordable dining' :
+tripData.budget === 'mid-range' ? 'Mid-range explorer - balance value and comfort, include mix of budget and premium options' :
+tripData.budget === 'comfort' ? 'Comfort seeker - prioritize quality experiences and comfortable dining/activities' :
+tripData.budget === 'luxury' ? 'Luxury experience - include premium restaurants, exclusive activities, and high-end experiences' : ''}`
+: '';
+
   const prompt = `Generate a travel itinerary for a trip to ${tripData.destination} from ${tripData.startDate} to ${tripData.endDate}. 
 
 Trip details:
 - Destination: ${tripData.destination}
 - Travel dates: ${tripData.startDate} to ${tripData.endDate}
 - Traveling with: ${tripData.companions}
-- Interested in: ${tripData.activities}
+- Interested in: ${tripData.activities}${budgetGuidance}
 
 IMPORTANT GUIDELINES:
 1. Create 8-12 LOCAL activities/experiences in ${tripData.destination} only
@@ -38,7 +45,8 @@ IMPORTANT GUIDELINES:
 3. DO NOT include hotel check-in/check-out activities
 4. Focus on attractions, restaurants, activities, and experiences WITHIN the destination
 5. Ensure activities are realistic and can be done in ${tripData.destination}
-6. Distribute activities evenly across all trip days
+6. Distribute activities evenly across all trip days${tripData.budget && tripData.budget !== 'any' ? `
+7. Consider the ${tripData.budget} budget preference when selecting activities and restaurants` : ''}
 
 For each activity, provide:
 1. Activity name/title (specific to ${tripData.destination})
@@ -69,7 +77,8 @@ Respond ONLY with a JSON array of activities. No other text or formatting. Examp
         destination: tripData.destination,
         dates: `${tripData.startDate} to ${tripData.endDate}`,
         companions: tripData.companions,
-        activities: tripData.activities
+        activities: tripData.activities,
+        budget: tripData.budget
       }
     }
   ];
@@ -83,7 +92,8 @@ Respond ONLY with a JSON array of activities. No other text or formatting. Examp
         startDate: tripData.startDate,
         endDate: tripData.endDate,
         companions: tripData.companions,
-        activities: tripData.activities
+        activities: tripData.activities,
+        budget: tripData.budget
       },
       currentFocus: 'planning'
     });
@@ -100,17 +110,27 @@ Respond ONLY with a JSON array of activities. No other text or formatting. Examp
       // Clean the response - remove any markdown formatting
       let cleanResponse = response.trim();
       
-      // Remove markdown code blocks if present
-      cleanResponse = cleanResponse.replace(/```json\n?/g, '').replace(/```\n?/g, '');
+      // Remove markdown code blocks if present - be more aggressive
+      cleanResponse = cleanResponse.replace(/```json\s*/gi, '').replace(/```\s*/g, '');
       
-      // Find JSON array or object in the response
-      const jsonMatch = cleanResponse.match(/\[[\s\S]*\]/) || cleanResponse.match(/\{[\s\S]*\}/);
+      // Remove any leading/trailing whitespace and newlines
+      cleanResponse = cleanResponse.trim();
+      
+      // Try to find JSON array specifically first
+      let jsonMatch = cleanResponse.match(/\[[\s\S]*\]/);
       
       if (jsonMatch) {
         cleanResponse = jsonMatch[0];
+      } else {
+        // If no array found, try to find any JSON object
+        jsonMatch = cleanResponse.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          cleanResponse = jsonMatch[0];
+        }
       }
       
       console.log('Attempting to parse:', cleanResponse.substring(0, 200) + '...');
+      console.log('Full cleaned response length:', cleanResponse.length);
       
       const parsed = JSON.parse(cleanResponse);
       
@@ -127,7 +147,45 @@ Respond ONLY with a JSON array of activities. No other text or formatting. Examp
     } catch (jsonError) {
       console.error('JSON parsing failed:', jsonError);
       console.log('Raw response:', response.substring(0, 500));
-      throw new Error('Failed to parse AI response as JSON');
+      
+      // Try alternative parsing approaches
+      try {
+        console.log('Attempting alternative JSON parsing...');
+        
+        // Try to fix common JSON issues
+        let fixedResponse = response.trim();
+        
+        // Remove markdown blocks more aggressively
+        fixedResponse = fixedResponse.replace(/```[\w]*\s*/gi, '').replace(/```/g, '');
+        
+        // Remove any text before the first [ or {
+        const firstBracket = fixedResponse.search(/[\[\{]/);
+        if (firstBracket !== -1) {
+          fixedResponse = fixedResponse.substring(firstBracket);
+        }
+        
+        // Remove any text after the last ] or }
+        const lastBracket = Math.max(fixedResponse.lastIndexOf(']'), fixedResponse.lastIndexOf('}'));
+        if (lastBracket !== -1) {
+          fixedResponse = fixedResponse.substring(0, lastBracket + 1);
+        }
+        
+        console.log('Fixed response preview:', fixedResponse.substring(0, 200));
+        
+        const altParsed = JSON.parse(fixedResponse);
+        
+        if (Array.isArray(altParsed)) {
+          activitiesArray = altParsed;
+          console.log('Alternative parsing successful, length:', activitiesArray.length);
+        } else if (altParsed && typeof altParsed === 'object') {
+          activitiesArray = Object.values(altParsed).flat();
+          console.log('Alternative parsing successful (object), length:', activitiesArray.length);
+        }
+        
+      } catch (altError) {
+        console.error('Alternative parsing also failed:', altError);
+        throw new Error('Failed to parse AI response as JSON');
+      }
     }
     
     // Convert to GeneratedActivity format

@@ -12,6 +12,7 @@ export interface TripContext {
   endDate: string;
   companions: string;
   activities: string;
+  budget?: string;
   // NEW: Include itinerary context for smarter AI recommendations
   itineraryItems?: Array<{
     date: string;
@@ -106,7 +107,7 @@ export function useAIChat({
 📅 Travel Dates: ${formatDate(context.startDate)} to ${formatDate(context.endDate)}
 👥 Companions: ${formatCompanions(context.companions)}
 🎯 Preferred Activities: ${context.activities.split(',').join(', ')}
-✈️ Trip Name: ${context.tripName}`;
+✈️ Trip Name: ${context.tripName}${context.budget ? `\n💰 Budget Preference: ${context.budget === 'any' ? 'Any budget' : context.budget === 'budget' ? '$ Budget traveler' : context.budget === 'mid-range' ? '$$ Mid-range explorer' : context.budget === 'comfort' ? '$$$ Comfort seeker' : context.budget === 'luxury' ? '$$$$ Luxury experience' : context.budget}` : ''}`;
 
       // Include current itinerary information if available
       if (context.itineraryItems && context.itineraryItems.length > 0) {
@@ -324,6 +325,7 @@ What interests you most about your upcoming trip?`;
           endDate: tripContext.endDate,
           companions: tripContext.companions,
           activities: tripContext.activities,
+          budget: tripContext.budget,
           currentItinerary: tripContext.itineraryItems || []
         } : undefined,
         currentFocus: 'planning' as const

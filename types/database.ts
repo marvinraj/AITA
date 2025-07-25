@@ -8,6 +8,7 @@ export interface Trip {
   end_date?: string;
   companions?: string; // 'solo', 'partner', 'friends', 'family'
   activities?: string; // comma-separated list or JSON string
+  budget?: string; // 'any', 'budget', 'mid-range', 'comfort', 'luxury'
   status?: 'planning' | 'active' | 'completed';
   created_at: string;
   updated_at: string;
@@ -115,6 +116,7 @@ export interface TripFormData {
   endDate: string;
   companions: string;
   activities: string;
+  budget?: string;
 }
 
 // Input types for creating and updating records
@@ -138,6 +140,7 @@ export interface CreateTripInput {
   end_date?: string;
   companions?: string;
   activities?: string;
+  budget?: string;
   status?: 'planning' | 'active' | 'completed';
 }
 
@@ -148,6 +151,7 @@ export interface UpdateTripInput {
   end_date?: string;
   companions?: string;
   activities?: string;
+  budget?: string;
   status?: 'planning' | 'active' | 'completed';
 }
 

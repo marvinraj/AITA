@@ -93,6 +93,20 @@ Dates: ${conversationContext.tripDetails.startDate} to ${conversationContext.tri
 Travelers: ${conversationContext.tripDetails.companions}
 Interests: ${conversationContext.tripDetails.activities}`;
 
+                // Add budget information if available
+                if (conversationContext.tripDetails.budget) {
+                    const budgetLabels: { [key: string]: string } = {
+                        'any': 'Any budget - open to all price ranges',
+                        'budget': '$ Budget traveler - keeping costs low',
+                        'mid-range': '$$ Mid-range explorer - balancing value and comfort',
+                        'comfort': '$$$ Comfort seeker - prioritizing comfort and quality',
+                        'luxury': '$$$$ Luxury experience - premium experiences and amenities'
+                    };
+                    
+                    const budgetDescription = budgetLabels[conversationContext.tripDetails.budget] || conversationContext.tripDetails.budget;
+                    contextualPrompt += `\nBudget Style: ${budgetDescription}`;
+                }
+
                 // Include current itinerary if available
                 if (conversationContext.tripDetails.currentItinerary && conversationContext.tripDetails.currentItinerary.length > 0) {
                     console.log('🎯 AI Context: Including', conversationContext.tripDetails.currentItinerary.length, 'itinerary items');
@@ -181,12 +195,24 @@ Interests: ${conversationContext.tripDetails.activities}`;
                 itineraryContext = `\n\nItinerary is currently empty - great opportunity for comprehensive planning.`;
             }
             
+            // Include budget context
+            let budgetContext = '';
+            if (tripContext?.budget && tripContext.budget !== 'any') {
+                const budgetDescriptions: { [key: string]: string } = {
+                    'budget': 'budget-friendly options',
+                    'mid-range': 'mid-range value options',
+                    'comfort': 'comfortable quality options',
+                    'luxury': 'luxury premium options'
+                };
+                budgetContext = `\n\nBudget preference: ${budgetDescriptions[tripContext.budget] || tripContext.budget} - suggest accordingly.`;
+            }
+            
             const prompt = `Based on this travel conversation and trip to ${tripContext?.destination || 'their destination'}, suggest 3 helpful follow-up questions or topics the user might want to explore:
 
 Recent conversation:
-${recentConversation}${itineraryContext}
+${recentConversation}${itineraryContext}${budgetContext}
 
-Provide exactly 3 short, actionable suggestions (max 8 words each) that would be useful next steps. Consider current itinerary status and suggest complementary activities. Format as a simple list.`;
+Provide exactly 3 short, actionable suggestions (max 8 words each) that would be useful next steps. Consider current itinerary status${tripContext?.budget && tripContext.budget !== 'any' ? ` and their ${tripContext.budget} budget preference` : ''} and suggest complementary activities. Format as a simple list.`;
 
             const result = await model.generateContent(prompt);
             const suggestions = result.response.text().split('\n')
@@ -218,6 +244,11 @@ Provide exactly 3 short, actionable suggestions (max 8 words each) that would be
             const prompt = `You are a travel assistant. The user is asking for recommendations for their trip "${tripContext?.tripName || 'trip'}" in ${tripContext?.destination || 'their destination'}.
 
 User's request: "${latestMessage}"
+${tripContext?.budget ? `\nUser's budget preference: ${tripContext.budget === 'any' ? 'Open to all price ranges' : 
+tripContext.budget === 'budget' ? 'Budget traveler - keeping costs low' :
+tripContext.budget === 'mid-range' ? 'Mid-range explorer - balancing value and comfort' :
+tripContext.budget === 'comfort' ? 'Comfort seeker - prioritizing comfort and quality' :
+tripContext.budget === 'luxury' ? 'Luxury experience - premium experiences and amenities' : tripContext.budget}` : ''}
 
 If this is a request for specific places (cafes, restaurants, attractions, etc.), respond with a JSON object in this EXACT format:
 {
@@ -237,7 +268,7 @@ If this is a request for specific places (cafes, restaurants, attractions, etc.)
   "responseText": "Here are some great recommendations for your ${tripContext?.tripName || 'trip'}! Each one offers something unique:"
 }
 
-Provide 3-5 realistic recommendations based on the user's request. Make sure the JSON is valid and the googleMapsQuery can be used to search on Google Maps.
+Provide 6-10 realistic recommendations based on the user's request and budget preference. ${tripContext?.budget && tripContext.budget !== 'any' ? `Focus on ${tripContext.budget === 'budget' ? 'budget-friendly ($)' : tripContext.budget === 'mid-range' ? 'mid-range ($$)' : tripContext.budget === 'comfort' ? 'comfortable ($$$)' : 'luxury ($$$$)'} options.` : ''} Make sure the JSON is valid and the googleMapsQuery can be used to search on Google Maps.
 
 If this is NOT a request for specific places, just respond with: {"type": "regular"}`;
 

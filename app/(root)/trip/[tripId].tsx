@@ -1,8 +1,8 @@
+import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import EditTripModal from '../../../components/EditTripModal';
 import ItineraryTab from '../../../components/ItineraryTab';
 import LiveTripHeader from '../../../components/LiveTripHeader';
@@ -133,7 +133,8 @@ export default function TripDetailsPage() {
           startDate: trip.start_date,
           endDate: trip.end_date,
           companions: trip.companions,
-          activities: trip.activities
+          activities: trip.activities,
+          budget: trip.budget
         }
       });
     }

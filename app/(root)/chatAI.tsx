@@ -33,7 +33,8 @@ const chatAI = () => {
     startDate, 
     endDate, 
     companions, 
-    activities 
+    activities,
+    budget
   } = useLocalSearchParams<{ 
     tripId: string;
     tripName?: string;
@@ -42,6 +43,7 @@ const chatAI = () => {
     endDate?: string;
     companions?: string;
     activities?: string;
+    budget?: string;
   }>();
   
   
@@ -91,6 +93,7 @@ const chatAI = () => {
         endDate,
         companions,
         activities,
+        budget,
         itineraryItems: formattedItineraryItems
       };
     }
@@ -104,17 +107,20 @@ const chatAI = () => {
         endDate: trip.end_date,
         companions: trip.companions,
         activities: trip.activities,
+        budget: trip.budget,
         itineraryItems: formattedItineraryItems
       };
     }
     
     return undefined;
-  }, [tripName, destination, startDate, endDate, companions, activities, trip, itineraryItems]);
+  }, [tripName, destination, startDate, endDate, companions, activities, budget, trip, itineraryItems]);
 
   // Add debugging for tripContext
   useEffect(() => {
     console.log('TripContext updated:', {
       tripName: tripContext?.tripName || 'undefined',
+      destination: tripContext?.destination || 'undefined',
+      budget: tripContext?.budget || 'undefined',
       itineraryItemsCount: tripContext?.itineraryItems?.length || 0,
       itineraryItems: tripContext?.itineraryItems?.map(item => `${item.date} ${item.time}: ${item.title}`).join(', ') || 'none'
     });

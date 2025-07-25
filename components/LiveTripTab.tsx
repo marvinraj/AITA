@@ -171,7 +171,8 @@ export default function LiveTripTab({ onTripChange, onChatPress, onMapPress }: L
           startDate: currentTrip.start_date,
           endDate: currentTrip.end_date,
           companions: currentTrip.companions,
-          activities: currentTrip.activities
+          activities: currentTrip.activities,
+          budget: currentTrip.budget
         }
       });
     }

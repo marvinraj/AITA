@@ -17,6 +17,15 @@ const companionOptions = [
   { label: 'Family', value: 'family' },
 ];
 
+// define options for budget
+const budgetOptions = [
+  { label: 'Any budget', value: 'any', description: 'Open to all price ranges' },
+  { label: '$ Budget traveler', value: 'budget', description: 'Keep costs low' },
+  { label: '$$ Mid-range explorer', value: 'mid-range', description: 'Balance value and comfort' },
+  { label: '$$$ Comfort seeker', value: 'comfort', description: 'Prioritize comfort and quality' },
+  { label: '$$$$ Luxury experience', value: 'luxury', description: 'Premium experiences and amenities' },
+];
+
 // define options for activities
 const activityOptions = [
   'Adventure',
@@ -43,6 +52,8 @@ const SmartForm = () => {
     const [searchingDestinations, setSearchingDestinations] = useState(false);
     // state variable for companions
     const [companions, setCompanions] = useState('solo');
+    // state variable for budget
+    const [budget, setBudget] = useState('any');
     // state variable for selected activities
     const [activities, setActivities] = useState<string[]>([]);
     // calendar modal state
@@ -161,7 +172,8 @@ const SmartForm = () => {
             startDate: range.start,
             endDate: range.end,
             companions: companions,
-            activities: activities.join(',')
+            activities: activities.join(','),
+            budget: budget
         };
         
         setFormData(tripFormData);
@@ -183,6 +195,7 @@ const SmartForm = () => {
                 end_date: formData.endDate,
                 companions: formData.companions,
                 activities: formData.activities,
+                budget: formData.budget,
                 status: 'planning'
             });
 
@@ -225,6 +238,7 @@ const SmartForm = () => {
                     endDate: formData.endDate,
                     companions: formData.companions,
                     activities: formData.activities,
+                    budget: formData.budget,
                 },
             });
         } catch (error) {
@@ -248,11 +262,12 @@ const SmartForm = () => {
     // Calculate form completion progress (without activities)
     const getFormProgress = () => {
         let completed = 0;
-        const total = 3; // destination, dates, companions (activities moved to modal)
+        const total = 4; // destination, dates, companions, budget (activities moved to modal)
         
         if (destination) completed++;
         if (range.start && range.end) completed++;
         if (companions) completed++; // companions always has a default value
+        if (budget) completed++; // budget always has a default value
         
         return (completed / total) * 100;
     };
@@ -333,7 +348,7 @@ const SmartForm = () => {
                             Progress: {Math.round(getFormProgress())}%
                         </Text>
                         <Text className="text-xs text-secondaryFont/70">
-                            {Math.round(getFormProgress() / 33.33)} of 3 completed
+                            {Math.round(getFormProgress() / 25)} of 4 completed
                         </Text>
                     </View>
                     <View className="w-full bg-secondaryBG rounded-full h-2">
@@ -491,6 +506,35 @@ const SmartForm = () => {
                     >
                         <Text className={`font-UrbanistSemiBold ${companions === option.value ? 'text-primaryFont' : 'text-primaryFont'}`}>{option.label}</Text>
                     </TouchableOpacity>
+                    ))}
+                </View>
+
+                {/* budget */}
+                <Text className="text-primaryFont font-UrbanistSemiBold mb-2">What's your budget style?</Text>
+                <View className="mb-8">
+                    {budgetOptions.map((option) => (
+                        <TouchableOpacity
+                            key={option.value}
+                            className={`p-4 rounded-xl border mb-3 ${budget === option.value ? 'bg-accentFont/20 border-accentFont/50' : 'bg-secondaryBG border-border'}`}
+                            onPress={() => setBudget(option.value)}
+                            activeOpacity={0.8}
+                        >
+                            <View className="flex-row items-center justify-between">
+                                <View className="flex-1">
+                                    <Text className={`font-UrbanistSemiBold text-base ${budget === option.value ? 'text-primaryFont' : 'text-primaryFont'}`}>
+                                        {option.label}
+                                    </Text>
+                                    <Text className="text-secondaryFont text-sm mt-1">
+                                        {option.description}
+                                    </Text>
+                                </View>
+                                <View className={`w-5 h-5 rounded-full border-2 ${budget === option.value ? 'border-accentFont bg-accentFont' : 'border-border'}`}>
+                                    {budget === option.value && (
+                                        <View className="w-3 h-3 bg-white rounded-full m-0.5" />
+                                    )}
+                                </View>
+                            </View>
+                        </TouchableOpacity>
                     ))}
                 </View>
 

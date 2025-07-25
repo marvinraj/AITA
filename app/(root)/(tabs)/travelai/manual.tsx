@@ -5,6 +5,15 @@ import { Calendar } from 'react-native-calendars';
 import { Place, placesService } from '../../../../lib/services/placesService';
 import { tripsService } from '../../../../lib/services/tripsService';
 
+// define options for budget
+const budgetOptions = [
+  { label: 'Any budget', value: 'any', description: 'Open to all price ranges' },
+  { label: '$ Budget traveler', value: 'budget', description: 'Keep costs low' },
+  { label: '$$ Mid-range explorer', value: 'mid-range', description: 'Balance value and comfort' },
+  { label: '$$$ Comfort seeker', value: 'comfort', description: 'Prioritize comfort and quality' },
+  { label: '$$$$ Luxury experience', value: 'luxury', description: 'Premium experiences and amenities' },
+];
+
 const ManualTripCreation = () => {
   const router = useRouter();
   
@@ -15,6 +24,7 @@ const ManualTripCreation = () => {
   const [destinationSuggestions, setDestinationSuggestions] = useState<Place[]>([]);
   const [showDestinationSuggestions, setShowDestinationSuggestions] = useState(false);
   const [searchingDestinations, setSearchingDestinations] = useState(false);
+  const [budget, setBudget] = useState('any');
   
   // Calendar state
   const [showCalendar, setShowCalendar] = useState(false);
@@ -102,6 +112,7 @@ const ManualTripCreation = () => {
         destination: destination,
         start_date: range.start,
         end_date: range.end,
+        budget: budget,
         status: 'planning'
       });
 
@@ -367,6 +378,35 @@ const ManualTripCreation = () => {
             </View>
           </View>
         )}
+
+        {/* Budget */}
+        <Text className="text-primaryFont font-UrbanistSemiBold mb-2">What's your budget style?</Text>
+        <View className="mb-8">
+          {budgetOptions.map((option) => (
+            <TouchableOpacity
+              key={option.value}
+              className={`p-4 rounded-xl border mb-3 ${budget === option.value ? 'bg-accentFont/20 border-accentFont/50' : 'bg-secondaryBG border-border'}`}
+              onPress={() => setBudget(option.value)}
+              activeOpacity={0.8}
+            >
+              <View className="flex-row items-center justify-between">
+                <View className="flex-1">
+                  <Text className={`font-UrbanistSemiBold text-base ${budget === option.value ? 'text-primaryFont' : 'text-primaryFont'}`}>
+                    {option.label}
+                  </Text>
+                  <Text className="text-secondaryFont text-sm mt-1">
+                    {option.description}
+                  </Text>
+                </View>
+                <View className={`w-5 h-5 rounded-full border-2 ${budget === option.value ? 'border-accentFont bg-accentFont' : 'border-border'}`}>
+                  {budget === option.value && (
+                    <View className="w-3 h-3 bg-white rounded-full m-0.5" />
+                  )}
+                </View>
+              </View>
+            </TouchableOpacity>
+          ))}
+        </View>
 
         {/* Create Button */}
         <TouchableOpacity
