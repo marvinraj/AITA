@@ -28,15 +28,21 @@ const budgetOptions = [
 
 // define options for activities
 const activityOptions = [
-  'Adventure',
-  'Relaxation',
-  'Culture',
-  'Food',
-  'Nature',
-  'Nightlife',
-  'Shopping',
-  'History',
-  'Sports',
+    '🏔️ Adventure',
+    '🧘 Relaxation',
+    '🎭 Culture',
+    '🍽️ Food',
+    '🌿 Nature',
+    '🌃 Nightlife',
+    '🛍️ Shopping',
+    '🏛️ History',
+    '⚽ Sports',
+    '🎨 Arts & Crafts',
+    '🎵 Music',
+    '🏖️ Beach',
+    '📸 Photography', 
+    '🍷 Wine & Drinks',
+    '🦋 Wildlife',
 ];
 
 const SmartForm = () => {
