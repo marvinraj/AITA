@@ -211,9 +211,9 @@ export default function LiveTripTab({ onTripChange, onChatPress, onMapPress }: L
     return (
       <View className="flex-1 bg-primaryBG px-6">
         {/* Greeting */} 
-        <View className="pt-4 pb-4">
-          <Text className="text-primaryFont text-3xl font-BellezaRegular">
-            Hey, {profileData.name}
+        <View className="pt-4 pb-1">
+          <Text className="text-primaryFont text-base font-BellezaRegular">
+            Welcome,  <Text className="text-2xl italic text-accentFont">{profileData.name}</Text>
           </Text>
         </View>
 
@@ -259,9 +259,9 @@ export default function LiveTripTab({ onTripChange, onChatPress, onMapPress }: L
   return (
     <View className="flex-1 bg-primaryBG">
       {/* greeting */} 
-      <View className="pt-4 pb-4">
-        <Text className="text-primaryFont text-3xl font-BellezaRegular">
-          Hey, {profileData.name}
+      <View className="pt-4 pb-1">
+        <Text className="text-primaryFont text-base font-BellezaRegular">
+          Welcome,  <Text className="text-2xl italic text-accentFont">{profileData.name}</Text>
         </Text>
       </View>
       
