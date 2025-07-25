@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Animated, Image, Text, TouchableOpacity, View } from 'react-native';
 import { useProfile } from '../hooks/useProfile';
+import { itineraryService } from '../lib/services/itineraryService';
 import { tripsService } from '../lib/services/tripsService';
 import { Trip } from '../types/database';
 import ItineraryTab from './ItineraryTab';
@@ -34,6 +35,9 @@ export default function LiveTripTab({ onTripChange, onChatPress, onMapPress }: L
   // trip state
   const [currentTrip, setCurrentTrip] = useState<Trip | null>(null);
   const [loading, setLoading] = useState(true);
+  // state for itinerary items to analyze trip context
+  const [itineraryItems, setItineraryItems] = useState<any[]>([]);
+  const [itineraryLoading, setItineraryLoading] = useState(false);
   // state for rotating chat messages
   const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
   // state for typing animation
@@ -42,14 +46,124 @@ export default function LiveTripTab({ onTripChange, onChatPress, onMapPress }: L
   const [canRotate, setCanRotate] = useState(false);
   const fadeAnim = useState(new Animated.Value(1))[0];
 
-  // Dynamic messages for AI chat button - memoized to prevent re-creation
-  const chatMessages = useMemo(() => [
-    `Hey, need help with planning your trip?`,
-    `Ready to explore ${profileData.name}? Let's plan together!`,
-    `${profileData.name}, I can help you discover amazing places!`,
-    `Planning made easy, ${profileData.name}. Just ask me!`,
-    `${profileData.name}, let's make your trip unforgettable!`
-  ], [profileData.name]);
+  // SMART MESSAGE GENERATOR BASED ON TRIP CONTEXT
+  const generateSmartMessages = useCallback(() => {
+    if (!currentTrip || !currentTrip.start_date || !currentTrip.end_date) {
+      return [`Hey ${profileData.name}, ready to plan your next adventure?`];
+    }
+
+    const now = new Date();
+    const startDate = new Date(currentTrip.start_date);
+    const endDate = new Date(currentTrip.end_date);
+    const daysUntilTrip = Math.ceil((startDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    const daysIntoTrip = Math.ceil((now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+    const isCurrentlyOnTrip = now >= startDate && now <= endDate;
+    const hour = now.getHours();
+    
+    // Time-sensitive greetings
+    const timeGreeting = hour < 12 ? 'Good morning!' : hour < 17 ? 'Good afternoon!' : 'Good evening!';
+    
+    let messages: string[] = [];
+
+    // Real-time relevance: During trip dates
+    if (isCurrentlyOnTrip) {
+      // Check for upcoming activities (within 1 hour)
+      const upcomingActivity = itineraryItems.find(item => {
+        if (!item.time || !item.date) return false;
+        
+        const itemDate = new Date(item.date);
+        const [hours, minutes] = item.time.split(':').map(Number);
+        const activityDateTime = new Date(itemDate);
+        activityDateTime.setHours(hours, minutes, 0, 0);
+        
+        const timeDiff = activityDateTime.getTime() - now.getTime();
+        const oneHour = 60 * 60 * 1000; // 1 hour in milliseconds
+        
+        // Activity is within the next hour (but not past)
+        return timeDiff > 0 && timeDiff <= oneHour;
+      });
+
+      if (upcomingActivity) {
+        const [hours, minutes] = upcomingActivity.time.split(':').map(Number);
+        const timeString = `${hours}:${minutes.toString().padStart(2, '0')}`;
+        messages.push(`Reminder: ${upcomingActivity.title} at ${timeString} - less than 1 hour away!`);
+        messages.push(`Don't forget your ${upcomingActivity.title} activity at ${timeString}!`);
+      } else {
+        messages.push(`How's your ${currentTrip.destination} trip going?`);
+        messages.push(`${timeGreeting} Enjoying ${currentTrip.destination}?`);
+        messages.push(`Need real-time tips for ${currentTrip.destination}?`);
+      }
+      return messages;
+    }
+
+    // Nearby trip dates (within 14 days)
+    if (daysUntilTrip <= 14 && daysUntilTrip > 0) {
+      if (daysUntilTrip === 1) {
+        messages.push(`Your ${currentTrip.destination} trip starts tomorrow - need last-minute tips?`);
+        messages.push(`Final preparations for ${currentTrip.destination}?`);
+      } else {
+        // Countdown messaging
+        messages.push(`T-minus ${daysUntilTrip} days to your ${currentTrip.destination} vacation!`);
+        messages.push(`${daysUntilTrip} days until ${currentTrip.destination} - getting excited?`);
+      }
+    }
+
+    // Analyze itinerary completeness
+    if (itineraryItems.length === 0) {
+      // Empty itinerary
+      messages.push(`Let's add some activities to your ${currentTrip.destination} trip!`);
+      messages.push(`Your ${currentTrip.destination} itinerary is empty - let's fill it up!`);
+    } else {
+      // Check for incomplete planning - analyze gaps
+      const tripDuration = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+      const daysCovered = new Set(itineraryItems.map(item => item.date)).size;
+      
+      if (daysCovered < tripDuration) {
+        const missingDays = tripDuration - daysCovered;
+        messages.push(`Missing plans for ${missingDays} day${missingDays > 1 ? 's' : ''} of your ${currentTrip.destination} trip. TRAVA's here to help you plan!`);
+      }
+
+      // Check for missing meal plans
+      const hasDinnerPlans = itineraryItems.some(item => 
+        item.time && parseInt(item.time.split(':')[0]) >= 18 && 
+        (item.category === 'restaurant' || item.title.toLowerCase().includes('dinner'))
+      );
+      
+      if (!hasDinnerPlans) {
+        messages.push(`Missing dinner plans for your ${currentTrip.destination} trip?`);
+      }
+
+      // Check for day-specific gaps (simplified example for day 2)
+      const day2Date = new Date(startDate);
+      day2Date.setDate(day2Date.getDate() + 1);
+      const day2Items = itineraryItems.filter(item => item.date === day2Date.toISOString().split('T')[0]);
+      
+      if (tripDuration >= 2 && day2Items.length === 0) {
+        messages.push(`Missing plans for day 2 of your ${currentTrip.destination} trip?`);
+      }
+    }
+
+    // Time-sensitive planning messages
+    if (hour < 12) {
+      messages.push(`${timeGreeting} Ready to plan today's ${currentTrip.destination} adventure?`);
+    } else if (hour >= 18) {
+      messages.push(`Evening planning session for ${currentTrip.destination}?`);
+    }
+
+    // Default fallback messages with trip context
+    if (messages.length === 0) {
+      messages.push(`Need help planning your ${currentTrip.destination} trip?`);
+      messages.push(`Ready to explore ${currentTrip.destination}, ${profileData.name}?`);
+      messages.push(`Let's make your ${currentTrip.destination} trip unforgettable!`);
+    }
+
+    return messages.slice(0, 4); // Return max 3 messages for rotation
+  }, [currentTrip, itineraryItems, profileData.name]);
+
+  // Dynamic messages for AI chat button - now smart and context-aware
+  const chatMessages = useMemo(() => {
+    return generateSmartMessages();
+  }, [generateSmartMessages]);
 
   // Load current trip on component mount
   useEffect(() => {
@@ -73,7 +187,7 @@ export default function LiveTripTab({ onTripChange, onChatPress, onMapPress }: L
         // Allow rotation only after typing is complete and a brief pause
         setTimeout(() => {
           setCanRotate(true);
-        }, 6000); // 4 second pause after typing completes
+        }, 6000); // 6 second pause after typing completes
       }
     }, 50);
   }, []);
@@ -129,31 +243,54 @@ export default function LiveTripTab({ onTripChange, onChatPress, onMapPress }: L
       if (!trip) {
         // No trips found - don't create a default one
         setCurrentTrip(null);
+        setItineraryItems([]);
         onTripChange?.(null);
       } else {
         setCurrentTrip(trip);
         onTripChange?.(trip);
+        
+        // Load itinerary items for smart messaging
+        await loadItineraryItems(trip.id);
       }
     } catch (err) {
       console.error('Error loading current trip:', err);
       // Don't create fallback trip - let user start fresh
       setCurrentTrip(null);
+      setItineraryItems([]);
       onTripChange?.(null);
     } finally {
       setLoading(false);
     }
   };
 
+  // Load itinerary items for trip context analysis
+  const loadItineraryItems = async (tripId: string) => {
+    try {
+      setItineraryLoading(true);
+      const items = await itineraryService.getItineraryByTrip(tripId);
+      setItineraryItems(items || []);
+    } catch (error) {
+      console.error('Error loading itinerary items:', error);
+      setItineraryItems([]);
+    } finally {
+      setItineraryLoading(false);
+    }
+  };
+
   // Handle trip updates from the header
-  const handleTripUpdate = (updatedTrip: Trip) => {
+  const handleTripUpdate = async (updatedTrip: Trip) => {
     setCurrentTrip(updatedTrip);
     onTripChange?.(updatedTrip);
+    // Reload itinerary items for updated context
+    await loadItineraryItems(updatedTrip.id);
   };
 
   // Handle trip selection change from the header
-  const handleTripChange = (selectedTrip: Trip) => {
+  const handleTripChange = async (selectedTrip: Trip) => {
     setCurrentTrip(selectedTrip);
     onTripChange?.(selectedTrip);
+    // Load itinerary items for new trip context
+    await loadItineraryItems(selectedTrip.id);
   };
 
   // Handle chat button press
