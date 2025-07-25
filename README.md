@@ -1,10 +1,11 @@
 # TRAVA - AI-Powered Travel Assistant
 
-A comprehensive AI-powered travel planning and assistance mobile application built with React Native, Expo, and powered by Google Gemini Pro AI.
+A comprehensive AI-powered travel planning and assistance mobile application built with React Native, Expo, Supabase and powered by Google Gemini Pro AI. This project was built for PRJ3223 Capstone Project 2.
 
 ## About This Project
 
-TRAVA (AI-Powered Travel Assistant) is a smart travel companion that helps users plan, organize, and manage their trips with the power of artificial intelligence. The app provides personalized travel recommendations, intelligent itinerary planning, real-time place discovery, and contextual travel advice tailored to each user's specific trip details and preferences.
+TRAVA (AI-Powered Travel Assistant) is a smart travel assistant that helps users plan, organize, and manage their trips with the power of artificial intelligence. The app provides personalized travel recommendations, intelligent itinerary planning, real-time place discovery, and contextual travel advice tailored to each user's specific trip details and preferences.
+
 
 ### Key Features:
 - **AI-Powered Travel Assistant**: Chat with an intelligent travel expert that understands your trip context
@@ -43,120 +44,10 @@ TRAVA (AI-Powered Travel Assistant) is a smart travel companion that helps users
 
 ---
 
-## 🚀 **Getting Started**
 
-### **Prerequisites**
-- Node.js (v18 or higher)
-- npm or yarn
-- Expo CLI
-- Android Studio (for Android development)
-- Xcode (for iOS development on macOS)
-
-### **Installation**
-
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/marvinraj/AITA-ai-travel-assistant.git
-   cd aita-ai
-   ```
-
-2. **Install dependencies**
-   ```bash
-   npm install
-   # or
-   yarn install
-   ```
-
-3. **Environment Setup**
-   
-   Create a `.env` file in the root directory:
-   ```env
-   EXPO_PUBLIC_SUPABASE_URL=your_supabase_project_url
-   EXPO_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-   EXPO_PUBLIC_GEMINI_API_KEY=your_google_gemini_api_key
-   ```
-
-4. **Database Setup**
-   
-   Run the Supabase migrations in order:
-   ```bash
-   # Navigate to supabase folder and run SQL files in your Supabase dashboard
-   # Or use Supabase CLI:
-   supabase db reset
-   ```
-
-5. **Start the development server**
-   ```bash
-   npm start
-   # or
-   expo start
-   ```
-
-6. **Run on device/simulator**
-   ```bash
-   # For iOS
-   npm run ios
-   
-   # For Android  
-   npm run android
-   
-   # For Web
-   npm run web
-   ```
-
----
-
-## 📂 **Project Structure**
-
-```
-aita-ai/
-├── app/                          # App screens and navigation
-│   ├── (auth)/                   # Authentication screens
-│   │   ├── sign-in.tsx
-│   │   ├── sign-up.tsx
-│   │   └── onboard.tsx
-│   ├── (root)/                   # Main app screens
-│   │   ├── chatAI.tsx           # AI chat interface
-│   │   ├── settings.tsx         # User settings
-│   │   ├── (tabs)/              # Tab navigation screens
-│   │   └── trip/                # Trip management screens
-│   └── _layout.tsx              # Root layout
-├── components/                   # Reusable UI components
-│   ├── DynamicItinerary.tsx     # Interactive itinerary
-│   ├── MessageActions.tsx       # Chat message actions
-│   ├── StructuredResponse.tsx   # AI response formatting
-│   └── ...
-├── hooks/                       # Custom React hooks
-│   ├── useAIChat.ts            # AI chat functionality
-│   ├── useNotifications.ts     # Push notifications
-│   └── ...
-├── lib/                         # Core services and utilities
-│   ├── api.ts                  # Google Gemini AI integration
-│   ├── supabase.ts             # Supabase client
-│   └── services/               # Business logic services
-├── supabase/                    # Database schemas and migrations
-├── types/                       # TypeScript type definitions
-└── constants/                   # App constants and configurations
-```
-
-
-## 🤝 **Contributing**
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
----
 
 ## 📄 **License**
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-
-
----
-
-<!-- <p align="center">Made with ❤️ for travelers worldwide</p> -->
 
