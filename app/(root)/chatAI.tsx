@@ -589,7 +589,7 @@ const chatAI = () => {
               elevation: 5,
             }}
           >
-            <Text className="font-InterBold text-sm text-white text-center" numberOfLines={1} ellipsizeMode="tail">
+            <Text className="font-BellezaRegular text-2xl text-white text-center" numberOfLines={1} ellipsizeMode="tail">
               {tripLoading ? 'Loading...' : trip?.destination || 'AI Assistant'}
             </Text>
           </View>
